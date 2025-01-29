@@ -14,10 +14,7 @@ const Header = () => {
   const profileRef = useRef<HTMLDivElement>(null); // Reference to the profile dropdown
   const profileButtonRef = useRef<HTMLImageElement>(null); // Reference to the profile button
 
-
-
-
-  const toggleDropdown = () => {
+ const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
   const logoutHandler = () => {
