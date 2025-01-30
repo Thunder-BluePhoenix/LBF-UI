@@ -53,7 +53,7 @@ const Header = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8010/api/method/lbf_logistica.api.bol.get_bill_of_landing', {
+        const response = await fetch('/api/method/lbf_logistica.api.bol.get_bill_of_landing', {
           method: 'GET',
         });
         const data = await response.json();

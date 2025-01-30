@@ -33,7 +33,7 @@ const BloList: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        'http://127.0.0.1:8010/api/method/lbf_logistica.api.bol.get_bill_of_landing'
+        '/api/method/lbf_logistica.api.bol.get_bill_of_landing'
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
