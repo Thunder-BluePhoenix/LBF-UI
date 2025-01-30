@@ -33,7 +33,9 @@ const BloList: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        'https://lbf-dev.frappe.cloud/api/method/lbf_logistica.api.bol.get_bill_of_landing'
+
+        '/api/method/lbf_logistica.api.bol.get_bill_of_landing'
+
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BiHide, BiShowAlt } from 'react-icons/bi';
 import { useFrappeAuth } from 'frappe-react-sdk';
 import Frame from '../assets/Frame 1430105876.png';
@@ -10,10 +10,17 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, error, isValidating } = useFrappeAuth();
+  const { currentUser,login, error, isValidating } = useFrappeAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/customer_portal/dashboard'); // Redirect to dashboard if logged in
+    }
+  }, [currentUser, navigate]);
+
   const handleLogin = async (e: { preventDefault: () => void }) => {
+
     e.preventDefault();
     
     try {

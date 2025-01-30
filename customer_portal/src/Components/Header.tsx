@@ -22,9 +22,9 @@ const Header = () => {
   };
 
   // Logout handler
-  const logoutHandler = () => {
-    logout();
-    handleItemClick();
+  const logoutHandler = async () => {
+    await logout();
+    // handleItemClick();
     navigate('/customer_portal/login');
   };
 
@@ -53,7 +53,9 @@ const Header = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('https://lbf-dev.frappe.cloud/api/method/lbf_logistica.api.bol.get_bill_of_landing', {
+
+        const response = await fetch('/api/method/lbf_logistica.api.bol.get_bill_of_landing', {
+
           method: 'GET',
         });
         const data = await response.json();
