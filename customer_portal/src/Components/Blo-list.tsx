@@ -33,7 +33,7 @@ const BloList: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        'http://127.0.0.1:8010/api/method/lbf_logistica.api.bol.get_bill_of_landing'
+        'https://lbf-dev.frappe.cloud/api/method/lbf_logistica.api.bol.get_bill_of_landing'
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -133,7 +133,7 @@ const BloList: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by invoice id"
+              placeholder="Search by BOL id"
               className="border border-gray-300 rounded-lg pl-10 pr-10 py-2 w-full"
             />
             {searchQuery && (
