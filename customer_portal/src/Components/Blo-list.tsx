@@ -109,7 +109,7 @@ const BloList: React.FC = () => {
         <div className="flex items-center space-x-4">
           <div
             onClick={handleGoBack}
-            className="p-[10px] border border-gray-500  rounded-lg flex items-center justify-center bg-gray-100 text-gray-700 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg"
+            className="p-[7px] border border-gray-500  rounded-lg flex items-center justify-center bg-gray-100 text-gray-700 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg"
           >
             <span className="text-xl">
               <FiArrowLeft />
@@ -199,15 +199,15 @@ const BloList: React.FC = () => {
       {/* Pagination */}
       <div className="flex justify-center space-x-2 mt-4">
         <button
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg"
+          className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg"
           disabled={currentPage === 1}
           onClick={() => handlePageChange(currentPage - 1)}
         >
           Previous
         </button>
-        <span className="px-4 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
+        <span className="px-4 text-sm py-2">{`Page ${currentPage} of ${totalPages}`}</span>
         <button
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg"
+          className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg"
           disabled={currentPage === totalPages}
           onClick={() => handlePageChange(currentPage + 1)}
         >
