@@ -22,9 +22,9 @@ const Header = () => {
   };
 
   // Logout handler
-  const logoutHandler = () => {
-    logout();
-    handleItemClick();
+  const logoutHandler = async () => {
+    await logout();
+    // handleItemClick();
     navigate('/customer_portal/login');
   };
 
