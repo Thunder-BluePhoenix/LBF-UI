@@ -39,7 +39,7 @@ function LBFApp() {
 						<Route
 							path="/customer_portal/request-list"
 							element={
-								<Layout ><div className="p-4">
+								<Layout ><div className="p-4 pl-0">
 								<RequestList />
 							</div> </Layout>
 								
@@ -56,9 +56,9 @@ function LBFApp() {
 						<Route
 							path="/customer_portal/redelivery-request"
 							element={
-								<div className="p-4">
-									<RedeliveryRequest />
-								</div>
+								<Layout><div className="">
+								<RedeliveryRequest />
+							</div></Layout>
 							}
 						/>
 						<Route
@@ -72,9 +72,9 @@ function LBFApp() {
 						<Route
 							path="/customer_portal/new-customer"
 							element={
-								<div className="p-4">
-									<NewCustomer />
-								</div>
+								<Layout><div className="">
+								<NewCustomer />
+							</div></Layout>
 							}
 						/>
 						<Route
