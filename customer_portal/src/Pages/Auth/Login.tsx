@@ -15,7 +15,7 @@ const Login = () => {
 
   useEffect(() => {
     if (currentUser) {
-      navigate('/customer_portal/dashboard'); // Redirect to dashboard if logged in
+      navigate('/customer_portal/'); // Redirect to dashboard if logged in
     }
   }, [currentUser, navigate]);
 
@@ -30,7 +30,7 @@ const Login = () => {
       });
     
       console.log('Login successful');
-      navigate('/customer_portal/blo-list'); // Redirect to blo-list after login
+      navigate('/customer_portal/bill-of-landing-list'); // Redirect to blo-list after login
     } catch (err) {
       console.error('Login failed:', err);
     }

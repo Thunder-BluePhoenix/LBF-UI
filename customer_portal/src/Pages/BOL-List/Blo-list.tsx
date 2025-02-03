@@ -20,7 +20,7 @@ interface Request {
 
 }
 
-const BloList: React.FC = () => {
+const BillOfLandingList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState<Request[]>([]);
@@ -56,6 +56,10 @@ const BloList: React.FC = () => {
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  const handleBillOfLanding = (id: string) => {
+    navigate(`/customer_portal/bill-of-landing-ditails/${id}`);
   };
 
   const handleClearSearch = () => {
@@ -152,7 +156,7 @@ const BloList: React.FC = () => {
 
       {/* Table */}
       <div className="w-full py-4">
-        <table className="min-w-full bg-white shadow rounded-lg">
+        <table className="min-w-full bg-white shadow rounded-lg ">
           <thead>
             <tr className="border-b border-b-gray-300 bord">
               <th className="p-4 text-left text-xs opacity-[70%]">Serial no.</th>
@@ -170,12 +174,15 @@ const BloList: React.FC = () => {
             {paginatedRequests.map((request, index) => (
               <tr
                 key={request.name}
+                onClick={() => handleBillOfLanding(request.name)}
                 className="border-b border-b-gray-300  hover:bg-gray-100 cursor-pointer"
               >
                 <td className="p-4 text-xs opacity-[70%]">
                   {index + 1 + (currentPage - 1) * itemsPerPage}
                 </td>
-                <td className="p-4 text-xs opacity-[100%]">{request.name}</td>
+                <td 
+                 
+                className="p-4 text-xs opacity-[100%]">{request.name}</td>
                 <td className="p-4 text-xs opacity-[70%] text-black hover:underline cursor-pointer">
                   {request.customer}
                 </td>
@@ -220,5 +227,5 @@ const BloList: React.FC = () => {
   );
 };
 
-export default BloList;
+export default BillOfLandingList;
 

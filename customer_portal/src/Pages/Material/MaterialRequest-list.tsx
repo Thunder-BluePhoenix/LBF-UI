@@ -260,7 +260,7 @@ const requestList: Request[] = [
     },
 ];
 
-const RequestList: React.FC = () => {
+const MaterialRequestList: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const navigator = useNavigate();
@@ -298,10 +298,10 @@ const RequestList: React.FC = () => {
     };
 
     const handleRedirectToRedeliveryRequest = () => {
-        navigator('/redelivery-request');
+        navigator('/customer_portal/material-request-form');
     };
     const handlMaterialRequestDetails = () => {
-        navigator('/material-request-details');
+        navigator('/customer_portal/material-request-details');
     };
 
     const handleGoBack = () => {
@@ -395,7 +395,7 @@ const RequestList: React.FC = () => {
                             <tr
                                 key={request.id}
                                 className="border-b hover:bg-gray-100 cursor-pointer"
-                                onClick={() => navigator('/material-request-details')}
+                                onClick={() => navigator('/customer_portal/material-request-details')}
                             >
                                 <td className=" p-4">
                                     <input type="checkbox" className=" form-checkbox" />
@@ -452,4 +452,4 @@ const RequestList: React.FC = () => {
     );
 };
 
-export default RequestList;
+export default MaterialRequestList;
