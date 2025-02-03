@@ -1,65 +1,111 @@
-import { NavLink } from 'react-router-dom';
-import { BsBookmarkPlus, BsTextarea, BsToggleOff } from 'react-icons/bs';
-import { FiBell, FiUserPlus, FiUsers } from 'react-icons/fi';
-import { RxDashboard } from 'react-icons/rx';
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { BsTextareaResize } from "react-icons/bs";
+import { FiBell, FiUserPlus, FiUsers } from "react-icons/fi";
+import { RxDashboard } from "react-icons/rx";
 
 const Sidebar = () => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <div className="bg-gray-50 border border-gray-300  fixed h-screen w-20 flex flex-col items-center py-4">
-      <div className='mb-6'>
-        <NavLink to="/customer_portal/dashboard">
-          <img src="https://cdn.dribbble.com/userupload/10556461/file/original-58141f3190ba71cd1ee27e322a7df6ab.png?format=webp&resize=400x300&vertical=center" alt="Logo" width={50} height={50} />
+    <div
+      className={`fixed h-screen flex flex-col items-center bg-gray-50 border-r border-gray-300 ${
+        isHovered ? "w-64" : "w-20"
+      } transition-all duration-300 z-50`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Logo */}
+      <div className="flex items-center justify-start w-full py-4 ml-4">
+        <NavLink to="/customer_portal/home" end>
+          <img
+            src="https://cdn.dribbble.com/userupload/10556461/file/original-58141f3190ba71cd1ee27e322a7df6ab.png?format=webp&resize=400x300&vertical=center"
+            alt="Company Logo"
+            className="h-12 w-12"
+          />
         </NavLink>
       </div>
-      <div className="flex flex-col gap-4 items-center space-y-6 text-gray-400">
-        <NavLink 
-          to="/customer_portal/dashboard" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <RxDashboard />
+
+      {/* Sidebar Navigation */}
+      <div className="flex flex-col gap-4 justify-center w-[90%] text-gray-400">
+        {/* Dashboard Link */}
+        <NavLink
+          to="/customer_portal/home"
+          end
+          className={({ isActive }: { isActive: boolean }) =>
+            `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${
+              isActive
+                ? "text-white bg-orange-500"
+                : "hover:text-white hover:bg-orange-500"
+            }`
+          }
+        >
+          <RxDashboard size={24} />
+          {isHovered && <span>Dashboard</span>}
         </NavLink>
-        <NavLink 
-          to="/customer_portal/blo-list" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <BsTextarea />
+
+        {/* BOL-Lists Link */}
+        <NavLink
+          to="/customer_portal/bill-of-landing-list"
+          end
+          className={({ isActive }: { isActive: boolean }) =>
+            `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${
+              isActive
+                ? "text-white bg-orange-500"
+                : "hover:text-white hover:bg-orange-500"
+            }`
+          }
+        >
+          <BsTextareaResize size={24} />
+          {isHovered && <span>BOL-Lists</span>}
         </NavLink>
-        <NavLink 
-          to="/customer_portal/request-list" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <FiUserPlus />
+
+        {/* Material Link */}
+        <NavLink
+          to="/customer_portal/material-request-list"
+          end
+          className={({ isActive }: { isActive: boolean }) =>
+            `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${
+              isActive
+                ? "text-white bg-orange-500"
+                : "hover:text-white hover:bg-orange-500"
+            }`
+          }
+        >
+          <FiUserPlus size={24} />
+          {isHovered && <span>Material</span>}
         </NavLink>
-        <NavLink 
-          to="/customer_portal/user" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <FiUsers />
+
+        {/* Customer Link */}
+        <NavLink
+          to="/customer_portal/bill-of-landing"
+          end
+          className={({ isActive }: { isActive: boolean }) =>
+            `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${
+              isActive
+                ? "text-white bg-orange-500"
+                : "hover:text-white hover:bg-orange-500"
+            }`
+          }
+        >
+          <FiUsers size={24} />
+          {isHovered && <span>Customer</span>}
         </NavLink>
-        <NavLink 
-          to="/customer_portal/notifications" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <FiBell />
-        </NavLink>
-        <NavLink 
-          to="/customer_portal/bookmarks" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <BsBookmarkPlus />
-        </NavLink>
-        <NavLink 
-          to="/customer_portal/settings" 
-          className={({ isActive }: { isActive: boolean }) => 
-            `w-7 h-7 ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'}`
-          }>
-          <BsToggleOff />
+
+        {/* Notification Link */}
+        <NavLink
+          to="/customer_portal/notifications"
+          end
+          className={({ isActive }: { isActive: boolean }) =>
+            `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${
+              isActive
+                ? "text-white bg-orange-500"
+                : "hover:text-white hover:bg-orange-500"
+            }`
+          }
+        >
+          <FiBell size={24} />
+          {isHovered && <span>Notifications</span>}
         </NavLink>
       </div>
     </div>
