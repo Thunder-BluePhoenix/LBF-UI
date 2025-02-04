@@ -2,7 +2,7 @@ import { CiDeliveryTruck, CiGift } from "react-icons/ci";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useDataContext } from "../../../Context/DataProvider";
 
-// Interfaces for type safety
+
 interface QualityInspectionData  {
     name: string;
     creation: string;
@@ -44,11 +44,16 @@ const QualityInspectionData = () => {
     if (!messageData) {
         return <div>Loading...</div>;
     }
-
+  console.log(messageData, "ttf");
     const status = messageData?.items[0]?.quality_inspection_data.status;
+    const itemCode = messageData?.items[0]?.quality_inspection_data.item_code;
     const itemName = messageData?.items[0]?.quality_inspection_data.item_name;
-    // const datastatus = messageData.items[1];
-    console.log(itemName, "ttf");
+    const itemAccpted = messageData?.items[0]?.quality_inspection_data.custom_accepted_qty;
+    const itemRejected = messageData?.items[0]?.quality_inspection_data.custom_rejected_qty
+;    const itemModified = messageData?.items[0]?.quality_inspection_data.modified;
+     const itemInsoection = messageData?.items[0]?.quality_inspection_data.inspection_type;
+
+  
 
     const getStatusClass = (status: string) => {
         switch (status) {
@@ -166,7 +171,7 @@ const QualityInspectionData = () => {
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Item-Code</span>
-                                    <span className="text-sm  text-gray-500">{messageData.items[0]?.item_code || "N/A"}</span>
+                                    <span className="text-sm  text-gray-500">{itemCode || "N/A"}</span>
                                 </div>
                             </div>
 
@@ -174,7 +179,7 @@ const QualityInspectionData = () => {
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Item-Name</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{itemName}</span>
                                 </div>
                             </div>
 
@@ -191,7 +196,7 @@ const QualityInspectionData = () => {
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Type of Transaction</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.contact}</span>
+                                    <span className="text-sm  text-gray-500">{itemInsoection}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
@@ -205,7 +210,7 @@ const QualityInspectionData = () => {
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Post Time</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{itemModified}</span>
                                 </div>
                             </div>
                         </div>
@@ -214,14 +219,14 @@ const QualityInspectionData = () => {
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Accepted</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{itemAccpted}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Rejected</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{itemRejected}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
