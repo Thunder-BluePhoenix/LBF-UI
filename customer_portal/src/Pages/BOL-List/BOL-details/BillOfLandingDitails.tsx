@@ -227,7 +227,7 @@ const BillOfLandingDetails = () => {
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Required Tyres</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                  <span className="text-sm  text-gray-500">{messageData?.reference_material_request}</span>
                 </div>
               </div>
             </div>
@@ -236,14 +236,14 @@ const BillOfLandingDetails = () => {
               <div className="flex flex-row">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Address</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                  <span className="text-sm  text-gray-500">{messageData?.address}</span>
                 </div>
               </div>
               <div className="flex flex-row">
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Pincode</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                  <span className="text-sm  text-gray-500">{}</span>
                 </div>
               </div>
               <div className="flex flex-row">

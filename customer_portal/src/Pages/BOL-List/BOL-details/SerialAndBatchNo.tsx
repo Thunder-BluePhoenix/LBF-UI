@@ -1,6 +1,7 @@
 import { CiDeliveryTruck, CiGift } from "react-icons/ci";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useDataContext } from "../../../Context/DataProvider";
+import { ReactElement,  ReactNode, ReactPortal, Key } from "react";
 
 // Interfaces for type safety
 interface QualityInspectionData {
@@ -45,7 +46,14 @@ const SerialAndBatchNo = () => {
         return <div>Loading...</div>;
     }
 
-    const status = messageData?.items[0]?.quality_inspection_data.status;
+    const status = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.status;
+    const voucherNo = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.voucher_no;
+    const vouchertype = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.creation;
+    const creation = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.creation;
+    const TypeOfTransiction = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.type_of_transaction;
+    const totalqty = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.total_qty;
+    const Entries = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.entries;
+    const itemName = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.item_name;     
     // const datastatus = messageData.items[1];
     console.log(status, "ttf");
 
@@ -167,7 +175,7 @@ const SerialAndBatchNo = () => {
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Item-Name</span>
-                                    <span className="text-sm  text-gray-500">items</span>
+                                    <span className="text-sm  text-gray-500">{itemName}</span>
                                 </div>
                             </div>
 
@@ -175,7 +183,7 @@ const SerialAndBatchNo = () => {
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Posting Date</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{creation}</span>
                                 </div>
                             </div>
 
@@ -183,7 +191,7 @@ const SerialAndBatchNo = () => {
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Type of Transaction</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.service}</span>
+                                    <span className="text-sm  text-gray-500">{TypeOfTransiction}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
@@ -199,21 +207,21 @@ const SerialAndBatchNo = () => {
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Vouchar Type</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.contact}</span>
+                                    <span className="text-sm  text-gray-500">{vouchertype}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Vouchar Number</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{voucherNo}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium ">Post Date</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm font-medium ">Post Time</span>
+                                    <span className="text-sm  text-gray-500">{creation}</span>
                                 </div>
                             </div>
                         </div>
@@ -222,7 +230,7 @@ const SerialAndBatchNo = () => {
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Total Quantity</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                                    <span className="text-sm  text-gray-500">{totalqty}</span>
                                 </div>
                             </div>
 
@@ -245,24 +253,28 @@ const SerialAndBatchNo = () => {
                                 </thead>
                                 <tbody>
                                     {/* Loop through items */}
-                                    {messageData?.items.map((row, index) => (
+                                    {Entries.map((row: {
+                                        warehouse: ReactNode;
+                                        qty: ReactNode;
+                                        serial_no: ReactNode;
+                                        batch_no: ReactNode; item_code: string | number | boolean | ReactElement | Iterable<ReactNode> | ReactPortal | null | undefined; total_qty: string | number | boolean | ReactElement | Iterable<ReactNode> | ReactPortal | null | undefined; accepted_qty: string | number | boolean | ReactElement | Iterable<ReactNode> | null | undefined; }, index: Key | null | undefined) => (
 
                                         <tr key={index} className="hover:bg-gray-50">
                                             <td className="px-4 py-2 border-b border-gray-300"><input type="checkbox" /></td>
                                             <td className="px-4 py-2 border-b border-gray-300 text-gray-700">
-                                                {index + 1}
+                                            {index !== null && index !== undefined ? index + 1 : ""}
                                             </td>
                                             <td className="px-4 py-2 border-b border-gray-300 text-gray-700">
-                                                {row.item_code}
+                                                {row.serial_no}
                                             </td>
                                             <td className="px-4 py-2 border-b border-gray-300 text-gray-700">
-                                                {row.total_qty}
+                                                {row.batch_no}
                                             </td>
                                             <td className="px-4 py-2 border-b border-gray-300 text-gray-700">
-                                                {row.accepted_qty}
+                                                {row.qty}
                                             </td>
                                             <td className="px-4 py-2 border-b border-gray-300 text-gray-700">
-                                                {row.accepted_qty}
+                                                {row.warehouse}
                                             </td>
                                         </tr>
                                     ))}

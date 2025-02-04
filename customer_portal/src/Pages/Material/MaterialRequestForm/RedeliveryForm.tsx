@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaArrowLeft } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 
 const RedeliveryForm = () => {
@@ -8,6 +10,7 @@ const RedeliveryForm = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState('');
+    const [selectedItems, setSelectedItems] = useState(new Set<number>());
     const [address, setAddress] = useState<{
       address_title: string;
       address_line1: string;
@@ -21,6 +24,7 @@ const RedeliveryForm = () => {
     const [DateOfDelivery, setDateOfDelivery] = useState('');
     const [purpose, setPurpose] = useState('');
     const [transportData, setTransportData] = useState({});
+    const navigator = useNavigate();
     const [items, setItems] = useState<{
       item_name: React.ReactNode; name: string 
     }[]>([]);
@@ -33,7 +37,7 @@ const RedeliveryForm = () => {
   
     const groupBy = customerLoginUser?.customer_group ?? "Default Group";
 
-    console.log(transportData,"rrrrrrrrrreeee")
+    // console.log(transportData,"rrrrrrrrrreeee")
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       setPurpose(event.target.value);
     };
@@ -44,6 +48,16 @@ const RedeliveryForm = () => {
     const handleDateOfDelivery = (e: React.ChangeEvent<HTMLInputElement>) => {
       setDateOfDelivery(e.target.value);
     };
+    const handleItemSelect = (index: number) => {
+      const updatedSelectedItems = new Set(selectedItems);
+      if (updatedSelectedItems.has(index)) {
+        updatedSelectedItems.delete(index);
+      } else {
+        updatedSelectedItems.add(index);
+      }
+      setSelectedItems(updatedSelectedItems);
+    };
+
     console.log(email,contact,"asjfhskjgfak")
     console.log(customerName,"customerName")
     console.log(loginUser,"loginUser")
@@ -170,6 +184,8 @@ const RedeliveryForm = () => {
     // Handle form submission
     const handleSubmit = async (e: FormEvent) => {
       e.preventDefault();
+
+      const selectedItemsData = items.filter((_, index) => selectedItems.has(index));
   
       const csrfToken = 'your-csrf-token'; 
       const headers: Record<string, string> = {
@@ -180,12 +196,12 @@ const RedeliveryForm = () => {
       const myData = {
         service: "Peneus Hub",
         schedule_date: dateOfPosting,
-        material_request_type: purpose ,
+        material_request_type: purpose,
         party_type: groupBy,
         customer: customerLoginUser?.customer_name,
         address_of_customer: address 
         ? `${address.address_title}, ${address.address_line1}, ${address.city}, ${address.country}` : 'Address not available',
-        shipping_to: "anil",
+        shipping_to: customerLoginUser?.customer_name,
         shipping_address_name: "",
         address: "",
         // customer_contact: contact,
@@ -193,7 +209,7 @@ const RedeliveryForm = () => {
         contact: contact,
         transporter_name: transportData,
         transporter_address: "  ",
-        items: items.map((item) => ({
+        items: selectedItemsData.map((item) => ({
           item_code: item.name,
           schedule_date: DateOfDelivery,
           qty: 1.0,  
@@ -242,6 +258,10 @@ const RedeliveryForm = () => {
     
     // fetchData();
 
+    const handleRedirectToRedeliveryRequest = () => {
+      navigator('/customer_portal/material-request-list');
+  };
+
 
   return (
     <div className="max-w-4xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded-xl">
@@ -260,6 +280,7 @@ const RedeliveryForm = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
             >
               <option value="">Select a customer</option>
+               @typescript-eslint/no-explicit-any
               {customers.map((customer:any) => (
                 <option key={customer.name} value={customer.name}>
                   {customer.name}
@@ -369,7 +390,11 @@ const RedeliveryForm = () => {
               {items.map((item, index) => (
                 <tr key={index}>
                   <td className="flex items-center gap-3 px-2 py-2">
-                    <input type="checkbox" className="form-checkbox h-3 w-3"/>
+                    <input 
+                    type="checkbox"
+                    checked={selectedItems.has(index)}
+                    onChange={() => handleItemSelect(index)}
+                     className="form-checkbox h-3 w-3"/>
                     {item.name}
                   </td>
                   <td className="px-4 py-2">{item.item_name || "N/A"}</td>
@@ -399,6 +424,7 @@ const RedeliveryForm = () => {
         >Cancel</button>
        <button
           type="submit"
+          onClick={handleRedirectToRedeliveryRequest}
           className="bg-orange-400 text-white px-4 py-2 rounded-md hover:bg-orange-800 transition-colors"
         >
           Submit
