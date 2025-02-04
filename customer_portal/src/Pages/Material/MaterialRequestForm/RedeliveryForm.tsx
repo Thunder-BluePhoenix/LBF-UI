@@ -205,7 +205,7 @@ const RedeliveryForm = () => {
         shipping_address_name: "",
         address: "",
         // customer_contact: contact,
-        contact_person: "112221212",
+        contact_person: "",
         contact: contact,
         transporter_name: transportData,
         transporter_address: "  ",
