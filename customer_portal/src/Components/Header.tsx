@@ -1,71 +1,79 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import { useFrappeAuth } from 'frappe-react-sdk';
-import { useDataContext } from '../Context/DataProvider';
-
+import axios from 'axios';
 
 const Header = () => {
   const { logout } = useFrappeAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [customerName, setCustomerName] = useState(''); 
-  const [partyType, setPartyType] = useState(''); 
+  const [customerName, setCustomerName] = useState('Guest');
+  const [loading, setLoading] = useState(false);
+  const [loginUser, setLoginUser] = useState('');
+  const [partyType, setPartyType] = useState('N/A');
   const navigate = useNavigate();
-  const { apiData } = useDataContext();
+   
+  console.log(loading,loginUser)
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLImageElement>(null);
 
-  const order = {
-    customer: 'Anil',
-    party_type: 'Commercial',
-  };
+  const toggleDropdown = () => setDropdownOpen((prev) => !prev);
+  const toggleProfile = () => setProfileOpen((prev) => !prev);
 
-  const itemsToDisplay = apiData?.items?.length ? apiData.items[0] : order;
-
-  // Toggle dropdown
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-
-  // Logout handler
   const logoutHandler = async () => {
-    await logout();
-    console.log(logout,"log out")
-    navigate('/customer_portal/login');
+    try {
+      await logout();
+      navigate('/customer_portal/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
-  // Toggle profile dropdown
-  const toggleProfile = () => setProfileOpen(!profileOpen);
-
-  // Handle navigation actions
   const handleRedirect = (path: string) => {
     navigate(path);
-    setDropdownOpen(false); // Close dropdown after navigation
+    setDropdownOpen(false);
   };
 
-  // Fetch user data from the API
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/method/lbf_logistica.api.bol.get_bill_of_landing');
-        const data = await response.json();
+        setLoading(true);
 
-        if (data.message && data.message.length > 0) {
-          setCustomerName(itemsToDisplay.customer || ''); // Safe fallback
-          setPartyType(itemsToDisplay.party_type || ''); // Safe fallback
+        // Fetch logged-in user email
+        const { data: userResponse } = await axios.get('/api/method/frappe.auth.get_logged_user');
+        const loginUserEmail = userResponse.message;
+        setLoginUser(loginUserEmail);
+
+        // Fetch customer details
+        const { data: customerResponse } = await axios.get(
+          '/api/resource/Customer',
+          {
+            params: {
+              fields: JSON.stringify(['*']),
+              filters: JSON.stringify([['Portal User', 'user', '=', loginUserEmail]]),
+            },
+          }
+        );
+
+        if (customerResponse.data.length > 0) {
+          const customerData = customerResponse.data[0];
+          setCustomerName(customerData.customer_name);
+          setPartyType(customerData.customer_group);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching customer data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [customerName, itemsToDisplay.customer, itemsToDisplay.party_type]);
+    fetchData();
+  }, []);
 
-  // Close dropdowns if clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -88,50 +96,25 @@ const Header = () => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-
-
-
-
-  
 
   return (
     <div className="bg-gray-50 border border-gray-300 ml-20 h-16 w-[95%] flex items-center justify-end p-4">
       <div className="flex items-center gap-6 pr-6">
         <div className="relative p-2 bg-orange-500 rounded-lg">
-          <button
-            ref={buttonRef}
-            onClick={toggleDropdown}
-            className="bg-orange-500 text-white rounded-full px-3 pb-1"
-          >
+          <button ref={buttonRef} onClick={toggleDropdown} className="bg-orange-500 text-white rounded-full px-3 pb-1">
             +
           </button>
           {dropdownOpen && (
-            <div
-              ref={dropdownRef}
-              className="absolute flex flex-col top-12 left-0 w-64 bg-white border border-gray-300 rounded shadow-lg mt-2 z-10"
-            >
-              <span
-                className="py-3 px-4 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleRedirect('/customer_portal/material-request-form')}
-              >
+            <div ref={dropdownRef} className="absolute flex flex-col top-12 left-0 w-64 bg-white border border-gray-300 rounded shadow-lg mt-2 z-10">
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/material-request-form')}>
                 Add Redelivery Request
               </span>
-              <span
-                className="py-3 px-4 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleRedirect('/customer_portal/new-customer')}
-              >
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" >
                 Add New Customer
               </span>
-              <span
-                className="py-3 px-4 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleRedirect('/customer_portal/new-item')}
-              >
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" >
                 Add New Item
               </span>
             </div>
@@ -154,14 +137,8 @@ const Header = () => {
           />
 
           {profileOpen && (
-            <div
-              ref={profileRef}
-              className="absolute flex flex-col top-12 left-0 w-40 bg-white border rounded shadow-lg mt-2 z-10"
-            >
-              <span
-                className="py-3 px-4 cursor-pointer hover:bg-gray-100"
-                onClick={logoutHandler}
-              >
+            <div ref={profileRef} className="absolute flex flex-col top-12 left-0 w-40 bg-white border rounded shadow-lg mt-2 z-10">
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={logoutHandler}>
                 Log Out
               </span>
             </div>
@@ -169,8 +146,8 @@ const Header = () => {
         </div>
 
         <div className="flex flex-col text-sm">
-          <span className="font-semibold">{customerName || 'Guest'}</span>
-          <span>{partyType || 'N/A'}</span>
+          <span className="font-semibold">{customerName}</span>
+          <span>{partyType}</span>
         </div>
       </div>
     </div>

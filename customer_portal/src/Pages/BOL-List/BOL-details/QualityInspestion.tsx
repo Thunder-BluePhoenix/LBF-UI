@@ -3,36 +3,7 @@ import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useDataContext } from "../../../Context/DataProvider";
 
 
-interface QualityInspectionData  {
-    name: string;
-    creation: string;
-    custom_accepted_qty: string;
-    custom_rejected_qty: string;
-    inspected_by: string;
-    status: string;
-    readings: [];
-}
 
-interface Item {
-    item_name: string;
-    item_code: string;
-    total_qty: string;
-    accepted_qty: string;
-    rejected_qty: string;
-    quality_inspection_done: number;
-    serial_and_batch_bundle_accepted: string;
-    serial_and_batch_bundle_rejected: string;
-    quality_inspection_data: QualityInspectionData[];
-}
-
-interface Message {
-    name: string | undefined;
-    customer: string;
-    service: string;
-    contact: string;
-    posting_date: string;
-    items: Item[];
-}
 
 const QualityInspectionData = () => {
     const { id } = useParams<{ id: string }>();
@@ -49,9 +20,9 @@ const QualityInspectionData = () => {
     const itemCode = messageData?.items[0]?.quality_inspection_data.item_code;
     const itemName = messageData?.items[0]?.quality_inspection_data.item_name;
     const itemAccpted = messageData?.items[0]?.quality_inspection_data.custom_accepted_qty;
-    const itemRejected = messageData?.items[0]?.quality_inspection_data.custom_rejected_qty
-;    const itemModified = messageData?.items[0]?.quality_inspection_data.modified;
-     const itemInsoection = messageData?.items[0]?.quality_inspection_data.inspection_type;
+    const itemRejected = messageData?.items[0]?.quality_inspection_data.custom_rejected_qty;   
+    const itemModified = messageData?.items[0]?.quality_inspection_data.modified;
+    const itemInsoection = messageData?.items[0]?.quality_inspection_data.inspection_type;
 
   
 
