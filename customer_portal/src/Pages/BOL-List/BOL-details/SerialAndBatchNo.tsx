@@ -1,7 +1,6 @@
 import { CiDeliveryTruck, CiGift } from "react-icons/ci";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useDataContext } from "../../../Context/DataProvider";
-import { ReactElement,  ReactNode, ReactPortal, Key } from "react";
 
 // Interfaces for type safety
 interface QualityInspectionData {
@@ -14,6 +13,7 @@ interface QualityInspectionData {
 }
 
 interface Item {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     serial_and_batch_bundle_accepted_data: any;
     item_name: string;
     item_code: string;
@@ -39,21 +39,26 @@ interface Message {
 const SerialAndBatchNo = () => {
     const { id } = useParams<{ id: string }>();
     const { apiData } = useDataContext();
-    
-    const messageData: Message | null = apiData?.message?.find((item: Message) => item.name === id) || null;
 
-    if (!messageData) {
-        return <div>Loading...</div>;
+    // Ensure apiData.message exists and is an array before using find
+    const messageData: Message | null = Array.isArray(apiData?.message)
+        ? apiData?.message?.find((item: Message) => item.name === id) || null
+        : null;
+
+    if (!messageData || !messageData.items) {
+        return <div>Loading...</div>; // Prevents further errors
     }
 
-    const status = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.status;
-    const voucherNo = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.voucher_no;
-    const vouchertype = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.creation;
-    const creation = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.creation;
-    const TypeOfTransiction = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.type_of_transaction;
-    const totalqty = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.total_qty;
-    const Entries = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.entries;
-    const itemName = messageData?.items[0]?.serial_and_batch_bundle_accepted_data.item_name;     
+    const firstItem = messageData.items[0]; // Ensuring items exist before accessing properties
+
+    const status = firstItem?.serial_and_batch_bundle_accepted_data?.status || "N/A";
+    const voucherNo = firstItem?.serial_and_batch_bundle_accepted_data?.voucher_no || "N/A";
+    const vouchertype = firstItem?.serial_and_batch_bundle_accepted_data?.creation || "N/A";
+    const creation = firstItem?.serial_and_batch_bundle_accepted_data?.creation || "N/A";
+    const TypeOfTransaction = firstItem?.serial_and_batch_bundle_accepted_data?.type_of_transaction || "N/A";
+    const totalqty = firstItem?.serial_and_batch_bundle_accepted_data?.total_qty || "N/A";
+    const Entries = firstItem?.serial_and_batch_bundle_accepted_data?.entries || [];
+    const itemName = firstItem?.serial_and_batch_bundle_accepted_data?.item_name || "N/A";     
     // const datastatus = messageData.items[1];
     console.log(status, "ttf");
 
@@ -191,7 +196,7 @@ const SerialAndBatchNo = () => {
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Type of Transaction</span>
-                                    <span className="text-sm  text-gray-500">{TypeOfTransiction}</span>
+                                    <span className="text-sm  text-gray-500">{TypeOfTransaction}</span>
                                 </div>
                             </div>
                             <div className="flex flex-row">
@@ -253,13 +258,10 @@ const SerialAndBatchNo = () => {
                                 </thead>
                                 <tbody>
                                     {/* Loop through items */}
-                                    {Entries.map((row: {
-                                        warehouse: ReactNode;
-                                        qty: ReactNode;
-                                        serial_no: ReactNode;
-                                        batch_no: ReactNode; item_code: string | number | boolean | ReactElement | Iterable<ReactNode> | ReactPortal | null | undefined; total_qty: string | number | boolean | ReactElement | Iterable<ReactNode> | ReactPortal | null | undefined; accepted_qty: string | number | boolean | ReactElement | Iterable<ReactNode> | null | undefined; }, index: Key | null | undefined) => (
-
-                                        <tr key={index} className="hover:bg-gray-50">
+                                    {Entries.length > 0 ? (
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        Entries.map((row: any, index: number) => (
+                                        <tr key={index } className="hover:bg-gray-50">
                                             <td className="px-4 py-2 border-b border-gray-300"><input type="checkbox" /></td>
                                             <td className="px-4 py-2 border-b border-gray-300 text-gray-700">
                                             {index !== null && index !== undefined ? index + 1 : ""}
@@ -277,7 +279,10 @@ const SerialAndBatchNo = () => {
                                                 {row.warehouse}
                                             </td>
                                         </tr>
-                                    ))}
+                                         ))
+                                        ) : (
+                                            <p>No Entries Found</p>
+                                        )}
                                 </tbody>
                             </table>
                         </div>

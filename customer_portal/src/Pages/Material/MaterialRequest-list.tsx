@@ -54,9 +54,10 @@ const MaterialRequestList: React.FC = () => {
     // Filter requests based on search query matching with customer name, service, or order ID.
     const filteredRequests = requestList.filter(
         (request) =>
-            request.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.name.toLowerCase().includes(searchQuery.toLowerCase())
+            (request.customer?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (request.service?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (request.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (request.material_request_type?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     );
 
     const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);

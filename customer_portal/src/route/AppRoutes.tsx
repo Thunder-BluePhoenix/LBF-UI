@@ -11,6 +11,7 @@ import SerialAndBatchNo from "../Pages/BOL-List/BOL-details/SerialAndBatchNo";
 import MaterialRequestList from "../Pages/Material/MaterialRequest-list";
 import MaterialRequestDetails from "../Pages/Material/MaterialDetails/MaterialRequestDetails";
 import RedeliveryForm from "../Pages/Material/MaterialRequestForm/RedeliveryForm";
+import TableComponent from "../Pages/Table";
 
 
 
@@ -40,6 +41,7 @@ const AppRoutes = () => {
       <Route path="/customer_portal/material-request-list" element={<Layout> <div className="p-4"><MaterialRequestList/></div></Layout> }/>
       <Route path="/customer_portal/material-request-details" element={<Layout> <div className="p-4"><MaterialRequestDetails/></div></Layout> }/>
       <Route path="/customer_portal/material-request-form" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
+      <Route path="/customer_portal/table" element={<Layout> <div className="p-4"><TableComponent/></div></Layout> }/>
       </Routes>
  
     </div>

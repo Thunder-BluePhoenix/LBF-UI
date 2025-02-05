@@ -78,7 +78,7 @@ const Sidebar = () => {
 
         {/* Customer Link */}
         <NavLink
-          to="/customer_portal/bill-of-landing"
+          to="/customer_portal/table"
           end
           className={({ isActive }: { isActive: boolean }) =>
             `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${

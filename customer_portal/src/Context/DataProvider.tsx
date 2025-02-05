@@ -16,6 +16,7 @@ interface Item {
 
 // Interface for the API response message
 interface Message {
+  message: unknown;
   customer: string;
   party_type: string;
   items?: Item[]; // Optional array of items
