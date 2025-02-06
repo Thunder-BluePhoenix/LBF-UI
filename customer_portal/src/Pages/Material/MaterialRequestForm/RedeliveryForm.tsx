@@ -42,7 +42,7 @@ const RedeliveryForm = () => {
   const [dateOfPosting, setDateOfPosting] = useState('');
   const [DateOfDelivery, setDateOfDelivery] = useState('');
   const [DateOfRequredBy, setDateOfRequredBy] = useState('');
-  const [itemQuantity, setItemQuantity] = useState('')
+  const [itemQuantity, setItemQuantity] = useState<number>(0); 
   const [purpose, setPurpose] = useState('');
   const [transportData, setTransportData] = useState({});
   const [itemList, setItemList] = useState<FetchedItem[]>([])
@@ -72,10 +72,12 @@ const RedeliveryForm = () => {
   const handleDateOfRequredBy = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value);
   };
-  const handleItemQuantity = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setItemQuantity(e.target.value);
+  const handleDateOfRequiredBy = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const requiredByDate = Number(e.target.value); // Convert to a number
+    setItemQuantity(requiredByDate); // Set the state with a number
   };
-  
+  console.log(itemQuantity,'uuuuuuuuuu')
+
   const handleItemSelected = (index: number) => {
     const updatedSelectedItems = new Set(selectedItems);
     if (updatedSelectedItems.has(index)) {
@@ -182,8 +184,8 @@ const fetchContactEmail = async (customerName: string) => {
       if (contactData && Array.isArray(contactData) && contactData.length > 0) {
         // Assuming you want to fetch the first contact from the array
         const contact = contactData[0];
-        setContact(contact.email_id);
-        setEmail(contact.phone);
+        setContact(contact.phone);
+        setEmail(contact.email_id);
       } else {
         setContact('');
         setEmail('');
@@ -283,11 +285,11 @@ const handleItemSelect = (itemId: number, selectedItem: FetchedItem) => {
       items: selectedItemsData.map((item) => ({
         item_code: item.item_code,
         schedule_date: DateOfRequredBy,
-        qty: 1.0,
+        qty: itemQuantity,
         warehouse: "",
         stock_uom: "",
         uom: "Box",
-        conversion_factor: 1.0,
+        conversion_factor: 3.0,
         description: ""
       })),
     };
@@ -431,6 +433,16 @@ const handleItemSelect = (itemId: number, selectedItem: FetchedItem) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium">Transporter Name</label>
+            <input
+              type="text"
+              name="request-by"
+              value={ typeof transportData === 'string' || typeof transportData === 'number' ? transportData : ''}
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            />
+          </div>
           
 
           <div>
@@ -534,7 +546,7 @@ const handleItemSelect = (itemId: number, selectedItem: FetchedItem) => {
                       <input
                         type="number"
                         value={itemQuantity}
-                        onChange={handleItemQuantity}
+                        onChange={handleDateOfRequiredBy}
                         className="w-full p-2 border-x border-gray-300 "
                       />
                     </td>
