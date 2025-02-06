@@ -15,7 +15,7 @@ interface Request {
     total_qty: number;
     schedule_date: string | null;
     material_request_type: string;
-    status: string;
+    docstatus: number;
 }
 
 const MaterialRequestList: React.FC = () => {
@@ -61,25 +61,32 @@ const MaterialRequestList: React.FC = () => {
     );
 
     const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-
-    const getStatusClass = (status: string) => {
-        switch (status) {
-            case 'Accepted':
+    const getStatusClass = (docstatus: string | number) => {
+        // Convert number to corresponding status string
+        const statusString = typeof docstatus === 'number' ? getStatusFromNumber(docstatus) : docstatus;
+    
+        switch (statusString) {
+            case 'Open':
                 return 'text-green-500 bg-green-100 border border-green-500';
-            case 'Awaiting':
-                return 'text-blue-500 bg-blue-100 border border-blue-500';
-            case 'Approved':
-                return 'text-green-500 bg-green-100 border border-green-500';
-            case 'Processing':
-                return 'text-orange-500 bg-orange-100 border border-orange-500';
-            case 'Delivered':
-                return 'text-purple-500 bg-purple-100 border border-purple-500';
-                case '':
-                    return 'text-red-500 bg-red-100 border border-red-500';
+            case 'Draft':
+                return 'text-yellow-500 bg-yellow-100 border border-yellow-500';
             default:
                 return 'text-gray-500 bg-gray-100 border border-gray-500';
         }
     };
+    
+    // Helper function to convert number docstatus to string
+    const getStatusFromNumber = (docstatus: number) => {
+        switch (docstatus) {
+            case 0:
+                return 'Open';
+            case 1:
+                return 'Draft';
+            default:
+                return 'Unknown';
+        }
+    };
+    
 
     const handleClearSearch = () => {
         setSearchQuery('');
@@ -198,13 +205,17 @@ const MaterialRequestList: React.FC = () => {
                                     <td className="p-4 text-xs opacity-[70%]">{request.contact || "Not available"}</td>
                                     <td className="p-4 text-xs opacity-[70%]">{request.address || "Not available"}</td>
                                     <td className="p-4 text-xs">
-                                        <span
-                                            className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusClass(
-                                                request.status
-                                            )}`}
-                                        >
-                                            {request.status || "Not available"}
-                                        </span>
+                                    <span
+    className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusClass(
+        request.docstatus
+    )}`}
+>
+    {request.docstatus === 0
+        ? "Open"
+        : request.docstatus === 1
+        ? "Draft"
+        : request.docstatus || "Not available"}
+</span>
                                     </td>
                                 </tr>
                             ))}
