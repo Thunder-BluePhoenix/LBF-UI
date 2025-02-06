@@ -154,14 +154,14 @@ const BillOfLandingDetails = () => {
                   <p className="text-sm">Request ID</p>
                   <p className="text-xs flex flex-row items-center gap-2">
                     <CiGift />
-                    3243
+                    {messageData.reference_material_request || "Not Available"}
                   </p>
                 </div>
                 <div>
                   <p className="">Shipment ID</p>
                   <p className="text-xs flex flex-row items-center gap-2">
                     <CiDeliveryTruck />
-                    545444
+                  {messageData.reference_shipment_id || "Not Available"}
                   </p>
                 </div>
               </div>
@@ -206,21 +206,14 @@ const BillOfLandingDetails = () => {
               <div className="flex flex-row">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Contact no.</span>
-                  <span className="text-sm  text-gray-500">{messageData?.contact}</span>
+                  <span className="text-sm  text-gray-500">{messageData?.contact || "Not Available"}</span>
                 </div>
               </div>
               <div className="flex flex-row">
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Email ID</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
-                </div>
-              </div>
-              <div className="flex flex-row">
-                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium ">Condition</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                  <span className="text-sm  text-gray-500">test@gmail.com</span>
                 </div>
               </div>
               <div className="flex flex-row">
@@ -236,7 +229,7 @@ const BillOfLandingDetails = () => {
               <div className="flex flex-row">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Address</span>
-                  <span className="text-sm  text-gray-500">{messageData?.address}</span>
+                  <span className="text-sm  text-gray-500">{messageData?.address || "Not Available"}</span>
                 </div>
               </div>
               <div className="flex flex-row">
@@ -250,7 +243,7 @@ const BillOfLandingDetails = () => {
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Handling In charge</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
+                  <span className="text-sm  text-gray-500"></span>
                 </div>
               </div>
             </div>
