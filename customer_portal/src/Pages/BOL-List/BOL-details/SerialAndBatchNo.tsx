@@ -176,7 +176,7 @@ const SerialAndBatchNo = () => {
                     </div>
 
                     <div className="bg-gray-50 p-6 rounded-2xl">
-                        <div className="grid grid-cols-6 gap-2 mb-6">
+                        <div className="grid grid-cols-5 gap-2 mb-6">
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Item-Name</span>
@@ -185,7 +185,7 @@ const SerialAndBatchNo = () => {
                             </div>
 
                             <div className="flex flex-row">
-                                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
+                                <div className="bg-gray-300 h-10 w-[1px] mr-4">&nbsp;</div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Posting Date</span>
                                     <span className="text-sm  text-gray-500">{creation}</span>
@@ -201,14 +201,14 @@ const SerialAndBatchNo = () => {
                             </div>
                             <div className="flex flex-row">
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                                <div className="flex flex-col">
+                                {/* <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Supplier Delivery Note</span>
                                     <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                         <hr className="mb-4 text-gray-300"></hr>
-                        <div className="grid grid-cols-6 gap-2 mb-6">
+                        <div className="grid grid-cols-5 gap-2 mb-6">
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Vouchar Type</span>
@@ -223,7 +223,7 @@ const SerialAndBatchNo = () => {
                                 </div>
                             </div>
                             <div className="flex flex-row">
-                                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
+                                <div className="bg-gray-300 h-10 w-[1px] mr-4">&nbsp;</div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Post Time</span>
                                     <span className="text-sm  text-gray-500">{creation}</span>
@@ -231,7 +231,7 @@ const SerialAndBatchNo = () => {
                             </div>
                         </div>
                         <hr className="mb-4 text-gray-300"></hr>
-                        <div className="grid grid-cols-6 gap-2 mb-6">
+                        <div className="grid grid-cols-5 gap-2 mb-6">
                             <div className="flex flex-row">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium ">Total Quantity</span>
@@ -243,7 +243,7 @@ const SerialAndBatchNo = () => {
                     </div>
                     {/* Items Table Section */}
                     <div>
-                        <h2 className="text-lg font-semibold mb-4">Items</h2>
+                        <h2 className="text-lg font-semibold mb-4">Readings</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left border border-gray-200">
                                 <thead className="bg-gray-50">
