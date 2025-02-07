@@ -187,14 +187,14 @@ const MaterialRequestList: React.FC = () => {
                                 <tr
                                     key={request.name}
                                     className="border-b hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => navigate('/customer_portal/material-request-details')}
+                                    // onClick={() => navigate('/customer_portal/material-request-details')}
                                 >
                                     <td className="p-4">
                                         <input type="checkbox" className="form-checkbox" />
                                     </td>
                                     <td className="p-4 text-xs opacity-[100%]">{request.customer || "Not available"}</td>
                                     <td
-                                        onClick={() => navigate('/customer_portal/material-request-details')}
+                                        // onClick={() => navigate('/customer_portal/material-request-details')}
                                         className="p-4 text-xs opacity-[70%] cursor-pointer text-black hover:underline"
                                     >
                                         {request.customer || "Not available"}

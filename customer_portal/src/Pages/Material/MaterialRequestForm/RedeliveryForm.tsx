@@ -136,7 +136,7 @@ const RedeliveryForm = () => {
 
 
         // 3. Fetch child customers of the logged-in customer
-        const childCustomersResponse = await axios.get(`/api/resource/Customer?fields=["name"]&filters=[["custom_parent_customer", "=", "${encodeURIComponent(customerData.name)}"]]`);
+        const childCustomersResponse = await axios.get(`/api/method/lbf_logistica.api.bol.get_customers_with_parent?customer_name=${encodeURIComponent(customerData.name)}`);
         setCustomers(childCustomersResponse.data.data); // Set child customers
 
         // 4. Fetch items (optional, keeping it in the same flow)

@@ -169,11 +169,11 @@ const BillOfLandingDetails = () => {
           </div>
 
           <div className="bg-gray-50 p-6 rounded-2xl">
-            <div className="grid grid-cols-6 gap-2 mb-6">
+            <div className="grid grid-cols-5 gap-2 mb-6">
               <div className="flex flex-row">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Recipient</span>
-                  <span className="text-sm  text-gray-500">items</span>
+                  <span className="text-sm  text-gray-500">{messageData?.shipping_to || "Not Available"}</span>
                 </div>
               </div>
 
@@ -185,13 +185,13 @@ const BillOfLandingDetails = () => {
                 </div>
               </div>
 
-              <div className="flex flex-row">
+              {/* <div className="flex flex-row">
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Purpose</span>
                   <span className="text-sm  text-gray-500">{messageData?.service}</span>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex flex-row">
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
@@ -202,7 +202,7 @@ const BillOfLandingDetails = () => {
               </div>
             </div>
             <hr className="mb-4 text-gray-300"></hr>
-            <div className="grid grid-cols-6 gap-2 mb-6">
+            <div className="grid grid-cols-5 gap-2 mb-6">
               <div className="flex flex-row">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Contact no.</span>
@@ -210,41 +210,36 @@ const BillOfLandingDetails = () => {
                 </div>
               </div>
               <div className="flex flex-row">
-                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
+              <div className="bg-gray-300 h-10 w-[1px] mr-4">&nbsp;</div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Email ID</span>
                   <span className="text-sm  text-gray-500">test@gmail.com</span>
                 </div>
               </div>
+              
               <div className="flex flex-row">
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Required Tyres</span>
-                  <span className="text-sm  text-gray-500">{messageData?.reference_material_request}</span>
+                  <span className="text-sm  text-gray-500">{messageData?.reference_material_request || "Not Available"}</span>
                 </div>
               </div>
             </div>
             <hr className="mb-4 text-gray-300"></hr>
-            <div className="grid grid-cols-6 gap-2 mb-6">
+            <div className="grid grid-cols-5 gap-2 mb-6">
               <div className="flex flex-row">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Address</span>
                   <span className="text-sm  text-gray-500">{messageData?.address || "Not Available"}</span>
                 </div>
               </div>
+             
               <div className="flex flex-row">
-                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium ">Pincode</span>
-                  <span className="text-sm  text-gray-500">{}</span>
-                </div>
-              </div>
-              <div className="flex flex-row">
-                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
+                {/* <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium ">Handling In charge</span>
-                  <span className="text-sm  text-gray-500"></span>
-                </div>
+                  <span className="text-sm  text-gray-500">{messageData?.posting_date || "Not Available"}</span>
+                </div> */}
               </div>
             </div>
           </div>
