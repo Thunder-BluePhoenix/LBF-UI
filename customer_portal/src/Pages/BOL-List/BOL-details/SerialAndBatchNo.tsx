@@ -53,7 +53,7 @@ const SerialAndBatchNo = () => {
 
     const status = firstItem?.serial_and_batch_bundle_accepted_data?.status || "N/A";
     const voucherNo = firstItem?.serial_and_batch_bundle_accepted_data?.voucher_no || "N/A";
-    const vouchertype = firstItem?.serial_and_batch_bundle_accepted_data?.creation || "N/A";
+    const vouchertype = firstItem?.serial_and_batch_bundle_accepted_data?.voucher_type || "N/A";
     const creation = firstItem?.serial_and_batch_bundle_accepted_data?.creation || "N/A";
     const TypeOfTransaction = firstItem?.serial_and_batch_bundle_accepted_data?.type_of_transaction || "N/A";
     const totalqty = firstItem?.serial_and_batch_bundle_accepted_data?.total_qty || "N/A";
