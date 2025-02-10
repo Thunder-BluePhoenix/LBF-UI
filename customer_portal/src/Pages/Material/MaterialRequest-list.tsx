@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
-import { BiPlus, BiSearch } from 'react-icons/bi';
+import { BiEdit, BiPlus, BiSearch } from 'react-icons/bi';
 import { AiFillCloseCircle } from 'react-icons/ai';
 import { useNavigate } from 'react-router';
 
@@ -16,6 +16,7 @@ interface Request {
     schedule_date: string | null;
     material_request_type: string;
     docstatus: number;
+    id: string; // Added unique identifier for each request
 }
 
 const MaterialRequestList: React.FC = () => {
@@ -26,19 +27,18 @@ const MaterialRequestList: React.FC = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const itemsPerPage = 10;
-
+    console.log(requestList,"materialrequest")
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const response = await fetch('/api/resource/Material Request Instruction Log?fields=["*"]');
+                const response = await fetch('/api/resource/Material%20Request%20Instruction%20Log?fields=["*"]&limit_page_length=100');
+              
                 if (!response.ok) {
                     throw new Error('Failed to fetch data');
                 }
                 const data = await response.json();
-                
-                // Update this based on your API response structure
                 if (data && data.data) {
-                    setRequestList(data.data); // Adjust the data structure if necessary
+                    setRequestList(data.data);
                 }
                 setLoading(false);
             } catch (error) {
@@ -51,7 +51,6 @@ const MaterialRequestList: React.FC = () => {
         fetchRequests();
     }, []);
 
-    // Filter requests based on search query matching with customer name, service, or order ID.
     const filteredRequests = requestList.filter(
         (request) =>
             (request.customer?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
@@ -61,11 +60,10 @@ const MaterialRequestList: React.FC = () => {
     );
 
     const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-    const getStatusClass = (docstatus: string | number) => {
-        // Convert number to corresponding status string
-        const statusString = typeof docstatus === 'number' ? getStatusFromNumber(docstatus) : docstatus;
-    
-        switch (statusString) {
+
+    const getStatusClass = (docstatus: number) => {
+        const status = getStatusFromNumber(docstatus);
+        switch (status) {
             case 'Open':
                 return 'text-green-500 bg-green-100 border border-green-500';
             case 'Draft':
@@ -74,8 +72,7 @@ const MaterialRequestList: React.FC = () => {
                 return 'text-gray-500 bg-gray-100 border border-gray-500';
         }
     };
-    
-    // Helper function to convert number docstatus to string
+
     const getStatusFromNumber = (docstatus: number) => {
         switch (docstatus) {
             case 0:
@@ -86,7 +83,6 @@ const MaterialRequestList: React.FC = () => {
                 return 'Unknown';
         }
     };
-    
 
     const handleClearSearch = () => {
         setSearchQuery('');
@@ -94,6 +90,10 @@ const MaterialRequestList: React.FC = () => {
 
     const handleRedirectToRedeliveryRequest = () => {
         navigate('/customer_portal/material-request-form');
+    };
+
+    const handleRedirectToMaterialDetails = (id: string) => {
+        navigate(`/customer_portal/material-request-details/${id}`);  // Add the id to the URL
     };
 
     const handlePageChange = (newPage: number) => {
@@ -112,7 +112,7 @@ const MaterialRequestList: React.FC = () => {
 
     return (
         <div className="p-4 w-full">
-            {/* Search and Header */}
+            {/* Header and Search */}
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-4">
                     <div
@@ -121,7 +121,6 @@ const MaterialRequestList: React.FC = () => {
                     >
                         <span className="text-xl"><FiArrowLeft /></span>
                     </div>
-
                     <div className="flex flex-col">
                         <h1 className="text-xl font-semibold">Request List</h1>
                         <span className="text-gray-500 text-xs">PH & TH Request list</span>
@@ -167,7 +166,7 @@ const MaterialRequestList: React.FC = () => {
                 <div className="w-full">
                     <table className="min-w-full bg-white shadow rounded-lg">
                         <thead>
-                            <tr className="border-b">
+                            <tr className="border-b border-gray-300">
                                 <th className="p-4 text-left text-xs opacity-[70%]">
                                     <input type="checkbox" className="form-checkbox" />
                                 </th>
@@ -179,70 +178,72 @@ const MaterialRequestList: React.FC = () => {
                                 <th className="p-4 text-left text-xs opacity-[70%]">Recipient Contact</th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Recipient Address</th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Status</th>
+                                <th className="p-4 text-left text-xs opacity-[70%]">Edit</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {paginatedRequests.map((request) => (
                                 <tr
-                                    key={request.name}
-                                    className="border-b hover:bg-gray-100 cursor-pointer"
-                                    // onClick={() => navigate('/customer_portal/material-request-details')}
+                                    key={request.name}  // Unique key
+                                    className="border-b border-gray-300 hover:bg-gray-100 "
+                                   // Redirect to material details page
                                 >
                                     <td className="p-4">
                                         <input type="checkbox" className="form-checkbox" />
                                     </td>
-                                    <td className="p-4 text-xs opacity-[100%]">{request.customer || "Not available"}</td>
+                                    <td  className="p-4 text-xs">{request.customer || "Not available"}</td>
                                     <td
-                                        // onClick={() => navigate('/customer_portal/material-request-details')}
-                                        className="p-4 text-xs opacity-[70%] cursor-pointer text-black hover:underline"
-                                    >
+                                    onClick={() => handleRedirectToMaterialDetails(request.name)}
+                                     className="p-4 text-xs text-black cursor-pointer hover:underline">
                                         {request.customer || "Not available"}
                                     </td>
-                                    <td className="p-4 text-xs opacity-[70%]">{request.service || "Not available"}</td>
-                                    <td className="p-4 text-xs opacity-[70%]">{request.material_request_type || "Not available"}</td>
-                                    <td className="p-4 text-xs opacity-[70%]">{request.total_qty || "Not available"}</td>
-                                    <td className="p-4 text-xs opacity-[70%]">{request.contact || "Not available"}</td>
-                                    <td className="p-4 text-xs opacity-[70%]">{request.address || "Not available"}</td>
+                                    <td className="p-4 text-xs">{request.service || "Not available"}</td>
+                                    <td className="p-4 text-xs">{request.material_request_type || "Not available"}</td>
+                                    <td className="p-4 text-xs">{request.total_qty || "Not available"}</td>
+                                    <td className="p-4 text-xs">{request.contact || "Not available"}</td>
+                                    <td className="p-4 text-xs">{request.address || "Not available"}</td>
                                     <td className="p-4 text-xs">
-                                    <span
-    className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusClass(
-        request.docstatus
-    )}`}
->
-    {request.docstatus === 0
-        ? "Open"
-        : request.docstatus === 1
-        ? "Draft"
-        : request.docstatus || "Not available"}
-</span>
+                                        <span
+                                            className={`px-3 py-1 rounded-lg text-xs border ${getStatusClass(request.docstatus)}`}
+                                        >
+                                            {getStatusFromNumber(request.docstatus)}
+                                        </span>
                                     </td>
+                                    <td 
+                                    
+                                    className="p-4 text-xl text-gray-500 cursor-pointer"><BiEdit /></td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
             ) : (
-                <p className="text-center">No requests found.</p>
+                <p>No requests found</p>
             )}
 
             {/* Pagination */}
-            {filteredRequests.length > itemsPerPage && (
-                <div className="mt-4 flex justify-end space-x-2">
+            <div className="flex justify-between items-center mt-4">
+                <div className="text-xs text-gray-500">
+                    Page {currentPage} of {totalPages}
+                </div>
+                <div className="space-x-2">
                     <button
                         onClick={() => handlePageChange(currentPage - 1)}
-                        className={`px-3 py-1 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 text-xs bg-gray-200 rounded-lg disabled:opacity-50"
                     >
                         Previous
                     </button>
                     <button
                         onClick={() => handlePageChange(currentPage + 1)}
-                        className={`px-3 py-1 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 text-xs bg-gray-200 rounded-lg disabled:opacity-50"
                     >
                         Next
                     </button>
                 </div>
-            )}
+            </div>
         </div>
     );
 };
