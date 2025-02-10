@@ -16,6 +16,7 @@ import TableComponent from "../Pages/Table";
 
 
 
+
   // Assuming this is the correct path
 
 const AppRoutes = () => {
@@ -39,8 +40,9 @@ const AppRoutes = () => {
       <Route path="/customer_portal/quality-inspection-data/:id" element={<Layout> <div className="p-4"><QualityInspectionData/></div></Layout> }/>
       <Route path="/customer_portal/serial-batch-no/:id" element={<Layout> <div className="p-4"><SerialAndBatchNo/></div></Layout> }/>
       <Route path="/customer_portal/material-request-list" element={<Layout> <div className="p-4"><MaterialRequestList/></div></Layout> }/>
-      <Route path="/customer_portal/material-request-details" element={<Layout> <div className="p-4"><MaterialRequestDetails/></div></Layout> }/>
-      <Route path="/customer_portal/material-request-form" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
+      <Route path="/customer_portal/material-request-details/:id" element={<Layout> <div className="p-4"><MaterialRequestDetails/></div></Layout> }/>
+      <Route path="/customer_portal/material-request-form/" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
+      <Route path="/customer_portal/material-request-form/:id" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
       <Route path="/customer_portal/table" element={<Layout> <div className="p-4"><TableComponent/></div></Layout> }/>
       </Routes>
  

@@ -4,6 +4,7 @@ import { useDataContext } from "../../../Context/DataProvider";
 
 
 interface Item {
+  name: string;
   item_code: string;
   item_name: string;
   total_qty: string;
@@ -44,9 +45,10 @@ const BillOfLandingDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { apiData } = useDataContext();
 
-  const messageData: Message | null = apiData?.message?.find(
+  const messageData: Message | null = 
+  (Array.isArray(apiData?.message) ? apiData.message.find(
     (item: Message) => item.name === id
-  ) || null;
+  ) : null) || null;
 
   if (!messageData) {
     return <div>Loading...</div>;

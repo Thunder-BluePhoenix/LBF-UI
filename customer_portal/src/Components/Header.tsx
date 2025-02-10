@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
+import  ProfileImage  from "../assets/image.png"
 import { useFrappeAuth } from 'frappe-react-sdk';
 import axios from 'axios';
 
@@ -121,7 +122,7 @@ const Header = () => {
           )}
         </div>
 
-        <div className="p-2 border rounded-lg">
+        <div className="p-2 border border-gray-300 rounded-lg">
           <span className="w-5 h-5 text-gray-500">
             <FaBell />
           </span>
@@ -130,7 +131,7 @@ const Header = () => {
         <div className="relative">
           <img
             ref={profileButtonRef}
-            src="https://www.ucsfhealth.org/-/media/project/ucsf/ucsf-health/doctor/hero/dr-thomas-link-md-0298-1440x784-2x.jpg?h=1568&iar=0&w=2880&rev=cfaeb389e3cf43f5aba2a5b4f6ee0584&hash=2B237020774679BE2E25E849B3C725F0"
+            src={ProfileImage}
             alt="Profile"
             className="w-10 h-10 rounded-full cursor-pointer"
             onClick={toggleProfile}
