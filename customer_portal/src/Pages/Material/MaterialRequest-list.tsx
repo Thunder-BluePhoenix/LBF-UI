@@ -31,7 +31,7 @@ const MaterialRequestList: React.FC = () => {
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const response = await fetch('/api/resource/Material%20Request%20Instruction%20Log?fields=["*"]&limit_page_length=100');
+                const response = await fetch('/api/resource/Material%20Request%20Instruction%20Log?fields=["*"]&limit_page_length=1000');
               
                 if (!response.ok) {
                     throw new Error('Failed to fetch data');

@@ -57,7 +57,8 @@ interface Transporter {
   supplier: string
   cutoff_start_time: string
   cutoff_end_time: string
-  name: string
+  name: any
+  address: any
 }
 
 interface dataSubmit {
@@ -98,13 +99,14 @@ const RedeliveryForm = () => {
   const [resultData, setResultData] = useState("")
   const [dataSubmit, setDataSubmit] = useState<dataSubmit | null>(null);
   const [isEditMode, setIsEditMode] = useState(false)
+  const [transportersLoaded, setTransportersLoaded] = useState(false)
 
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser, selectedAddress,selectedCustomer,selectedContact, purpose, "qqqqqqqqqqqqR")
+  console.log(loginUser, transporterDetails,selectedTransporter, "qqqqqqqqqqqqR")
 
   const validateForm = () => {
     const errors: string[] = []
@@ -187,21 +189,51 @@ const RedeliveryForm = () => {
     }
   }
 
-  const handleTransporterSelect = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleTransporterSelect = (event: { target: { value: string } }) => {
     const selectedValue = event.target.value
     setSelectedTransporter(selectedValue)
-
-    if (selectedValue) {
-      setShowTransporterFields(true)
-      const selectedTransporterData = transporters.find(t => t.supplier === selectedValue)
-      if (selectedTransporterData) {
-        setTransporterDetails(selectedTransporterData)
+    
+    if (selectedValue && transportersLoaded) {
+      const matchedTransporter = transporters.find(t => t.supplier === selectedValue)
+      if (matchedTransporter) {
+        setTransporterDetails({
+          supplier: matchedTransporter.supplier,
+          cutoff_start_time: matchedTransporter.cutoff_start_time,
+          cutoff_end_time: matchedTransporter.cutoff_end_time,
+          name: matchedTransporter.name,
+          address: matchedTransporter.address
+        })
+        setShowTransporterFields(true)
+      } else {
+        setTransporterDetails(null)
+        setShowTransporterFields(false)
       }
     } else {
-      setShowTransporterFields(false)
       setTransporterDetails(null)
+      setShowTransporterFields(false)
     }
   }
+
+  useEffect(() => {
+    const updateTransporterDetails = async () => {
+      if (transportersLoaded && selectedTransporter) {
+        const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter)
+        if (matchedTransporter) {
+          setTransporterDetails({
+            supplier: matchedTransporter.supplier,
+            cutoff_start_time: matchedTransporter.cutoff_start_time,
+            cutoff_end_time: matchedTransporter.cutoff_end_time,
+            name: matchedTransporter.name,
+            address: matchedTransporter.address
+          })
+          setShowTransporterFields(true)
+        }
+      }
+    }
+
+    updateTransporterDetails()
+  }, [transportersLoaded, selectedTransporter, transporters])
+
 
  
 
@@ -220,24 +252,19 @@ const RedeliveryForm = () => {
         const customerData = customerResponse.data.data[0]
         setCustomerLoginUser(customerData)
 
+        // Fetch transporters
         const transporterResponse = await axios.get(`/api/resource/Customer/${encodeURIComponent(customerData?.name)}`)
-        const transporterData = transporterResponse?.data?.data?.custom_suppliers
-        console.log(transporterResponse, "kkkkkkkk")
+        const transporterData = transporterResponse?.data?.data?.custom_suppliers || []
+        setTransporters(transporterData)
+        setTransportersLoaded(true)
 
-        if (transporterData && transporterData.length > 0) {
-          setTransporters(transporterData)
-          setSelectedTransporter("")
-          setShowTransporterFields(false)
-          setTransporterDetails(null)
-        } else {
-          setTransporters(transporterData)
-        }
-
+        // Fetch child customers
         const childCustomersResponse = await axios.get(
           `/api/method/lbf_logistica.api.bol.get_customers_with_parent?customer_name=${encodeURIComponent(customerData.name)}`
         )
         setCustomers(childCustomersResponse.data.data)
 
+        // Fetch items
         const itemsResponse = await axios.get(
           `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`
         )
@@ -245,15 +272,15 @@ const RedeliveryForm = () => {
 
         if (id) {
           setIsEditMode(true)
-         fetchExistingData(id)
-        }
-
-        if (childCustomersResponse.data.data.length > 0) {
-          const firstCustomer = childCustomersResponse.data.data[0].name
-          setSelectedCustomer(firstCustomer)
-          setCustomerName(firstCustomer)
-          await fetchAddress(firstCustomer)
-          await fetchContactEmail(firstCustomer)
+          await fetchExistingData(id)
+        } else {
+          if (childCustomersResponse.data.data.length > 0) {
+            const firstCustomer = childCustomersResponse.data.data[0].name
+            setSelectedCustomer(firstCustomer)
+            setCustomerName(firstCustomer)
+            await fetchAddress(firstCustomer)
+            await fetchContactEmail(firstCustomer)
+          }
         }
 
         setLoading(false)
@@ -264,7 +291,7 @@ const RedeliveryForm = () => {
     }
 
     fetchData()
-  }, [id, resultData])
+  }, [id])
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
@@ -279,10 +306,12 @@ const RedeliveryForm = () => {
       const addressData = response.data.data || []
       setAddresses(addressData)
 
-      // Reset address selection when customer changes
-      setSelectedAddress("")
-      setShowAddressFields(false)
-      setAddressDetails(null)
+    
+      if (!isEditMode) {
+        setSelectedAddress("")
+        setShowAddressFields(false)
+        setAddressDetails(null)
+      }
     } catch (err: any) {
       setError(err.message || "Error fetching address")
     }
@@ -296,46 +325,94 @@ const RedeliveryForm = () => {
       const contactData = response?.data?.message || []
       setContacts(contactData)
 
-      setSelectedContact("")
-      setShowContactFields(false)
-      setContact("")
-      setEmail("")
+      // If in edit mode, don't reset the selected contact
+      if (!isEditMode) {
+        setSelectedContact("")
+        setShowContactFields(false)
+        setContact("")
+        setEmail("")
+      }
     } catch (err: any) {
       setError(err.message || "Error fetching contact and email")
     }
   }
 
-  const fetchExistingData = async (resultData: string) => {
+  const fetchExistingData = async (resultId: string) => {
     try {
-      const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultData}?fields=["*"]`)
+      const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
       const data = response.data.data
-      console.log(data, "uapdate data")
+      console.log(data,"fetchexitingdata")
 
-
+      // Set basic form data
       setResultData(data.name)
       setSelectedCustomer(data.customer)
+      setCustomerName(data.customer)
       setDateOfPosting(data.schedule_date)
       setPurpose(data.material_request_type)
-      setSelectedAddress(data.address_of_customer)
+      setDateOfDelivery(data.delivery_date)
+    
+
+      
+      // Fetch and set address data   
+      await fetchAddress(data.customer)
+      setSelectedAddress(data.shipping_address_name)
+      
+      // Parse and set address details
+      const addressParts = data.address_of_customer.split(', ')
+      if (addressParts.length >= 4) {
+        setAddressDetails({
+          name: data.address_of_customer,
+          address_title: addressParts[0],
+          address_line1: addressParts[1],
+          city: addressParts[2],
+          country: addressParts[3],
+          address_type: "Shipping" // Default or fetch from data if available
+        })
+        setShowAddressFields(true)
+      }
+
+      // Fetch and set contact data
+      await fetchContactEmail(data.customer)
       setSelectedContact(data.contact_person)
       setContact(data.contact)
       setEmail(data.contact_email)
-      setDateOfDelivery(data.delivery_date)
-      setTransporterDetails(data.transporter_name)
-     
+      setShowContactFields(true)
+
+      // Set transporter data
+      if (data.transporter_name) {
+        setSelectedTransporter(data.transporter_name)
+        // Wait for transporters to be loaded before setting details
+        if (transportersLoaded) {
+          const matchedTransporter = transporters.find(t => t.supplier === data.transporter_name)
+          if (matchedTransporter) {
+            setTransporterDetails({
+              supplier: data.transporter_name,
+              cutoff_start_time: matchedTransporter.cutoff_start_time,
+              cutoff_end_time: matchedTransporter.cutoff_end_time,
+              name: matchedTransporter.name,
+              address: matchedTransporter.address
+            })
+            setShowTransporterFields(true)
+          }
+        }
+      }
 
 
-      const fetchedItems = data.items.map((item: any, index: number) => ({
-        id: index + 1,
-        item_code: item.item_code,
-        item_name: item.name,
-        quantity: item.qty,
-        requiredBy: item.schedule_date,
-        targetWarehouse: item.warehouse,
-        uom: item.uom,
-        name: item.name,
-      }))
-      setItems(fetchedItems)
+      // Set items data
+      if (data.items && Array.isArray(data.items)) {
+        const fetchedItems = data.items.map((item: any, index: number) => ({
+          id: index + 1,
+          item_code: item.item_code,
+          item_name: item.item_name,
+          quantity: item.qty,
+          requiredBy: item.schedule_date,
+          targetWarehouse: item.warehouse,
+          uom: item.uom,
+          name: item.name
+        }))
+        setItems(fetchedItems)
+      }
+
     } catch (err: any) {
       setError(err.message || "Error fetching existing data")
     }
@@ -376,13 +453,13 @@ const RedeliveryForm = () => {
     setOpen(null)
   }
 
-  const handleCustomerSelect = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedName = event.target.value
     setSelectedCustomer(selectedName)
     setCustomerName(selectedName)
     if (selectedName) {
-      fetchAddress(selectedName)
-      fetchContactEmail(selectedName)
+      await fetchAddress(selectedName)
+      await fetchContactEmail(selectedName)
     }
   }
 
@@ -410,7 +487,7 @@ const RedeliveryForm = () => {
         ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
         : "Address not available",
       shipping_to: customerLoginUser?.customer_name,
-      shipping_address_name: "",
+      shipping_address_name: selectedAddress,
       address: "",
       contact_person: selectedContact,
       contact: contact,
@@ -646,60 +723,61 @@ const RedeliveryForm = () => {
         
 
           <div>
-            <label className="block text-sm font-medium">Select Transporter</label>
-            <select
-              value={selectedTransporter}
-              onChange={handleTransporterSelect}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Transporter</option>
-              {transporters && Array.isArray(transporters) && transporters.length > 0 ? (
-                transporters.map((transporter, index) => (
-                  <option
-                    key={transporter.name || index}
-                    value={transporter.supplier || ''}
-                  >
-                    {transporter.supplier || 'Unknown Supplier'}
-                  </option>
-                ))
-              ) : (
-                <option value="">No transporters available</option>
-              )}
-            </select>
-          </div>
+  <label className="block text-sm font-medium">Select Transporter</label>
+  <select
+    name="name"
+    value={selectedTransporter}
+    onChange={handleTransporterSelect}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+  >
+    <option value="">Select Transporter</option>
+    {transporters.map((transporter, index) => (
+      <option
+        key={transporter.name || index}
+        value={transporter.supplier || ''}
+      >
+        {transporter.supplier || 'Unnamed Transporter'}
+      </option>
+    ))}
+  </select>
+</div>
 
-          {showTransporterFields && transporterDetails && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Cutoff Start Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails.supplier}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Cutoff Start Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails.cutoff_start_time}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
+{showTransporterFields && (
+  <>
+   <div>
+      <label className="block text-sm font-medium">Supplier</label>
+      <input
+        type="text"
+        value={transporterDetails?.supplier || ''}
+        readOnly
+        className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
+      />
+    </div>
+<div>
 
-              <div>
-                <label className="block text-sm font-medium">Cutoff End Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails.cutoff_end_time}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
+      <label className="block text-sm font-medium">Cutoff Start Time</label>
+      <input
+        type="text"
+        value={transporterDetails?.cutoff_start_time || ''}
+        readOnly
+        className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium">Cutoff End Time</label>
+      <input
+        type="text"
+        value={transporterDetails?.cutoff_end_time || ''}
+        readOnly
+        className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
+      />
+    </div>
+
+   
+  </>
+)}
+
 </div>
 
 
