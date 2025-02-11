@@ -104,7 +104,7 @@ const RedeliveryForm = () => {
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser, items, "qqqqqqqqqqqq")
+  console.log(loginUser, selectedAddress,selectedCustomer,selectedContact, purpose, "qqqqqqqqqqqqR")
 
   const validateForm = () => {
     const errors: string[] = []
@@ -245,7 +245,7 @@ const RedeliveryForm = () => {
 
         if (id) {
           setIsEditMode(true)
-          await fetchExistingData(id)
+         fetchExistingData(id)
         }
 
         if (childCustomersResponse.data.data.length > 0) {
@@ -264,7 +264,7 @@ const RedeliveryForm = () => {
     }
 
     fetchData()
-  }, [id])
+  }, [id, resultData])
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
@@ -313,10 +313,11 @@ const RedeliveryForm = () => {
 
 
       setResultData(data.name)
-      setCustomerName(data.customer)
+      setSelectedCustomer(data.customer)
       setDateOfPosting(data.schedule_date)
       setPurpose(data.material_request_type)
-      setAddressDetails(data.address_of_customer)
+      setSelectedAddress(data.address_of_customer)
+      setSelectedContact(data.contact_person)
       setContact(data.contact)
       setEmail(data.contact_email)
       setDateOfDelivery(data.delivery_date)
@@ -521,7 +522,7 @@ const RedeliveryForm = () => {
         <div>
             <label className="block text-sm font-medium">Customer Name</label>
             <select
-              value={selectedCustomer || ""}
+              value={selectedCustomer}
               onChange={handleCustomerSelect}
               className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
             >
