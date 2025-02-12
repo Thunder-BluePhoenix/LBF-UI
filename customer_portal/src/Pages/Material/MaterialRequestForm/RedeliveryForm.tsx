@@ -495,17 +495,15 @@ const RedeliveryForm = () => {
       party_type: groupBy,
       customer: customerName,
       customer_contact: selectedContact,
-      address_of_customer: addressDetails
-        ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
-        : "Address not available",
+      // address_of_customer: addressDetails
+      //   ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
+      //   : "Address not available",
       shipping_to: customerLoginUser?.customer_name,
       shipping_address_name: selectedAddress,
-      address: "",
       contact_person: selectedContact,
       contact: contact,
       contact_email: email,
       transporter_name: transporterDetails?.supplier,
-      transporter_address: "",
       items: items.map((item) => ({
         item_code: item.item_code,
         item_name: item.item_name,
