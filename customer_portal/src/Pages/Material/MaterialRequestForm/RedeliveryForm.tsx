@@ -1,13 +1,14 @@
 "use client"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
+import { type ChangeEvent, type FormEvent, ReactNode, useEffect, useState } from "react"
 import axios from "axios"
 import { FaArrowLeft } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import { MdDelete } from "react-icons/md"
 
 interface ItemList {
+  available: ReactNode,
   id: number
   requiredBy: string
   quantity: number
@@ -19,11 +20,13 @@ interface ItemList {
 }
 
 interface FetchedItem {
+  schedule_date: string 
   item_code: string
   item_name: string
   items_quantity: number
   label: string
   value: string
+  actual_qty: number
 }
 
 interface Address {
@@ -85,6 +88,7 @@ const RedeliveryForm = () => {
   const [customerName, setCustomerName] = useState<string>("")
   const [dateOfPosting, setDateOfPosting] = useState<string>("")
   const [DateOfDelivery, setDateOfDelivery] = useState<string>("")
+  const [DateOfRequredBy, setDateOfRequredBy] = useState<string>("")
   const [purpose, setPurpose] = useState<string>("")
   const [transporters, setTransporters] = useState<Transporter[]>([])
   const [selectedTransporter, setSelectedTransporter] = useState<string>("")
@@ -97,16 +101,18 @@ const RedeliveryForm = () => {
   const [customerLoginUser, setCustomerLoginUser] = useState<CustomerLoginUser | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [resultData, setResultData] = useState("")
-  const [dataSubmit, setDataSubmit] = useState<dataSubmit | null>(null);
+  const [dataSubmit, setDataSubmit] = useState<dataSubmit | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [transportersLoaded, setTransportersLoaded] = useState(false)
+
 
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser, transporterDetails,selectedTransporter, "qqqqqqqqqqqqR")
+  console.log(loginUser, itemList, items, DateOfRequredBy, "qqqqqqqqqqqqR")
+  
 
   const validateForm = () => {
     const errors: string[] = []
@@ -139,10 +145,6 @@ const RedeliveryForm = () => {
     setValidationErrors(errors)
     return errors.length === 0
   }
-   // Function to show the error popup
-  
-  // Function to close the popup
-  
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setPurpose(event.target.value)
   }
@@ -168,7 +170,11 @@ const RedeliveryForm = () => {
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfPosting(e.target.value)
   }
+  const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
+    setDateOfRequredBy(e.target.value)
+  }
 
+  
   const handleDateOfDelivery = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfDelivery(e.target.value)
   }
@@ -347,9 +353,10 @@ const RedeliveryForm = () => {
       setResultData(data.name)
       setSelectedCustomer(data.customer)
       setCustomerName(data.customer)
-      setDateOfPosting(data.schedule_date)
+      setDateOfPosting(data.transaction_date)
       setPurpose(data.material_request_type)
-      setDateOfDelivery(data.delivery_date)
+      setDateOfDelivery(data.schedule_date)
+      setDateOfRequredBy(data.items.schedule_date)
     
 
       
@@ -408,7 +415,8 @@ const RedeliveryForm = () => {
           requiredBy: item.schedule_date,
           targetWarehouse: item.warehouse,
           uom: item.uom,
-          name: item.name
+          name: item.name,
+          available: item.custom_max_order_qty,
         }))
         setItems(fetchedItems)
       }
@@ -428,6 +436,7 @@ const RedeliveryForm = () => {
       name: "",
       item_name: "",
       item_code: "",
+      available: undefined
     }
     setItems([...items, newItem])
   }
@@ -446,6 +455,8 @@ const RedeliveryForm = () => {
             item_code: selectedItem.item_code,
             item_name: selectedItem.item_name,
             quantity: selectedItem.items_quantity,
+            available: selectedItem.actual_qty,
+            requiredBy: selectedItem.schedule_date
           }
           : item
       )
@@ -479,7 +490,8 @@ const RedeliveryForm = () => {
     const myData = {
       name: resultData,
       service: "Peneus Hub",
-      schedule_date: dateOfPosting,
+      transaction_date: dateOfPosting ,
+      schedule_date: DateOfDelivery,
       material_request_type: purpose,
       party_type: groupBy,
       customer: customerName,
@@ -496,7 +508,8 @@ const RedeliveryForm = () => {
       transporter_address: "",
       items: items.map((item) => ({
         item_code: item.item_code,
-        schedule_date: dateOfPosting,
+        item_name: item.item_name,
+        schedule_date: DateOfRequredBy,
         qty: item. quantity,
         stock_uom: "Nos",
         uom: "Nos",
@@ -779,10 +792,6 @@ const RedeliveryForm = () => {
 )}
 
 </div>
-
-
-       
-
         <div className=" mb-6">
           <table className="w-full text-sm border rounded-md border-gray-300">
             <thead>
@@ -841,8 +850,8 @@ const RedeliveryForm = () => {
                   <td className=" ">
                     <input
                       type="date"
-                      value={dateOfPosting}
-                      // onChange={handleDateOfRequredBy}
+                      value={DateOfRequredBy}
+                      onChange={handleDateOfRequredBy}
                       className="w-full p-2 border-x border-gray-300 "
                     />
                   </td>
@@ -859,7 +868,7 @@ const RedeliveryForm = () => {
                       className="w-full p-2 border-x border-gray-300 "
                     />
                   </td>
-                  <td className="border-r border-gray-300"></td>
+                  <td className="border-r border-gray-300">{item.available}</td>
                   <td className="">
                     <span
                       onClick={() => removeRow(index)}
