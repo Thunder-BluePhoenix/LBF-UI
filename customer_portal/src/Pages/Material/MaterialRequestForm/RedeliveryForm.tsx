@@ -67,6 +67,7 @@ interface Transporter {
 interface dataSubmit {
   message?: {
     message: string;
+    docstatus: number;
   };
 }
 
@@ -104,6 +105,7 @@ const RedeliveryForm = () => {
   const [dataSubmit, setDataSubmit] = useState<dataSubmit | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [transportersLoaded, setTransportersLoaded] = useState(false)
+  const [docStatus, setDocStatus] = useState<number | null>(null);
 
 
   const { id } = useParams<{ id: string }>()
@@ -219,6 +221,7 @@ const RedeliveryForm = () => {
       setShowTransporterFields(false)
     }
   }
+
 
   useEffect(() => {
     const updateTransporterDetails = async () => {
@@ -347,25 +350,23 @@ const RedeliveryForm = () => {
     try {
       const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
       const data = response.data.data
-      console.log(data,"fetchexitingdata")
+      console.log(data, "fetchexitingdata")
 
-      // Set basic form data
+    
       setResultData(data.name)
       setSelectedCustomer(data.customer)
       setCustomerName(data.customer)
       setDateOfPosting(data.transaction_date)
       setPurpose(data.material_request_type)
       setDateOfDelivery(data.schedule_date)
-      setDateOfRequredBy(data.items.schedule_date)
-    
+      setDateOfRequredBy(data.items[0]?.schedule_date || "")
 
-      
-      // Fetch and set address data   
+      setDocStatus(data.docstatus)
       await fetchAddress(data.customer)
       setSelectedAddress(data.shipping_address_name)
-      
+
       // Parse and set address details
-      const addressParts = data.address_of_customer.split(', ')
+      const addressParts = data.address_of_customer.split(", ")
       if (addressParts.length >= 4) {
         setAddressDetails({
           name: data.address_of_customer,
@@ -373,7 +374,7 @@ const RedeliveryForm = () => {
           address_line1: addressParts[1],
           city: addressParts[2],
           country: addressParts[3],
-          address_type: "Shipping" // Default or fetch from data if available
+          address_type: "Shipping", // Default or fetch from data if available
         })
         setShowAddressFields(true)
       }
@@ -390,20 +391,19 @@ const RedeliveryForm = () => {
         setSelectedTransporter(data.transporter_name)
         // Wait for transporters to be loaded before setting details
         if (transportersLoaded) {
-          const matchedTransporter = transporters.find(t => t.supplier === data.transporter_name)
+          const matchedTransporter = transporters.find((t) => t.supplier === data.transporter_name)
           if (matchedTransporter) {
             setTransporterDetails({
               supplier: data.transporter_name,
               cutoff_start_time: matchedTransporter.cutoff_start_time,
               cutoff_end_time: matchedTransporter.cutoff_end_time,
               name: matchedTransporter.name,
-              address: matchedTransporter.address
+              address: matchedTransporter.address,
             })
             setShowTransporterFields(true)
           }
         }
       }
-
 
       // Set items data
       if (data.items && Array.isArray(data.items)) {
@@ -420,7 +420,6 @@ const RedeliveryForm = () => {
         }))
         setItems(fetchedItems)
       }
-
     } catch (err: any) {
       setError(err.message || "Error fetching existing data")
     }
@@ -436,7 +435,7 @@ const RedeliveryForm = () => {
       name: "",
       item_name: "",
       item_code: "",
-      available: undefined
+      available: undefined,
     }
     setItems([...items, newItem])
   }
@@ -451,15 +450,15 @@ const RedeliveryForm = () => {
       items.map((item) =>
         item.id === itemId
           ? {
-            ...item,
-            item_code: selectedItem.item_code,
-            item_name: selectedItem.item_name,
-            quantity: selectedItem.items_quantity,
-            available: selectedItem.actual_qty,
-            requiredBy: selectedItem.schedule_date
-          }
-          : item
-      )
+              ...item,
+              item_code: selectedItem.item_code,
+              item_name: selectedItem.item_name,
+              quantity: selectedItem.items_quantity,
+              available: selectedItem.actual_qty,
+              requiredBy: selectedItem.schedule_date, // Update: added || DateOfRequredBy
+            }
+          : item,
+      ),
     )
     setOpen(null)
   }
@@ -495,17 +494,16 @@ const RedeliveryForm = () => {
       material_request_type: purpose,
       party_type: groupBy,
       customer: customerName,
-      address_of_customer: addressDetails
-        ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
-        : "Address not available",
+      customer_contact: selectedContact,
+      // address_of_customer: addressDetails
+      //   ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
+      //   : "Address not available",
       shipping_to: customerLoginUser?.customer_name,
       shipping_address_name: selectedAddress,
-      address: "",
       contact_person: selectedContact,
       contact: contact,
       contact_email: email,
       transporter_name: transporterDetails?.supplier,
-      transporter_address: "",
       items: items.map((item) => ({
         item_code: item.item_code,
         item_name: item.item_name,
@@ -539,10 +537,6 @@ const RedeliveryForm = () => {
 
   const handleFinalSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    // if (!validateForm()) {
-    //   return
-    // }
     const csrfToken = 'your-csrf-token';
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -561,25 +555,42 @@ const RedeliveryForm = () => {
       });
       const resultSubmitJson = await submitResult.json();
       setDataSubmit(resultSubmitJson)
-      // Show success message to the user
+      if (resultSubmitJson.message?.docstatus !== undefined) {
+        setDocStatus(resultSubmitJson.message.docstatus); 
+      }
+    
       
       console.log(resultSubmitJson);
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
+
+  const isDocStatusLocked = () => {
+    return docStatus === 1; // Function to check if docstatus is locked
+  };
   
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
   return (
-    <div className="max-w-6xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded-xl">
+    <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded-xl">
       <p className="mb-4 text-red-500">{dataSubmit?.message?.message}</p>
       <div className="flex items-center space-x-2 mb-6">
         <span onClick={() => navigate(-1)}>
           <FaArrowLeft />
         </span>
-        <h2 className="text-2xl font-semibold">{isEditMode ? "Edit" : "Create"} Material Request</h2>
+        <h2 className="text-xl font-semibold"><span
+  className={`${
+    !isDocStatusLocked()
+      ? isEditMode
+        ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
+        : "bg-green-500 text-white px-2 py-1 rounded-lg"
+      : "bg-blue-500 text-white px-2 py-1 rounded-lg"
+  }`}
+>
+  {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
+</span> Material Request</h2>
       
       </div>
 
@@ -884,13 +895,15 @@ const RedeliveryForm = () => {
         </div>
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-3">
-            <button
-              type="button"
-              onClick={addRow}
-              className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-            >
-              Add Row
-            </button>
+         {!isDocStatusLocked() && (
+             <button
+             type="button"
+             onClick={addRow}
+             className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+           >
+             Add Row
+           </button>
+         )}
             
           </div>
 
@@ -916,20 +929,23 @@ const RedeliveryForm = () => {
             </div>
           )}
         <div className="flex flex-row gap-2">
-        <button
-            type="submit"
-            // onClick={handleRedirectToRedeliveryRequest}
-            className="bg-orange-400 text-white px-4 py-2 rounded-md hover:bg-orange-800 transition-colors"
-          >
-            {isEditMode ? "Update" : "Save"}
-          </button>
-          {isEditMode ? 
+        {!isDocStatusLocked() && (
+  <button
+    type="submit"
+    // onClick={handleRedirectToRedeliveryRequest}
+    className="bg-orange-400 text-white px-4 py-2 rounded-md hover:bg-orange-800 transition-colors"
+  >
+    {isEditMode ? "Update" : "Save"}
+  </button>
+)}
+
+          {isEditMode && !isDocStatusLocked() && (
         <button 
       className="bg-blue-400 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors "
       onClick={handleFinalSubmit}>
         Submit
       </button>
-      : ""}
+      )}
         </div>
           {error && <p style={{ color: "red" }}>{error},<br>{dataSubmit?.message?.message}</br></p>}
        </div>

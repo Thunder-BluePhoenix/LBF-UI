@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
-import { BiEdit, BiPlus, BiSearch } from 'react-icons/bi';
+import { BiPlus, BiSearch } from 'react-icons/bi';
 import { AiFillCloseCircle } from 'react-icons/ai';
 import { useNavigate } from 'react-router';
 
@@ -38,7 +38,8 @@ const MaterialRequestList: React.FC = () => {
                 }
                 const data = await response.json();
                 if (data && data.data) {
-                    setRequestList(data.data);
+                    const reversData = data.data.reverse()
+                    setRequestList(reversData);
                 }
                 setLoading(false);
             } catch (error) {
@@ -178,7 +179,7 @@ const MaterialRequestList: React.FC = () => {
                                 <th className="p-4 text-left text-xs opacity-[70%]">Recipient Contact</th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Recipient Address</th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Status</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Edit</th>
+                               
                             </tr>
                         </thead>
 
@@ -210,9 +211,7 @@ const MaterialRequestList: React.FC = () => {
                                             {getStatusFromNumber(request.docstatus)}
                                         </span>
                                     </td>
-                                    <td 
-                                    
-                                    className="p-4 text-xl text-gray-500 cursor-pointer"><BiEdit /></td>
+                                  
                                 </tr>
                             ))}
                         </tbody>
