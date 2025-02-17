@@ -1,144 +1,195 @@
-import React, { useState } from 'react';
-import { FaArrowLeft } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate for redirection
+"use client"
 
-const InventoryTable = () => {
-  const navigate = useNavigate();  // Initialize useNavigate hook for redirection
+import { useEffect, useState } from "react"
+import { MdDelete } from "react-icons/md"
 
-  const initialFormData = {
-    customerName: '',
-    contact: '',
-    email: '',
-    address: '',
-    pincode: '',
-    coordinates: '',
-    purpose: 'Redelivery',
-    requestedBy: '',
-    dateOfPosting: '',
-    dateOfDelivery: '',
-    items: [{ itemName: '', itemCode: '', requiredQty: '', availableQty: '' }],
-  };
+interface ItemList {
+  id: number
+  requiredBy: string
+  quantity: number
+  targetWarehouse: string
+  uom: string
+  name: string
+  item_name: string
+  item_code: string
+}
 
-  const [formData, setFormData] = useState(initialFormData);
+interface FetchedItem {
+  item_code: string
+  item_name: string
+  items_quantity: number
+  label: string
+  value: string
+}
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
-    const { name, value } = e.target;
-    if (typeof index === 'number') {
-      const updatedItems = [...formData.items];
-      updatedItems[index][name as keyof typeof formData.items[0]] = value;
-      setFormData({ ...formData, items: updatedItems });
-    } else {
-      setFormData({ ...formData, [name]: value });
+export default function InventoryTable() {
+  const [items, setItems] = useState<ItemList[]>([])
+  const [itemList, setItemList] = useState<FetchedItem[]>([])
+  const [open, setOpen] = useState<number | null>(null)
+
+  const addRow = () => {
+    const newItem: ItemList = {
+      id: items.length + 1,
+      requiredBy: "",
+      quantity: 0,
+      targetWarehouse: "",
+      uom: "",
+      name: "",
+      item_name: "",
+      item_code: "",
     }
-  };
+    setItems([...items, newItem])
+  }
 
-  const handleUpdate = () => {
-    // Handle your update logic here (e.g., API call to update the data)
-    // After the update is successful:
+  const removeRow = (index: number) => {
+    const updatedItems = items.filter((_, i) => i !== index)
+    setItems(updatedItems)
+  }
 
-    // Reset form fields
-    setFormData(initialFormData);
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await fetch(
+          '/api/method/lbf_logistica.api.bol.get_unique_items?customer=anil&fields=["item_code","item_name","safety_stock"]',
+        )
+        const data = await response.json()
+        const fetchedItemCodes = data.message
+        console.log(fetchedItemCodes, "Items fetched")
+        setItemList(fetchedItemCodes)
+      } catch (error) {
+        console.error("Error fetching items:", error)
+      }
+    }
 
-    // Redirect to "Redelivery Request" component
-    navigate('/redelivery-request'); // Adjust the route as per your routing setup
-  };
-  const handleGoBack = () => {
-    navigate(-1); // Go back to the previous page
-  };
+    fetchItems()
+  }, [])
+
+  const handleItemSelect = (itemId: number, selectedItem: FetchedItem) => {
+    setItems(
+      items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              item_code: selectedItem.item_code,
+              item_name: selectedItem.item_name,
+              quantity: selectedItem.items_quantity,
+              // You can add more fields here if they are available in the FetchedItem
+            }
+          : item,
+      ),
+    )
+    setOpen(null)
+  }
+
+  const handleInputChange = (itemId: number, field: keyof ItemList, value: string | number) => {
+    setItems(items.map((item) => (item.id === itemId ? { ...item, [field]: value } : item)))
+  }
 
   return (
-    <div className=" max-w-4xl  border-2  my-8  mx-auto  bg-white  p-6  shadow-md  rounded-xl">
-      <div className=" flex  items-center  space-x-2  mb-6">
-        <span onClick={handleGoBack}><FaArrowLeft /></span>
-        <h2 className=" text-2xl  font-semibold">New Customer Details</h2>
+    <div className="p-4 space-y-4">
+      <div className="rounded-lg bg-white shadow-md">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold mb-4">Items</h2>
+          <div className="relative ">
+            <table className="w-full text-sm border border-gray-300">
+              <thead>
+                <tr className="border-b border-gray-300">
+                  <th className="p-2 text-left">
+                    <input type="checkbox" className="h-4 w-4" />
+                  </th>
+                  <th className="p-2 text-left">No.</th>
+                  <th className="p-2 text-left">Item Code *</th>
+                  <th className="p-2 text-left">Item Name</th>
+                  <th className="p-2 text-left">Required By *</th>
+                  <th className="p-2 text-left">Available Qty</th>
+                  <th className="p-2 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={item.id} className="border-b border-gray-300">
+                    <td className="pl-2">
+                      <input type="checkbox" className="h-4 w-4" />
+                    </td>
+                    <td className="">{item.id}</td>
+                    <td className="">
+                      <div className="relative">
+                        <div
+                          onClick={() => setOpen(open === item.id ? null : item.id)}
+                          className="w-full text-left px-2 py-2 border border-gray-300 rounded-md"
+                        >
+                          {item.item_code || "Select item..."}
+                        </div>
+                        {open === item.id && (
+                          <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
+                            <input
+                              type="text"
+                              placeholder="Search items..."
+                              className="w-full p-2 border border-gray-300"
+                            />
+                            <ul className="max-h-32 overflow-y-auto z-50">
+                              {itemList.map((code) => (
+                                <li
+                                  key={code.value}
+                                  className="p-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleItemSelect(item.id, code)}
+                                >
+                                  {code.item_code}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="">
+                      <input
+                        type="text"
+                        value={item.item_name}
+                        readOnly
+                        className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
+                      />
+                    </td>
+                    <td className="">
+                      <input
+                        type="text"
+                        value={item.requiredBy}
+                        onChange={(e) => handleInputChange(item.id, "requiredBy", e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                    </td>
+                    <td className="">
+                      <input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleInputChange(item.id, "quantity", Number(e.target.value))}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                    </td>
+                  
+                    <td className="">
+                      <span onClick={() => removeRow(index)} className="px-2 py-1  text-red-500 text-xl rounded-md">
+                      <MdDelete />
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex justify-between items-center">
+            <button onClick={addRow} className="px-4 py-2 bg-blue-500 text-white rounded-md">
+              Add Row
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className=" grid  grid-cols-2  gap-4  mb-6">
-        <div>
-          <label className=" block  text-sm  font-medium">Customer Name</label>
-          <input
-            type="text"
-            name="customerName"
-            value={formData.customerName}
-            onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
-          />
-        </div>
-        <div>
-          <label className=" block  text-sm  font-medium">Contact</label>
-          <input
-            type="text"
-            name="contact"
-            value={formData.contact}
-            onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
-          />
-        </div>
 
-        <div>
-          <label className=" block  text-sm  font-medium">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
-          />
-        </div>
-        <div>
-          <label className=" block  text-sm  font-medium">Pincode</label>
-          <input
-            type="text"
-            name="pincode"
-            value={formData.pincode}
-            onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
-          />
-        </div>
-
-        <div>
-          <label className=" block  text-sm  font-medium">Address</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
-          />
-        </div>
-        <div>
-          <label className=" block  text-sm  font-medium">Coordinates</label>
-          <input
-            type="text"
-            name="coordinates"
-            value={formData.coordinates}
-            onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
-          />
-        </div>
-      </div>
-
-      <hr />
-
-      <div className=" flex  justify-end">
-        <div className=" flex  space-x-4">
-          <button className=" px-6  py-2  bg-gray-100  rounded-md  text-gray-600">
-            Cancel
-          </button>
-          <button
-            className=" px-6  py-2  bg-orange-500  text-white  rounded-md"
-            onClick={handleUpdate}
-          >
-            Update
-          </button>
-        </div>
-      </div>
+      
     </div>
-  );
-};
-
-export default InventoryTable;
-
+  )
+}
 
 
 

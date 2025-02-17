@@ -73,7 +73,7 @@ const Sidebar = () => {
           }
         >
           <FiUserPlus size={24} />
-          {isHovered && <span>Material</span>}
+          {isHovered && <span>Material Requested</span>}
         </NavLink>
 
         {/* Customer Link */}
