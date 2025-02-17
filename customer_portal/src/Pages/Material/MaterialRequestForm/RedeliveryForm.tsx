@@ -113,7 +113,7 @@ const RedeliveryForm = () => {
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser, itemList, items, DateOfRequredBy, "qqqqqqqqqqqqR")
+  console.log(loginUser, addressDetails, "qqqqqqqqqqqqR")
   
 
   const validateForm = () => {
@@ -244,7 +244,16 @@ const RedeliveryForm = () => {
   }, [transportersLoaded, selectedTransporter, transporters])
 
 
- 
+  useEffect(() => {
+    if (isEditMode && selectedAddress && addresses.length > 0) {
+      const matchingAddress = addresses.find(addr => addr.name === selectedAddress);
+      if (matchingAddress) {
+        setAddressDetails(matchingAddress);
+        setShowAddressFields(true);
+      }
+    }
+  }, [addresses, selectedAddress, isEditMode]);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -364,20 +373,12 @@ const RedeliveryForm = () => {
       setDocStatus(data.docstatus)
       await fetchAddress(data.customer)
       setSelectedAddress(data.shipping_address_name)
-
-      // Parse and set address details
-      const addressParts = data.address_of_customer.split(", ")
-      if (addressParts.length >= 4) {
-        setAddressDetails({
-          name: data.address_of_customer,
-          address_title: addressParts[0],
-          address_line1: addressParts[1],
-          city: addressParts[2],
-          country: addressParts[3],
-          address_type: "Shipping", // Default or fetch from data if available
-        })
-        setShowAddressFields(true)
-      }
+  
+    
+    
+  
+      
+      
 
       // Fetch and set contact data
       await fetchContactEmail(data.customer)
@@ -955,4 +956,3 @@ const RedeliveryForm = () => {
 }
 
 export default RedeliveryForm
-
