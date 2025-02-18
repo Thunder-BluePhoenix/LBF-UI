@@ -47,7 +47,7 @@ interface Contact {
   email_id: string
 }
 interface Address {
-  name: string  // Added name for the address identifier
+  name: string  
   address_title: string
   address_line1: string
   city: string
@@ -62,6 +62,7 @@ interface Transporter {
   cutoff_end_time: string
   name: any
   address: any
+  is_default?: number
 }
 
 interface dataSubmit {
@@ -146,7 +147,18 @@ else {
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser,transporterDetails, "qqqqqqqqqqqqR")
+  console.log(loginUser,transporters, "qqqqqqqqqqqqR")
+
+  useEffect(() => {
+    if (transporters && transporters.length > 0) {
+      const defaultTransporter = transporters.find(item => item.is_default === 1);
+      if (defaultTransporter) {
+        setSelectedTransporter(defaultTransporter.supplier);
+        setTransporterDetails(defaultTransporter);
+        setShowTransporterFields(true);
+      }
+    }
+  }, [transporters]);
   
 
   const validateForm = () => {
@@ -215,90 +227,85 @@ else {
   }
 
   const handleAddressSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value
-    setSelectedAddress(selectedValue)
-
-    try {
-      const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`)
-      const transporterData = transporterResponse?.data?.data.custom_transporters
-      setTransporters(transporterData)
-      console.log(transporterData,"transporterData")
-      setTransportersLoaded(true)
-
-      // If in edit mode and we have a selected transporter, update the details
-      if (isEditMode && selectedTransporter) {
-        const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter)
-        if (matchedTransporter) {
-          setTransporterDetails({
-            supplier: matchedTransporter.supplier,
-            cutoff_start_time: matchedTransporter.cutoff_start_time,
-            cutoff_end_time: matchedTransporter.cutoff_end_time,
-            name: matchedTransporter.name,
-            address: matchedTransporter.address
-          })
-          setShowTransporterFields(true)
-        }
-        else {
-          setShowTransporterFields(false)
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching transporter data:", error)
-      setTransporters([])
-      setTransportersLoaded(false)
-    }
-
+    const selectedValue = event.target.value;
+    setSelectedAddress(selectedValue);
+  
     if (selectedValue) {
-      setShowAddressFields(true)
-      const selectedAddressData = addresses.find(a => a.name === selectedValue)
-      if (selectedAddressData) {
-        setAddressDetails(selectedAddressData)
+      setShowAddressFields(true);
+      const selectedAddressData = addresses.find(a => a.name === selectedValue);
+      setAddressDetails(selectedAddressData || null);
+  
+      try {
+        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`);
+        const transporterData = transporterResponse?.data?.data.custom_transporters;
+        setTransporters(transporterData);
+        setTransportersLoaded(true);
+  
+        // Clear transporter fields if no transporter is selected or the address doesn't have any transporters
+        if (!transporterData || transporterData.length === 0) {
+          setShowTransporterFields(false);
+          setTransporterDetails(null);
+          setSelectedTransporter('');
+        }
+  
+        if (isEditMode && selectedTransporter) {
+          const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter);
+          if (matchedTransporter) {
+            setTransporterDetails(matchedTransporter);
+            setShowTransporterFields(true);
+          } else {
+            setShowTransporterFields(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching transporter data:", error);
+        setTransporters([]);
+        setTransportersLoaded(false);
+        setShowTransporterFields(false); // Hide transporter fields on error
       }
     } else {
-      setShowAddressFields(false)
-      setAddressDetails(null)
+      setShowAddressFields(false);
+      setAddressDetails(null);
+      setTransporters([]);
+      setShowTransporterFields(false); // Reset transporter fields if no address is selected
     }
-  }
-
-  // Modified handleTransporterSelect to be more robust
-  const handleTransporterSelect = (event: { target: { value: string } }) => {
-    const selectedValue = event.target.value
-    setSelectedTransporter(selectedValue)
-    
+  };
+  
+  // Modified handleTransporterSelect to handle cutoff times based on selected transporter
+  const handleTransporterSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value;
+    setSelectedTransporter(selectedValue);
+  
     if (selectedValue && transporters.length > 0) {
-      const matchedTransporter = transporters.find(t => t.supplier === selectedValue)
+      const matchedTransporter = transporters.find(t => t.supplier === selectedValue);
       if (matchedTransporter) {
-        setTransporterDetails({
-          supplier: matchedTransporter.supplier,
-          cutoff_start_time: matchedTransporter.cutoff_start_time,
-          cutoff_end_time: matchedTransporter.cutoff_end_time,
-          name: matchedTransporter.name,
-          address: matchedTransporter.address
-        })
-        setShowTransporterFields(true)
+        setTransporterDetails(matchedTransporter);
+        setShowTransporterFields(true);
+      } else {
+        setTransporterDetails(null);
+        setShowTransporterFields(false);
       }
     } else {
-      setTransporterDetails(null)
-      setShowTransporterFields(false)
+      // Clear transporter details and hide fields if no transporter is selected
+      setTransporterDetails(null);
+      setShowTransporterFields(false);
     }
-  }
+  };
+  
 
 
   useEffect(() => {
     if (isEditMode && transportersLoaded && selectedTransporter && transporters.length > 0) {
-      const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter)
+      const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter);
       if (matchedTransporter) {
-        setTransporterDetails({
-          supplier: selectedTransporter,
-          cutoff_start_time: matchedTransporter.cutoff_start_time,
-          cutoff_end_time: matchedTransporter.cutoff_end_time,
-          name: matchedTransporter.name,
-          address: matchedTransporter.address
-        })
-        setShowTransporterFields(true)
+        setTransporterDetails(matchedTransporter);
+        setShowTransporterFields(true);
+      }
+      else{
+        setShowTransporterFields(false);
       }
     }
-  }, [isEditMode, transportersLoaded, selectedTransporter, transporters])
+  }, [isEditMode, transportersLoaded, selectedTransporter, transporters]);
 
 
 
@@ -311,7 +318,7 @@ else {
       }
     }
   }, [addresses, selectedAddress, isEditMode]);
-  
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -868,7 +875,7 @@ else {
         <div className=" mb-6">
           <table className="w-full text-sm border rounded-md border-gray-300">
             <thead>
-              <tr className="border-b  border-gray-300">
+              <tr className="border-b bg-gray-300 border-gray-300">
                 <th className="p-2 text-left">No.</th>
                 <th className="p-2 text-left">Item Code *</th>
                 <th className="p-2 text-left">Item Name</th>
