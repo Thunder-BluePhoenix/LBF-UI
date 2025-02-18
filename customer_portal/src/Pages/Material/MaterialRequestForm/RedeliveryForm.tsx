@@ -109,11 +109,44 @@ const RedeliveryForm = () => {
 
 
   const { id } = useParams<{ id: string }>()
+  const resetFormFields = () => {
+    setSelectedCustomer("")
+    setCustomerName("")
+    setSelectedAddress("")
+    setAddressDetails(null)
+    setShowAddressFields(false)
+    setSelectedContact("")
+    setContact("")
+    setEmail("")
+    setShowContactFields(false)
+    setDateOfPosting(new Date().toISOString().split("T")[0])
+    setDateOfDelivery("")
+    setDateOfRequredBy("")
+    setPurpose("")
+    setSelectedTransporter("")
+    setTransporterDetails(null)
+    setShowTransporterFields(false)
+    setItems([])
+    setValidationErrors([])
+    setResultData("")
+    setDataSubmit(null)
+    setDocStatus(null)
+  }
+
+  useEffect(() =>{
+if (id) {
+  setIsEditMode(true)
+}
+else {
+  setIsEditMode(false)
+  resetFormFields()
+}
+  },[id])
   const navigate = useNavigate()
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser, addressDetails, "qqqqqqqqqqqqR")
+  console.log(loginUser,transporterDetails, "qqqqqqqqqqqqR")
   
 
   const validateForm = () => {
@@ -181,9 +214,39 @@ const RedeliveryForm = () => {
     setDateOfDelivery(e.target.value)
   }
 
-  const handleAddressSelect = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleAddressSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value
     setSelectedAddress(selectedValue)
+
+    try {
+      const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`)
+      const transporterData = transporterResponse?.data?.data.custom_transporters
+      setTransporters(transporterData)
+      console.log(transporterData,"transporterData")
+      setTransportersLoaded(true)
+
+      // If in edit mode and we have a selected transporter, update the details
+      if (isEditMode && selectedTransporter) {
+        const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter)
+        if (matchedTransporter) {
+          setTransporterDetails({
+            supplier: matchedTransporter.supplier,
+            cutoff_start_time: matchedTransporter.cutoff_start_time,
+            cutoff_end_time: matchedTransporter.cutoff_end_time,
+            name: matchedTransporter.name,
+            address: matchedTransporter.address
+          })
+          setShowTransporterFields(true)
+        }
+        else {
+          setShowTransporterFields(false)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching transporter data:", error)
+      setTransporters([])
+      setTransportersLoaded(false)
+    }
 
     if (selectedValue) {
       setShowAddressFields(true)
@@ -197,11 +260,12 @@ const RedeliveryForm = () => {
     }
   }
 
+  // Modified handleTransporterSelect to be more robust
   const handleTransporterSelect = (event: { target: { value: string } }) => {
     const selectedValue = event.target.value
     setSelectedTransporter(selectedValue)
     
-    if (selectedValue && transportersLoaded) {
+    if (selectedValue && transporters.length > 0) {
       const matchedTransporter = transporters.find(t => t.supplier === selectedValue)
       if (matchedTransporter) {
         setTransporterDetails({
@@ -212,9 +276,6 @@ const RedeliveryForm = () => {
           address: matchedTransporter.address
         })
         setShowTransporterFields(true)
-      } else {
-        setTransporterDetails(null)
-        setShowTransporterFields(false)
       }
     } else {
       setTransporterDetails(null)
@@ -224,24 +285,21 @@ const RedeliveryForm = () => {
 
 
   useEffect(() => {
-    const updateTransporterDetails = async () => {
-      if (transportersLoaded && selectedTransporter) {
-        const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter)
-        if (matchedTransporter) {
-          setTransporterDetails({
-            supplier: matchedTransporter.supplier,
-            cutoff_start_time: matchedTransporter.cutoff_start_time,
-            cutoff_end_time: matchedTransporter.cutoff_end_time,
-            name: matchedTransporter.name,
-            address: matchedTransporter.address
-          })
-          setShowTransporterFields(true)
-        }
+    if (isEditMode && transportersLoaded && selectedTransporter && transporters.length > 0) {
+      const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter)
+      if (matchedTransporter) {
+        setTransporterDetails({
+          supplier: selectedTransporter,
+          cutoff_start_time: matchedTransporter.cutoff_start_time,
+          cutoff_end_time: matchedTransporter.cutoff_end_time,
+          name: matchedTransporter.name,
+          address: matchedTransporter.address
+        })
+        setShowTransporterFields(true)
       }
     }
+  }, [isEditMode, transportersLoaded, selectedTransporter, transporters])
 
-    updateTransporterDetails()
-  }, [transportersLoaded, selectedTransporter, transporters])
 
 
   useEffect(() => {
@@ -271,10 +329,7 @@ const RedeliveryForm = () => {
         setCustomerLoginUser(customerData)
 
         // Fetch transporters
-        const transporterResponse = await axios.get(`/api/resource/Customer/${encodeURIComponent(customerData?.name)}`)
-        const transporterData = transporterResponse?.data?.data?.custom_suppliers || []
-        setTransporters(transporterData)
-        setTransportersLoaded(true)
+       
 
         // Fetch child customers
         const childCustomersResponse = await axios.get(
@@ -323,6 +378,8 @@ const RedeliveryForm = () => {
       )
       const addressData = response.data.data || []
       setAddresses(addressData)
+
+    
 
     
       if (!isEditMode) {
@@ -376,7 +433,28 @@ const RedeliveryForm = () => {
   
     
     
-  
+      if (data.shipping_address_name) {
+        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`)
+        const transporterData = transporterResponse?.data?.data.custom_transporters
+        setTransporters(transporterData)
+        setTransportersLoaded(true)
+
+        // Set transporter details if we have a transporter name
+        if (data.transporter_name) {
+          setSelectedTransporter(data.transporter_name)
+          const matchedTransporter = transporterData.find((t: { supplier: any }) => t.supplier === data.transporter_name)
+          if (matchedTransporter) {
+            setTransporterDetails({
+              supplier: data.transporter_name,
+              cutoff_start_time: matchedTransporter.cutoff_start_time,
+              cutoff_end_time: matchedTransporter.cutoff_end_time,
+              name: matchedTransporter.name,
+              address: matchedTransporter.address
+            })
+            setShowTransporterFields(true)
+          }
+        }
+      }
       
       
 
@@ -387,24 +465,7 @@ const RedeliveryForm = () => {
       setEmail(data.contact_email)
       setShowContactFields(true)
 
-      // Set transporter data
-      if (data.transporter_name) {
-        setSelectedTransporter(data.transporter_name)
-        // Wait for transporters to be loaded before setting details
-        if (transportersLoaded) {
-          const matchedTransporter = transporters.find((t) => t.supplier === data.transporter_name)
-          if (matchedTransporter) {
-            setTransporterDetails({
-              supplier: data.transporter_name,
-              cutoff_start_time: matchedTransporter.cutoff_start_time,
-              cutoff_end_time: matchedTransporter.cutoff_end_time,
-              name: matchedTransporter.name,
-              address: matchedTransporter.address,
-            })
-            setShowTransporterFields(true)
-          }
-        }
-      }
+   
 
       // Set items data
       if (data.items && Array.isArray(data.items)) {
@@ -767,7 +828,7 @@ const RedeliveryForm = () => {
   </select>
 </div>
 
-{showTransporterFields && (
+{showTransporterFields &&  (
   <>
    <div>
       <label className="block text-sm font-medium">Supplier</label>
