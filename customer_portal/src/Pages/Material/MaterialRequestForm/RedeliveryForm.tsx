@@ -466,7 +466,7 @@ else {
       await fetchContactEmail(data.shipping_to)
       setSelectedContact(data.customer_contact)
       setContact(data.contact)
-      setEmail(data.contact_email)
+      setEmail(data.email)
       setShowContactFields(true)
 
    
