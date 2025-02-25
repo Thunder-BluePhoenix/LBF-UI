@@ -20,7 +20,7 @@ interface ItemList {
 }
 
 interface FetchedItem {
-  schedule_date: string 
+  schedule_date: string
   item_code: string
   item_name: string
   items_quantity: number
@@ -47,7 +47,7 @@ interface Contact {
   email_id: string
 }
 interface Address {
-  name: string  
+  name: string
   address_title: string
   address_line1: string
   city: string
@@ -134,20 +134,20 @@ const RedeliveryForm = () => {
     setDocStatus(null)
   }
 
-  useEffect(() =>{
-if (id) {
-  setIsEditMode(true)
-}
-else {
-  setIsEditMode(false)
-  resetFormFields()
-}
-  },[id])
+  useEffect(() => {
+    if (id) {
+      setIsEditMode(true)
+    }
+    else {
+      setIsEditMode(false)
+      resetFormFields()
+    }
+  }, [id])
   const navigate = useNavigate()
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser,selectedAddress,selectedContact, "qqqqqqqqqqqqR")
+  console.log(loginUser, selectedAddress, selectedContact, "qqqqqqqqqqqqR")
 
   useEffect(() => {
     if (transporters && transporters.length > 0) {
@@ -159,7 +159,7 @@ else {
       }
     }
   }, [transporters]);
-  
+
 
   const validateForm = () => {
     const errors: string[] = []
@@ -186,8 +186,8 @@ else {
     if (!purpose) {
       errors.push("Purpose is required.")
     }
-  
-  
+
+
 
     setValidationErrors(errors)
     return errors.length === 0
@@ -199,7 +199,7 @@ else {
   const handleContactSelect = (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     setSelectedContact(selectedValue);
-  
+
     if (selectedValue) {
       setShowContactFields(true);
       const selectedContactData = contacts.find(c => c.name === selectedValue);
@@ -221,7 +221,7 @@ else {
     setDateOfRequredBy(e.target.value)
   }
 
-  
+
   const handleDateOfDelivery = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfDelivery(e.target.value)
   }
@@ -229,25 +229,24 @@ else {
   const handleAddressSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     setSelectedAddress(selectedValue);
-  
+
     if (selectedValue) {
       setShowAddressFields(true);
       const selectedAddressData = addresses.find(a => a.name === selectedValue);
       setAddressDetails(selectedAddressData || null);
-  
+
       try {
         const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`);
         const transporterData = transporterResponse?.data?.data.custom_transporters;
         setTransporters(transporterData);
         setTransportersLoaded(true);
-  
-        // Clear transporter fields if no transporter is selected or the address doesn't have any transporters
+
         if (!transporterData || transporterData.length === 0) {
           setShowTransporterFields(false);
           setTransporterDetails(null);
           setSelectedTransporter('');
         }
-  
+
         if (isEditMode && selectedTransporter) {
           const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter);
           if (matchedTransporter) {
@@ -261,19 +260,19 @@ else {
         console.error("Error fetching transporter data:", error);
         setTransporters([]);
         setTransportersLoaded(false);
-        setShowTransporterFields(false); // Hide transporter fields on error
+        setShowTransporterFields(false);
       }
     } else {
       setShowAddressFields(false);
       setAddressDetails(null);
       setTransporters([]);
-      setShowTransporterFields(false); 
+      setShowTransporterFields(false);
     }
   };
   const handleTransporterSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     setSelectedTransporter(selectedValue);
-  
+
     if (selectedValue && transporters.length > 0) {
       const matchedTransporter = transporters.find(t => t.supplier === selectedValue);
       if (matchedTransporter) {
@@ -288,7 +287,7 @@ else {
       setShowTransporterFields(false);
     }
   };
-  
+
 
 
   useEffect(() => {
@@ -298,7 +297,7 @@ else {
         setTransporterDetails(matchedTransporter);
         setShowTransporterFields(true);
       }
-      else{
+      else {
         setShowTransporterFields(false);
       }
     }
@@ -332,16 +331,11 @@ else {
         const customerData = customerResponse.data.data[0]
         setCustomerLoginUser(customerData)
 
-        // Fetch transporters
-       
-
-        // Fetch child customers
         const childCustomersResponse = await axios.get(
           `/api/method/lbf_logistica.api.bol.get_customers_with_parent?customer_name=${encodeURIComponent(customerData.name)}`
         )
         setCustomers(childCustomersResponse.data.data)
 
-        // Fetch items
         const itemsResponse = await axios.get(
           `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`
         )
@@ -383,9 +377,9 @@ else {
       const addressData = response.data.data || []
       setAddresses(addressData)
 
-    
 
-    
+
+
       if (!isEditMode) {
         setSelectedAddress("")
         setShowAddressFields(false)
@@ -404,7 +398,6 @@ else {
       const contactData = response?.data?.message || []
       setContacts(contactData)
 
-      // If in edit mode, don't reset the selected contact
       if (!isEditMode) {
         setSelectedContact("")
         setShowContactFields(false)
@@ -422,7 +415,7 @@ else {
       const data = response.data.data
       console.log(data, "fetchexitingdata")
 
-    
+
       setResultData(data.name)
       setSelectedCustomer(data.shipping_to)
       setCustomerName(data.shipping_to)
@@ -434,16 +427,15 @@ else {
       setDocStatus(data.docstatus)
       await fetchAddress(data.shipping_to)
       setSelectedAddress(data.shipping_address_name)
-  
-    
-    
+
+
+
       if (data.shipping_address_name) {
         const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`)
         const transporterData = transporterResponse?.data?.data.custom_transporters
         setTransporters(transporterData)
         setTransportersLoaded(true)
 
-        // Set transporter details if we have a transporter name
         if (data.transporter_name) {
           setSelectedTransporter(data.transporter_name)
           const matchedTransporter = transporterData.find((t: { supplier: any }) => t.supplier === data.transporter_name)
@@ -459,19 +451,13 @@ else {
           }
         }
       }
-      
-      
 
-      // Fetch and set contact data
       await fetchContactEmail(data.shipping_to)
       setSelectedContact(data.customer_contact)
       setContact(data.contact)
       setEmail(data.email)
       setShowContactFields(true)
 
-   
-
-      // Set items data
       if (data.items && Array.isArray(data.items)) {
         const fetchedItems = data.items.map((item: any, index: number) => ({
           id: index + 1,
@@ -516,13 +502,13 @@ else {
       items.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              item_code: selectedItem.item_code,
-              item_name: selectedItem.item_name,
-              quantity: selectedItem.items_quantity,
-              available: selectedItem.actual_qty,
-              requiredBy: selectedItem.schedule_date, // Update: added || DateOfRequredBy
-            }
+            ...item,
+            item_code: selectedItem.item_code,
+            item_name: selectedItem.item_name,
+            quantity: selectedItem.items_quantity,
+            available: selectedItem.actual_qty,
+            requiredBy: selectedItem.schedule_date,
+          }
           : item,
       ),
     )
@@ -555,7 +541,7 @@ else {
     const myData = {
       name: resultData,
       service: "Peneus Hub",
-      transaction_date: dateOfPosting ,
+      transaction_date: dateOfPosting,
       schedule_date: DateOfDelivery,
       material_request_type: purpose,
       party_type: groupBy,
@@ -568,13 +554,13 @@ else {
       shipping_address_name: selectedAddress,
       contact_person: selectedContact,
       contact: contact,
-      contact_email: email,
+      email: email,
       transporter_name: transporterDetails?.supplier,
       items: items.map((item) => ({
         item_code: item.item_code,
         item_name: item.item_name,
         schedule_date: DateOfRequredBy,
-        qty: item. quantity,
+        qty: item.quantity,
         stock_uom: "Nos",
         uom: "Nos",
         conversion_factor: 1.0,
@@ -597,7 +583,7 @@ else {
       setResultData(resultId)
       navigate(`/customer_portal/material-request-form/${resultId}`)
     } catch (err: any) {
-  setError(err.message || "Error submitting redelivery request")
+      setError(err.message || "Error submitting redelivery request")
     }
   }
 
@@ -610,8 +596,8 @@ else {
     };
 
     const siubmitData = {
-    name: resultData ,
-     };
+      name: resultData,
+    };
 
     try {
       const submitResult = await fetch('/api/method/lbf_logistica.api.bol.submit_material_request', {
@@ -622,10 +608,10 @@ else {
       const resultSubmitJson = await submitResult.json();
       setDataSubmit(resultSubmitJson)
       if (resultSubmitJson.message?.docstatus !== undefined) {
-        setDocStatus(resultSubmitJson.message.docstatus); 
+        setDocStatus(resultSubmitJson.message.docstatus);
       }
-    
-      
+
+
       console.log(resultSubmitJson);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -633,9 +619,9 @@ else {
   };
 
   const isDocStatusLocked = () => {
-    return docStatus === 1; // Function to check if docstatus is locked
+    return docStatus === 1;
   };
-  
+
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
@@ -647,17 +633,16 @@ else {
           <FaArrowLeft />
         </span>
         <h2 className="text-xl font-semibold"><span
-  className={`${
-    !isDocStatusLocked()
-      ? isEditMode
-        ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
-        : "bg-green-500 text-white px-2 py-1 rounded-lg"
-      : "bg-blue-500 text-white px-2 py-1 rounded-lg"
-  }`}
->
-  {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
-</span> Material Request</h2>
-      
+          className={`${!isDocStatusLocked()
+              ? isEditMode
+                ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
+                : "bg-green-500 text-white px-2 py-1 rounded-lg"
+              : "bg-blue-500 text-white px-2 py-1 rounded-lg"
+            }`}
+        >
+          {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
+        </span> Material Request</h2>
+
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -682,11 +667,11 @@ else {
               className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
             />
           </div>
-        
+
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-        <div>
+          <div>
             <label className="block text-sm font-medium">Customer Name</label>
             <select
               value={selectedCustomer}
@@ -810,65 +795,65 @@ else {
               className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
             />
           </div>
-        
+
 
           <div>
-  <label className="block text-sm font-medium">Select Transporter</label>
-  <select
-    name="name"
-    value={selectedTransporter}
-    onChange={handleTransporterSelect}
-    className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-  >
-    <option value="">Select Transporter</option>
-    {transporters.map((transporter, index) => (
-      <option
-        key={transporter.name || index}
-        value={transporter.supplier || ''}
-      >
-        {transporter.supplier || 'Unnamed Transporter'}
-      </option>
-    ))}
-  </select>
-</div>
+            <label className="block text-sm font-medium">Select Transporter</label>
+            <select
+              name="name"
+              value={selectedTransporter}
+              onChange={handleTransporterSelect}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            >
+              <option value="">Select Transporter</option>
+              {transporters.map((transporter, index) => (
+                <option
+                  key={transporter.name || index}
+                  value={transporter.supplier || ''}
+                >
+                  {transporter.supplier || 'Unnamed Transporter'}
+                </option>
+              ))}
+            </select>
+          </div>
 
-{showTransporterFields &&  (
-  <>
-   <div>
-      <label className="block text-sm font-medium">Supplier</label>
-      <input
-        type="text"
-        value={transporterDetails?.supplier || ''}
-        readOnly
-        className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-      />
-    </div>
-<div>
+          {showTransporterFields && (
+            <>
+              <div>
+                <label className="block text-sm font-medium">Supplier</label>
+                <input
+                  type="text"
+                  value={transporterDetails?.supplier || ''}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
+                />
+              </div>
+              <div>
 
-      <label className="block text-sm font-medium">Cutoff Start Time</label>
-      <input
-        type="text"
-        value={transporterDetails?.cutoff_start_time || ''}
-        readOnly
-        className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-      />
-    </div>
+                <label className="block text-sm font-medium">Cutoff Start Time</label>
+                <input
+                  type="text"
+                  value={transporterDetails?.cutoff_start_time || ''}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
+                />
+              </div>
 
-    <div>
-      <label className="block text-sm font-medium">Cutoff End Time</label>
-      <input
-        type="text"
-        value={transporterDetails?.cutoff_end_time || ''}
-        readOnly
-        className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-      />
-    </div>
+              <div>
+                <label className="block text-sm font-medium">Cutoff End Time</label>
+                <input
+                  type="text"
+                  value={transporterDetails?.cutoff_end_time || ''}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
+                />
+              </div>
 
-   
-  </>
-)}
 
-</div>
+            </>
+          )}
+
+        </div>
         <div className=" mb-6">
           <table className="w-full text-sm border rounded-md border-gray-300">
             <thead>
@@ -961,16 +946,16 @@ else {
         </div>
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-3">
-         {!isDocStatusLocked() && (
-             <button
-             type="button"
-             onClick={addRow}
-             className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-           >
-             Add Row
-           </button>
-         )}
-            
+            {!isDocStatusLocked() && (
+              <button
+                type="button"
+                onClick={addRow}
+                className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Add Row
+              </button>
+            )}
+
           </div>
 
           {validationErrors.length > 0 && (
@@ -994,27 +979,27 @@ else {
               </div>
             </div>
           )}
-        <div className="flex flex-row gap-2">
-        {!isDocStatusLocked() && (
-  <button
-    type="submit"
-    // onClick={handleRedirectToRedeliveryRequest}
-    className="bg-orange-400 text-white px-4 py-2 rounded-md hover:bg-orange-800 transition-colors"
-  >
-    {isEditMode ? "Update" : "Save"}
-  </button>
-)}
+          <div className="flex flex-row gap-2">
+            {!isDocStatusLocked() && (
+              <button
+                type="submit"
+                // onClick={handleRedirectToRedeliveryRequest}
+                className="bg-orange-400 text-white px-4 py-2 rounded-md hover:bg-orange-800 transition-colors"
+              >
+                {isEditMode ? "Update" : "Save"}
+              </button>
+            )}
 
-          {isEditMode && !isDocStatusLocked() && (
-        <button 
-      className="bg-blue-400 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors "
-      onClick={handleFinalSubmit}>
-        Submit
-      </button>
-      )}
-        </div>
+            {isEditMode && !isDocStatusLocked() && (
+              <button
+                className="bg-blue-400 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors "
+                onClick={handleFinalSubmit}>
+                Submit
+              </button>
+            )}
+          </div>
           {error && <p style={{ color: "red" }}>{error},<br>{dataSubmit?.message?.message}</br></p>}
-       </div>
+        </div>
       </form>
     </div>
   )
