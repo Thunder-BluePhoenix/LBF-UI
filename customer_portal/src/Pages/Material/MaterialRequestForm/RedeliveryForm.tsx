@@ -412,7 +412,7 @@ else {
         setEmail("")
       }
     } catch (err: any) {
-      setError(err.message || "Error fetching contact and email")
+      setError(err.message || "Error fetching Contact and Email")
     }
   }
 
