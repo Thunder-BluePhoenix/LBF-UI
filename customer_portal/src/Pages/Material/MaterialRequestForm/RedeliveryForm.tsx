@@ -147,7 +147,7 @@ else {
 
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
 
-  console.log(loginUser,transporters, "qqqqqqqqqqqqR")
+  console.log(loginUser,selectedAddress,selectedContact, "qqqqqqqqqqqqR")
 
   useEffect(() => {
     if (transporters && transporters.length > 0) {
@@ -267,11 +267,9 @@ else {
       setShowAddressFields(false);
       setAddressDetails(null);
       setTransporters([]);
-      setShowTransporterFields(false); // Reset transporter fields if no address is selected
+      setShowTransporterFields(false); 
     }
   };
-  
-  // Modified handleTransporterSelect to handle cutoff times based on selected transporter
   const handleTransporterSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     setSelectedTransporter(selectedValue);
@@ -286,7 +284,6 @@ else {
         setShowTransporterFields(false);
       }
     } else {
-      // Clear transporter details and hide fields if no transporter is selected
       setTransporterDetails(null);
       setShowTransporterFields(false);
     }
@@ -427,15 +424,15 @@ else {
 
     
       setResultData(data.name)
-      setSelectedCustomer(data.customer)
-      setCustomerName(data.customer)
+      setSelectedCustomer(data.shipping_to)
+      setCustomerName(data.shipping_to)
       setDateOfPosting(data.transaction_date)
       setPurpose(data.material_request_type)
       setDateOfDelivery(data.schedule_date)
       setDateOfRequredBy(data.items[0]?.schedule_date || "")
 
       setDocStatus(data.docstatus)
-      await fetchAddress(data.customer)
+      await fetchAddress(data.shipping_to)
       setSelectedAddress(data.shipping_address_name)
   
     
@@ -466,8 +463,8 @@ else {
       
 
       // Fetch and set contact data
-      await fetchContactEmail(data.customer)
-      setSelectedContact(data.contact_person)
+      await fetchContactEmail(data.shipping_to)
+      setSelectedContact(data.customer_contact)
       setContact(data.contact)
       setEmail(data.contact_email)
       setShowContactFields(true)
@@ -562,12 +559,12 @@ else {
       schedule_date: DateOfDelivery,
       material_request_type: purpose,
       party_type: groupBy,
-      customer: customerName,
+      customer: customerLoginUser?.customer_name,
       customer_contact: selectedContact,
       // address_of_customer: addressDetails
       //   ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
       //   : "Address not available",
-      shipping_to: customerLoginUser?.customer_name,
+      shipping_to: customerName,
       shipping_address_name: selectedAddress,
       contact_person: selectedContact,
       contact: contact,
@@ -600,7 +597,7 @@ else {
       setResultData(resultId)
       navigate(`/customer_portal/material-request-form/${resultId}`)
     } catch (err: any) {
-      setError(err.message || "Error submitting redelivery request")
+  setError(err.message || "Error submitting redelivery request")
     }
   }
 
