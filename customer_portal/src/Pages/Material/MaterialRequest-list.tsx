@@ -77,9 +77,9 @@ const MaterialRequestList: React.FC = () => {
     const getStatusFromNumber = (docstatus: number) => {
         switch (docstatus) {
             case 0:
-                return 'Open';
-            case 1:
                 return 'Draft';
+            case 1:
+                return 'Open';
             default:
                 return 'Unknown';
         }
