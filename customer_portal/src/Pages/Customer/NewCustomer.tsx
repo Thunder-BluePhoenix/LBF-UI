@@ -47,7 +47,7 @@ const NewCustomer = () => {
   };
 
   return (
-    <div className=" max-w-4xl  border-2  my-8  mx-auto  bg-white  p-6  shadow-md  rounded-xl">
+    <div className=" max-w-4xl  border border-gray-300  my-8  mx-auto  bg-white  p-6  shadow-md  rounded-xl">
       <div className=" flex  items-center  space-x-2  mb-6">
         <span onClick={handleGoBack}><FaArrowLeft /></span>
         <h2 className=" text-2xl  font-semibold">New Customer Details</h2>
@@ -61,7 +61,7 @@ const NewCustomer = () => {
             name="customerName"
             value={formData.customerName}
             onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
+            className=" w-full  px-3  py-2  border border-gray-300 rounded-md  mt-1"
           />
         </div>
         <div>
@@ -71,7 +71,7 @@ const NewCustomer = () => {
             name="contact"
             value={formData.contact}
             onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
+            className=" w-full  px-3  py-2  border border-gray-300 rounded-md  mt-1"
           />
         </div>
 
@@ -82,7 +82,7 @@ const NewCustomer = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
+            className=" w-full  px-3  py-2  border border-gray-300 rounded-md  mt-1"
           />
         </div>
         <div>
@@ -92,7 +92,7 @@ const NewCustomer = () => {
             name="pincode"
             value={formData.pincode}
             onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
+            className=" w-full  px-3  py-2  border border-gray-300 rounded-md  mt-1"
           />
         </div>
 
@@ -103,7 +103,7 @@ const NewCustomer = () => {
             name="address"
             value={formData.address}
             onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
+            className=" w-full  px-3  py-2  border border-gray-300 rounded-md  mt-1"
           />
         </div>
         <div>
@@ -113,16 +113,16 @@ const NewCustomer = () => {
             name="coordinates"
             value={formData.coordinates}
             onChange={handleChange}
-            className=" w-full  px-3  py-2  border  rounded-md  mt-1"
+            className=" w-full  px-3  py-2  border border-gray-300 rounded-md  mt-1"
           />
         </div>
       </div>
 
-      <hr />
+      <hr className='text-gray-300'/>
 
-      <div className=" flex  justify-end">
+      <div className=" flex mt-4 justify-end">
         <div className=" flex  space-x-4">
-          <button className=" px-6  py-2  bg-gray-100  rounded-md  text-gray-600">
+          <button className=" px-6  py-2  bg-gray-100 border-gray-300 rounded-md  text-gray-600">
             Cancel
           </button>
           <button
@@ -138,3 +138,4 @@ const NewCustomer = () => {
 };
 
 export default NewCustomer;
+
