@@ -1,22 +1,29 @@
-import { Key, useState, useEffect } from "react";
+import { useState, useEffect, } from "react";
 import { MdDelete, MdEdit } from "react-icons/md";
 
+// Define interfaces for API data
 interface ItemData {
-  id: number;
-  item_code: string;
-  data: Data[];
+  name?: string;
+  item_code?: string;
+  item_name?: string;
+  custom_tyre_type?: string;
+  actual_qty?: number;
 }
 
-interface Data {
-  name: string;
+interface ItemsApiResponse {
+  data?: ItemData[];
+  message?: ItemData[];
 }
 
 interface BrandData {
-  data: {
-    name: string;
-  }[];
+  name: string;
 }
 
+interface BrandApiResponse {
+  data: BrandData[];
+}
+
+// Row data for the table
 interface RowData {
   id: number;
   item_code: string;
@@ -46,6 +53,7 @@ interface RowData {
   originalItemName?: string;
 }
 
+// Data structure from API for updating items
 interface UpdateItemData {
   name: string;
   item_code: string;
@@ -81,13 +89,60 @@ interface UpdateItemData {
   brandothers?: string;
 }
 
+// Props for the table component
 interface TableComponentProps {
-  itemsData: ItemData[];
+  itemsData?: ItemsApiResponse;
   updateItemData?: UpdateItemData[];
+  itemsRedelivery?: ItemsApiResponse;
+  purpose?: string;
   onDataChange?: (rows: RowData[]) => void;
 }
 
-const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemData, onDataChange }) => {
+// Form data type for the dialog
+interface FormDataType {
+  item_code: string;
+  item_name: string;
+  OtherItemCode: string;
+  otherItemName: string;
+  requiredBy: string;
+  type: string;
+  tireWidth: string;
+  diameter: string;
+  weight: string;
+  quantity: string;
+  uom: string;
+  expenseAccount: string;
+  wipCompositeAsset: string;
+  Brand: string;
+  Marks: string;
+  SpeedRating: string;
+  Carcass: string;
+  Model: string;
+  LoadIndex: string;
+  AspectRatio: string;
+}
+
+const TableComponent: React.FC<TableComponentProps> = ({ 
+  itemsData, 
+  updateItemData, 
+  purpose, 
+  itemsRedelivery, 
+  onDataChange 
+}) => {
+  // Initialize the items data source based on service type
+  const [itemsSource, setItemsSource] = useState<ItemData[]>([]);
+  
+  // Initialize itemsSource based on purpose and available data
+  useEffect(() => {
+    if (purpose === "Redelivery" && itemsRedelivery?.message) {
+      setItemsSource(itemsRedelivery.message);
+    } else if (itemsData?.data) {
+      setItemsSource(itemsData.data);
+    }
+  }, [purpose, itemsRedelivery, itemsData]);
+  
+  console.log(itemsSource, "my first bug fix in 2 hours");
+  
   const [rows, setRows] = useState<RowData[]>([
     {
       id: 1,
@@ -111,7 +166,7 @@ const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemDa
     },
   ]);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     item_code: "",
     item_name: "",
     OtherItemCode: "",
@@ -136,11 +191,11 @@ const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemDa
   
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState<number | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [brandData, setBrandData] = useState<BrandData | null>(null);
-  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [brandData, setBrandData] = useState<BrandApiResponse | null>(null);
+  const [isLoadingBrands, setIsLoadingBrands] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [showBrandDropdown, setShowBrandDropdown] = useState<boolean>(false);
   
   // Initialize rows from updateItemData when it's available
   useEffect(() => {
@@ -187,6 +242,7 @@ const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemDa
     }
   }, [rows, onDataChange]);
 
+  // Fetch brands from API
   useEffect(() => {
     const fetchBrandData = async () => {
       setIsLoadingBrands(true);
@@ -241,21 +297,42 @@ const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemDa
     setRows(updatedRows);
   };
 
-  const handleInputChange = (index: number, field: string, value: string) => {
+  const handleInputChange = (index: number, field: keyof RowData, value: string) => {
     const updatedRows = rows.map((row, i) =>
       i === index ? { ...row, [field]: value } : row
     );
     setRows(updatedRows);
   };
 
-  const handleItemSelect = (index: number, item: string) => {
+  // Updated to handle both name and item_code/item_name properties
+  const handleItemSelect = (index: number, item: ItemData) => {
+    const itemCode = item.item_code || item.name || "";
+    const itemName = item.item_name || item.name || "";
+    
     const updatedRows = rows.map((row, i) => {
       if (i === index) {
         return { 
           ...row, 
-          item_code: item, 
-          selectedItem: item,
-          item_name: item 
+          item_code: itemCode, 
+          selectedItem: itemCode,
+          item_name: itemName,
+          type: item.custom_tyre_type || row.type
+        };
+      }
+      return row;
+    });
+    setRows(updatedRows);
+    setShowDropdown(null);
+  };
+
+  const handleOthersSelect = (index: number) => {
+    const updatedRows = rows.map((row, i) => {
+      if (i === index) {
+        return { 
+          ...row, 
+          item_code: "Others", 
+          selectedItem: "Others",
+          item_name: "Others" 
         };
       }
       return row;
@@ -385,20 +462,20 @@ const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemDa
                   onChange={(e) => handleInputChange(index, "item_code", e.target.value)}
                   placeholder="Item Code"
                 />
-                {showDropdown === index && (
+                {showDropdown === index && itemsSource && itemsSource.length > 0 && (
                   <ul className="absolute left-0 top-full w-full bg-white border border-gray-300 max-h-40 overflow-y-auto z-10">
-                    {itemsData?.data?.map((item: { name: string }, i: Key) => (
+                    {itemsSource.map((item, i) => (
                       <li
                         key={i}
                         className="p-2 cursor-pointer hover:bg-gray-200"
-                        onClick={() => handleItemSelect(index, typeof item.name === "string" ? item.name : String(item.name ?? ""))}
+                        onClick={() => handleItemSelect(index, item)}
                       >
-                        {typeof item.name === "string" || typeof item.name === "number" || typeof item.name === "boolean" ? String(item.name) : "Invalid Name"}
+                        {item.item_code || item.name}
                       </li>
                     ))}
                     <li
                       className="p-2 cursor-pointer hover:bg-gray-200"
-                      onClick={() => handleItemSelect(index, "Others")}
+                      onClick={() => handleOthersSelect(index)}
                     >
                       Others
                     </li>
