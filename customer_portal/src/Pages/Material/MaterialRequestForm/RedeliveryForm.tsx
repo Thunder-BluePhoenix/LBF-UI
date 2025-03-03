@@ -151,6 +151,8 @@ const RedeliveryForm = () => {
   const [tyreItems, setTyreItems] = useState<any>("")
   const [updateTyreItems, setUpdateTyreItems] = useState<any>(null)
   const [itemsRedelivery, setItemsRedelivery] = useState<any>(null)
+  const [mezzo, setMezzo] = useState<string>("")
+  const [LicensePlate, setLicensePlate] = useState<string>("")
 
 
 
@@ -246,7 +248,7 @@ const RedeliveryForm = () => {
   }
   const handleDataChange = (rows: RowData[]) => {
     // This function will receive the updated rows from the child
-    setItems(rows); // Update the state with the new rows data
+    setItems(rows);
     console.log("Updated Rows from Child:", rows);
   };
 
@@ -290,6 +292,12 @@ const RedeliveryForm = () => {
 
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfPosting(e.target.value)
+  }
+  const handleMezzoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setMezzo(e.target.value)
+  }
+  const handleLicensePlateChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setLicensePlate(e.target.value)
   }
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
@@ -509,8 +517,9 @@ const RedeliveryForm = () => {
       setSelectedCondition(data.condition)
      setSelectSeason(data.season)
      setUpdateTyreItems(data.th_items)
-
-      setDocStatus(data.docstatus)
+     setLicensePlate(data.license_plate)
+     setMezzo(data.mezzo)
+     setDocStatus(data.docstatus)
       await fetchAddress(data.shipping_to)
       setSelectedAddress(data.shipping_address_name)
 
@@ -684,8 +693,8 @@ const RedeliveryForm = () => {
       season: selectedSeasons,
       condition: selectedCondition,
       reason: selectedReason,
-      license_plate: "test",
-      mezzo: "texxx",
+      license_plate: LicensePlate,
+      mezzo: mezzo,
       customer: customerLoginUser?.customer_name,
       customer_contact: selectedContact,
       // address_of_customer: addressDetails
@@ -701,7 +710,7 @@ const RedeliveryForm = () => {
         item_code: item.item_code,
         item_name: item.item_name,
         schedule_date: DateOfRequredBy || item.requiredBy,
-        qty: 1,
+        qty: item.quantity,
         stock_uom: "Nos",
         uom: "Nos",
         conversion_factor: 1.0,
@@ -779,6 +788,7 @@ const RedeliveryForm = () => {
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
+  
   return (
     <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded-xl">
       <p className="mb-4 text-red-500">{dataSubmit?.message?.message}</p>
@@ -840,6 +850,7 @@ const RedeliveryForm = () => {
                   {customer.name}
                 </option>
               ))}
+            
             </select>
           </div>
           <div>
@@ -983,6 +994,8 @@ const RedeliveryForm = () => {
                 <label className="block text-sm font-medium">license plate</label>
                 <input
                   type="text"
+                  onChange={handleLicensePlateChange}
+                  value={LicensePlate}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
                   placeholder="Enter detail"
                 />
@@ -992,6 +1005,8 @@ const RedeliveryForm = () => {
                 <label className="block text-sm font-medium">Mezzo</label>
                 <input
                   type="text"
+                  value={mezzo}
+                  onChange={handleMezzoChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
                   placeholder="Enter detail"
                 />
@@ -1208,7 +1223,7 @@ const RedeliveryForm = () => {
             onDataChange={handleDataChange}
             itemsRedelivery={itemsRedelivery}
             purpose={purpose}
-            // disabledHandle={isDocStatusLocked}
+            abledHandle={isDocStatusLocked}
             
             
 

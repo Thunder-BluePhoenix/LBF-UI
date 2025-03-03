@@ -11,7 +11,7 @@ import SerialAndBatchNo from "../Pages/BOL-List/BOL-details/SerialAndBatchNo";
 import MaterialRequestList from "../Pages/Material/MaterialRequest-list";
 import MaterialRequestDetails from "../Pages/Material/MaterialDetails/MaterialRequestDetails";
 import RedeliveryForm from "../Pages/Material/MaterialRequestForm/RedeliveryForm";
-import NewCustomer from "../Pages/Customer/NewCustomer";
+import NewCustomer from "../Pages/Customer/CustomerForm/NewCustomer";
 import InvoiceListView from "../Pages/Invoice/InvoiceListView";
 import DownloadInvoice from "../Pages/Invoice/InvoiceDtails/DownloadInvoice";
 import NotificationPage from "../Pages/Notification/Notification";

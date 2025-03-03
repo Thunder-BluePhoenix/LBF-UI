@@ -96,6 +96,7 @@ interface TableComponentProps {
   itemsRedelivery?: ItemsApiResponse;
   purpose?: string;
   onDataChange?: (rows: RowData[]) => void;
+  abledHandle: () => boolean; // Fixed: Added proper type for abledHandle function
 }
 
 // Form data type for the dialog
@@ -127,7 +128,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
   updateItemData, 
   purpose, 
   itemsRedelivery, 
-  onDataChange 
+  onDataChange,
+  abledHandle
 }) => {
   // Initialize the items data source based on service type
   const [itemsSource, setItemsSource] = useState<ItemData[]>([]);
@@ -211,6 +213,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           OtherItemCode: item.other_item_code || "",
           otherItemName: item.other_item_name || "",
           requiredBy: item.schedule_date || "",
+          // Fix: Convert number to string to avoid type errors later
           quantity: item.qty?.toString() || "",
           uom: item.uom || "Nos",
           uomConversion: item.conversion_factor?.toString() || "1.00",
@@ -409,7 +412,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
             otherItemName: formData.otherItemName,
             OtherItemCode: formData.OtherItemCode,
             requiredBy: formData.requiredBy,
-            quantity: formData.quantity,
+            // Convert to string to ensure consistency
+            quantity: formData.quantity.toString(),
             type: formData.type,
             Brand: formData.Brand,
             Marks: formData.Marks,
@@ -433,6 +437,11 @@ const TableComponent: React.FC<TableComponentProps> = ({
       
       setRows(updatedRows);
     }
+  };
+  
+  // Helper function to determine if fields should be disabled
+  const isFieldDisabled = (): boolean => {
+    return abledHandle();
   };
 
   return (
@@ -458,11 +467,12 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   type="text"
                   className="w-full border-gray-300"
                   value={row.item_code}
-                  onFocus={() => setShowDropdown(index)}
+                  onFocus={() => !abledHandle() && setShowDropdown(index)}
+                  disabled={abledHandle()}
                   onChange={(e) => handleInputChange(index, "item_code", e.target.value)}
                   placeholder="Item Code"
                 />
-                {showDropdown === index && itemsSource && itemsSource.length > 0 && (
+                {showDropdown === index && itemsSource && itemsSource.length > 0 && !abledHandle() && (
                   <ul className="absolute left-0 top-full w-full bg-white border border-gray-300 max-h-40 overflow-y-auto z-10">
                     {itemsSource.map((item, i) => (
                       <li
@@ -488,14 +498,16 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   className="w-full border-gray-300"
                   value={row.requiredBy}
                   onChange={(e) => handleInputChange(index, "requiredBy", e.target.value)}
+                  disabled={isFieldDisabled()}
                 />
               </td>
               <td className="border border-gray-300 p-2">
                 <input
-                  type="text"
+                  type="number"
                   className="w-full border-gray-300"
                   value={row.quantity}
                   onChange={(e) => handleInputChange(index, "quantity", e.target.value)}
+                  disabled={isFieldDisabled()}
                   placeholder="Quantity"
                 />
               </td>
@@ -504,6 +516,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   className="w-full border-gray-300"
                   value={row.type}
                   onChange={(e) => handleInputChange(index, "type", e.target.value)}
+                  disabled={isFieldDisabled()}
                 >
                   <option value="">Select Type</option>
                   <option value="With Rim">With Rim</option>
@@ -511,7 +524,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                 </select>
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {row.item_code === "Others" ? (
+                {row.item_code === "Others" && !abledHandle() ? (
                   <button
                     type="button"
                     onClick={() => openDialog(index)}
@@ -519,7 +532,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   >
                     <MdEdit />
                   </button>
-                ) : (
+                ) : !abledHandle() ? (
                   <button
                     type="button"
                     onClick={() => removeRow(index)}
@@ -527,19 +540,21 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   >
                     <MdDelete />
                   </button>
-                )}
+                ) : null}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <button
-        type="button"
-        className="mt-4 p-2 bg-gray-200 text-gray-600 rounded"
-        onClick={addRow}
-      >
-        Add Row
-      </button>
+      {!abledHandle() && (
+        <button
+          type="button"
+          className="mt-4 p-2 bg-gray-200 text-gray-600 rounded"
+          onClick={addRow}
+        >
+          Add Row
+        </button>
+      )}
       
       {isDialogOpen && (
         <div className="fixed inset-0 py-12 flex items-center justify-center bg-gray-200 bg-opacity-90 z-50">
