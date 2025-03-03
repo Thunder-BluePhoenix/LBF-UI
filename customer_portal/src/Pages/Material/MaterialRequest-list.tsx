@@ -168,9 +168,6 @@ const MaterialRequestList: React.FC = () => {
                     <table className="min-w-full bg-white shadow rounded-lg">
                         <thead>
                             <tr className="border-b border-gray-300">
-                                <th className="p-4 text-left text-xs opacity-[70%]">
-                                    <input type="checkbox" className="form-checkbox" />
-                                </th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Requested by</th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Customer Name</th>
                                 <th className="p-4 text-left text-xs opacity-[70%]">Service</th>
@@ -190,9 +187,6 @@ const MaterialRequestList: React.FC = () => {
                                     className="border-b border-gray-300 hover:bg-gray-100 "
                                    // Redirect to material details page
                                 >
-                                    <td className="p-4">
-                                        <input type="checkbox" className="form-checkbox" />
-                                    </td>
                                     <td  className="p-4 text-xs">{request.customer || "Not available"}</td>
                                     <td
                                     onClick={() => handleRedirectToMaterialDetails(request.name)}

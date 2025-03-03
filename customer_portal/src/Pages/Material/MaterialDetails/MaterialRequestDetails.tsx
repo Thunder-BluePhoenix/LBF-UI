@@ -3,7 +3,7 @@ import { BiSolidEdit } from "react-icons/bi";
 import { CiDeliveryTruck, CiGift } from "react-icons/ci";
 import { useNavigate, useParams } from "react-router-dom";
 
-// Define the types for the API response
+
 interface MaterialRequestItem {
   item_code: string;
   schedule_date: string;
@@ -73,9 +73,9 @@ const MaterialRequestDetails = () => {
   const getStatusFromNumber = (docstatus: number) => {
     switch (docstatus) {
       case 0:
-        return 'Open';
-      case 1:
         return 'Draft';
+      case 1:
+        return 'Open';
       default:
         return 'Unknown';
     }
@@ -86,8 +86,8 @@ const MaterialRequestDetails = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen flex flex-col gap-6">
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 ml-12 bg-white shadow-md rounded-lg">
+      <div className="">
+        <div className=" ml-12 bg-white shadow-md rounded-lg">
           <div className="flex items-center justify-between bg-white px-4 pt-4 rounded-lg">
             <h5 className="font-semibold text-sm">Material Request Details</h5>
             <div className="flex flex-row gap-2 items-center">
