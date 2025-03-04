@@ -112,7 +112,7 @@ const Header = () => {
               <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/material-request-form')}>
                 Add Redelivery Request
               </span>
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" >
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/newcustomer')} >
                 Add New Customer
               </span>
               <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" >

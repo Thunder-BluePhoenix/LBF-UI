@@ -80,7 +80,7 @@ const Sidebar = () => {
 
         {/* Customer Link */}
         <NavLink
-          to="/customer_portal/newcustomer"
+          to="/customer_portal/customer-table"
           end
           className={({ isActive }: { isActive: boolean }) =>
             `flex items-center justify-start gap-4 px-2 py-2 rounded-md ${
