@@ -27,12 +27,12 @@ const MaterialRequestList: React.FC = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const itemsPerPage = 10;
-    console.log(requestList,"materialrequest")
+    console.log(requestList, "materialrequest")
     useEffect(() => {
         const fetchRequests = async () => {
             try {
                 const response = await fetch('/api/resource/Material%20Request%20Instruction%20Log?fields=["*"]&limit_page_length=1000');
-              
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch data');
                 }
@@ -66,11 +66,11 @@ const MaterialRequestList: React.FC = () => {
         const status = getStatusFromNumber(docstatus);
         switch (status) {
             case 'Open':
-                return 'text-green-500 bg-green-100 border border-green-500';
+                return 'text-blue-500 bg-blue-100 ';
             case 'Draft':
-                return 'text-yellow-500 bg-yellow-100 border border-yellow-500';
+                return 'text-red-500 bg-red-100';
             default:
-                return 'text-gray-500 bg-gray-100 border border-gray-500';
+                return 'text-gray-500 bg-gray-100 ';
         }
     };
 
@@ -112,9 +112,9 @@ const MaterialRequestList: React.FC = () => {
     if (error) return <p>{error}</p>;
 
     return (
-        <div className="p-4 w-full">
+        <div className=" w-full shadow">
             {/* Header and Search */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex p-4 items-center justify-between mb-2">
                 <div className="flex items-center space-x-4">
                     <div
                         onClick={() => navigate(-1)}
@@ -165,18 +165,18 @@ const MaterialRequestList: React.FC = () => {
             {/* Table */}
             {paginatedRequests.length > 0 ? (
                 <div className="w-full">
-                    <table className="min-w-full bg-white shadow rounded-lg">
-                        <thead>
+                    <table className="min-w-full bg-white ">
+                        <thead className='bg-gray-50 border-t border-gray-300'>
                             <tr className="border-b border-gray-300">
-                                <th className="p-4 text-left text-xs opacity-[70%]">Requested by</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Customer Name</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Service</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Material Request Type</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Total Quantity</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Recipient Contact</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Recipient Address</th>
-                                <th className="p-4 text-left text-xs opacity-[70%]">Status</th>
-                               
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested by</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material Request Type</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Quantity</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Contact</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Address</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+
                             </tr>
                         </thead>
 
@@ -185,27 +185,37 @@ const MaterialRequestList: React.FC = () => {
                                 <tr
                                     key={request.name}  // Unique key
                                     className="border-b border-gray-300 hover:bg-gray-100 "
-                                   // Redirect to material details page
+                                // Redirect to material details page
                                 >
-                                    <td  className="p-4 text-xs">{request.customer || "Not available"}</td>
+                                    <td className="px-6 py-2 text-xs text-gray-800 font-bold">{request.customer || "Not available"}</td>
                                     <td
-                                    onClick={() => handleRedirectToMaterialDetails(request.name)}
-                                     className="p-4 text-xs text-black cursor-pointer hover:underline">
+                                        onClick={() => handleRedirectToMaterialDetails(request.name)}
+                                        className="px-6 py-4 text-xs  text-black cursor-pointer hover:underline">
                                         {request.customer || "Not available"}
                                     </td>
-                                    <td className="p-4 text-xs">{request.service || "Not available"}</td>
-                                    <td className="p-4 text-xs">{request.material_request_type || "Not available"}</td>
-                                    <td className="p-4 text-xs">{request.total_qty || "Not available"}</td>
-                                    <td className="p-4 text-xs">{request.contact || "Not available"}</td>
-                                    <td className="p-4 text-xs">{request.address || "Not available"}</td>
-                                    <td className="p-4 text-xs">
+                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.service || "Not available"}</td>
+                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.material_request_type || "Not available"}</td>
+                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>
+                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.contact || "Not available"}</td>
+                                    <td className="px-6 py-4 text-gray-600 text-xs relative group">
+                                        <span className="block truncate max-w-[15rem]">
+                                            {request.address ? request.address : "Not available"}
+                                        </span>
+                                        {request.address && (
+                                            <span className="hidden group-hover:block absolute bg-white border p-2 rounded-lg shadow-lg text-sm top-8 left-0 z-10">
+                                                {request.address}
+                                            </span>
+                                        )}
+                                    </td>
+
+                                    <td className="px-6 py-4 text-xs">
                                         <span
-                                            className={`px-3 py-1 rounded-lg text-xs border ${getStatusClass(request.docstatus)}`}
+                                            className={`px-3 py-1 rounded-lg text-xs  ${getStatusClass(request.docstatus)}`}
                                         >
                                             {getStatusFromNumber(request.docstatus)}
                                         </span>
                                     </td>
-                                  
+
                                 </tr>
                             ))}
                         </tbody>
@@ -216,7 +226,7 @@ const MaterialRequestList: React.FC = () => {
             )}
 
             {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center p-4  ">
                 <div className="text-xs text-gray-500">
                     Page {currentPage} of {totalPages}
                 </div>

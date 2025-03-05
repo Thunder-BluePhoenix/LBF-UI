@@ -104,7 +104,7 @@ const NewCustomer: React.FC = () => {
   const fetchTransporters = async () => {
     try {
       setIsLoadingTransporters(true);
-      const response = await fetch('/api/resource/supplier');
+      const response = await fetch(`/api/resource/Supplier`);
       if (!response.ok) {
         throw new Error('Failed to fetch transporters');
       }
