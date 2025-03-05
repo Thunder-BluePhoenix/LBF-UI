@@ -67,8 +67,10 @@ const MaterialRequestList: React.FC = () => {
         switch (status) {
             case 'Open':
                 return 'text-blue-500 bg-blue-100 ';
-            case 'Draft':
-                return 'text-red-500 bg-red-100';
+            case 'Submitted':
+                return 'text-green-500 bg-green-100';
+            case 'Cancelled':
+                return 'text-red-500 bg-red-100 ';
             default:
                 return 'text-gray-500 bg-gray-100 ';
         }
@@ -77,11 +79,11 @@ const MaterialRequestList: React.FC = () => {
     const getStatusFromNumber = (docstatus: number) => {
         switch (docstatus) {
             case 0:
-                return 'Draft';
-            case 1:
                 return 'Open';
-            default:
-                return 'Unknown';
+            case 1:
+                return 'Submitted';
+            case 2:
+                return 'Cancelled';
         }
     };
 
