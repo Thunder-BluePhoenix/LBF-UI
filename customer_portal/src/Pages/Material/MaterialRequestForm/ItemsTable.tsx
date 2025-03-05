@@ -123,17 +123,17 @@ interface FormDataType {
   AspectRatio: string;
 }
 
-const TableComponent: React.FC<TableComponentProps> = ({ 
-  itemsData, 
-  updateItemData, 
-  purpose, 
-  itemsRedelivery, 
+const TableComponent: React.FC<TableComponentProps> = ({
+  itemsData,
+  updateItemData,
+  purpose,
+  itemsRedelivery,
   onDataChange,
   abledHandle
 }) => {
   // Initialize the items data source based on service type
   const [itemsSource, setItemsSource] = useState<ItemData[]>([]);
-  
+
   // Initialize itemsSource based on purpose and available data
   useEffect(() => {
     if (purpose === "Redelivery" && itemsRedelivery?.message) {
@@ -142,19 +142,19 @@ const TableComponent: React.FC<TableComponentProps> = ({
       setItemsSource(itemsData.data);
     }
   }, [purpose, itemsRedelivery, itemsData]);
-  
+
   console.log(itemsSource, "my first bug fix in 2 hours");
-  
+
   const [rows, setRows] = useState<RowData[]>([
     {
       id: 1,
-      item_code: "", 
-      requiredBy: "", 
-      quantity: "", 
-      uom: "Nos", 
-      uomConversion: "1.00", 
-      type: "", 
-      selectedItem: "", 
+      item_code: "",
+      requiredBy: "",
+      quantity: "",
+      uom: "Nos",
+      uomConversion: "1.00",
+      type: "",
+      selectedItem: "",
       item_name: "",
       OtherItemCode: "",
       otherItemName: "",
@@ -167,7 +167,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
       AspectRatio: "",
     },
   ]);
-  
+
   const [formData, setFormData] = useState<FormDataType>({
     item_code: "",
     item_name: "",
@@ -190,7 +190,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
     LoadIndex: "",
     AspectRatio: "",
   });
-  
+
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -198,13 +198,13 @@ const TableComponent: React.FC<TableComponentProps> = ({
   const [isLoadingBrands, setIsLoadingBrands] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showBrandDropdown, setShowBrandDropdown] = useState<boolean>(false);
-  
+
   // Initialize rows from updateItemData when it's available
   useEffect(() => {
     if (updateItemData && updateItemData.length > 0) {
       const mappedRows = updateItemData.map((item, idx) => {
         const isOthersItem = item.item_code === "Others";
-        
+
         return {
           id: idx + 1,
           item_code: item.item_code,
@@ -233,7 +233,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           wipCompositeAsset: item.conversion_factor?.toString() || "",
         };
       });
-      
+
       setRows(mappedRows);
     }
   }, [updateItemData]);
@@ -273,7 +273,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
       ...rows,
       {
         id: rows.length + 1,
-        item_code: "", 
+        item_code: "",
         requiredBy: "",
         quantity: "",
         uom: "Nos",
@@ -311,12 +311,12 @@ const TableComponent: React.FC<TableComponentProps> = ({
   const handleItemSelect = (index: number, item: ItemData) => {
     const itemCode = item.item_code || item.name || "";
     const itemName = item.item_name || item.name || "";
-    
+
     const updatedRows = rows.map((row, i) => {
       if (i === index) {
-        return { 
-          ...row, 
-          item_code: itemCode, 
+        return {
+          ...row,
+          item_code: itemCode,
           selectedItem: itemCode,
           item_name: itemName,
           type: item.custom_tyre_type || row.type
@@ -331,11 +331,11 @@ const TableComponent: React.FC<TableComponentProps> = ({
   const handleOthersSelect = (index: number) => {
     const updatedRows = rows.map((row, i) => {
       if (i === index) {
-        return { 
-          ...row, 
-          item_code: "Others", 
+        return {
+          ...row,
+          item_code: "Others",
           selectedItem: "Others",
-          item_name: "Others" 
+          item_name: "Others"
         };
       }
       return row;
@@ -354,7 +354,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const openDialog = (index: number) => {
     setEditingRowIndex(index);
-    
+
     // Populate the form with the current row data
     const rowData = rows[index];
     setFormData({
@@ -379,7 +379,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
       expenseAccount: rowData.expenseAccount || "",
       wipCompositeAsset: rowData.wipCompositeAsset || ""
     });
-    
+
     setIsDialogOpen(true);
   };
 
@@ -434,11 +434,11 @@ const TableComponent: React.FC<TableComponentProps> = ({
         }
         return row;
       });
-      
+
       setRows(updatedRows);
     }
   };
-  
+
   // Helper function to determine if fields should be disabled
   const isFieldDisabled = (): boolean => {
     return abledHandle();
@@ -466,7 +466,14 @@ const TableComponent: React.FC<TableComponentProps> = ({
                 <input
                   type="text"
                   className="w-full border-gray-300"
-                  value={row.item_code}
+              
+                  value={
+                    purpose === "Redelivery"
+                      ? `${row.item_code ? row.item_code : ""}${row.item_code && row.type ? "/" : ""}${row.type ? row.type : ""}`
+                      : row.item_code || ""
+                  }
+               
+                
                   onFocus={() => !abledHandle() && setShowDropdown(index)}
                   disabled={abledHandle()}
                   onChange={(e) => handleInputChange(index, "item_code", e.target.value)}
@@ -555,7 +562,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           Add Row
         </button>
       )}
-      
+
       {isDialogOpen && (
         <div className="fixed inset-0 py-12 flex items-center justify-center bg-gray-200 bg-opacity-90 z-50">
           <div className="bg-white h-full my-12 overflow-scroll rounded-lg shadow-lg w-full max-w-4xl">

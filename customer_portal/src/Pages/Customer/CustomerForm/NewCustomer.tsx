@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface Contact {
   firstName: string;
@@ -28,6 +28,8 @@ interface Supplier {
 }
 
 interface FormData {
+  uniqueEmail: string;
+  uniquePhone: string;
   customerName: string;
   customerGroup: string;
   transporter: string;
@@ -40,26 +42,30 @@ interface FormData {
   items: Item[];
 }
 
-// Updated to include index signature
 interface ValidationErrors {
   customerName?: string;
   transporter?: string;
+  'contact.uniqueEmail'?: string;
+  'contact.uniquePhone'?: string;
   'contact.firstName'?: string;
   'contact.emailId'?: string;
   'contact.phone'?: string;
   'address.addressLine1'?: string;
   'address.city'?: string;
   'address.country'?: string;
-  [key: string]: string | undefined;  // Add index signature
+  [key: string]: string | undefined;
 }
 
 const NewCustomer: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>(); // Get the customer ID from the URL
 
   const initialFormData: FormData = {
     customerName: '',
     customerGroup: 'Commercial',
     transporter: '',
+    uniqueEmail: '',
+    uniquePhone: '',
     contact: {
       firstName: '',
       emailId: '',
@@ -90,7 +96,10 @@ const NewCustomer: React.FC = () => {
 
   useEffect(() => {
     fetchTransporters();
-  }, []);
+    if (id) {
+      fetchCustomerData(id); // Fetch customer data if ID is present
+    }
+  }, [id]);
 
   const fetchTransporters = async () => {
     try {
@@ -107,6 +116,50 @@ const NewCustomer: React.FC = () => {
       showErrorPopup('Failed to load transporters. Please try again.');
     } finally {
       setIsLoadingTransporters(false);
+    }
+  };
+
+  const fetchCustomerData = async (customerId: string) => {
+    try {
+      const response = await fetch(`/api/resource/Customer/${customerId}/?fields=["*"]`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch customer data');
+      }
+      
+      const result = await response.json();
+      console.log(result, "customer update data result");
+      
+      // Assuming result.data contains the data you're working with
+      const data = result.data;
+      
+      setFormData({
+        customerName: data.customer_name || '',
+        customerGroup: data.customer_group || '',
+        transporter: data.transporter || '',
+        uniqueEmail: data.contact.uniqueEmail || '', // Fixed here
+        uniquePhone: data.contact.uniquePhone || '', // Fixed here
+        contact: {
+          firstName: data.contacts?.[0]?.first_name || '',  // Contacts array is missing
+          emailId: data.contacts?.[0]?.email_id || '',
+          phone: data.contacts?.[0]?.phone || '',
+        },
+        address: {
+          addressTitle: data.addresses?.[0]?.address_title || 'Office',  // Addresses array is missing
+          addressLine1: data.addresses?.[0]?.address_line1 || '',
+          city: data.addresses?.[0]?.city || '',
+          country: data.addresses?.[0]?.country || 'United States',
+          isPrimaryAddress: data.addresses?.[0]?.is_primary_address === 1,
+        },
+        purpose: data.purpose || 'Redelivery',  // No purpose field in the provided data, handle accordingly
+        requestedBy: data.requested_by || '',  // No requested_by field in the provided data, handle accordingly
+        dateOfPosting: data.date_of_posting || '',  // No date_of_posting field in the provided data
+        dateOfDelivery: data.date_of_delivery || '',  // No date_of_delivery field in the provided data
+        items: data.items || [{ itemName: '', itemCode: '', requiredQty: '', availableQty: '' }],  // Items array is missing
+      });
+      
+    } catch (error) {
+      console.error('Error fetching customer data:', error);
+      showErrorPopup('Failed to load customer data. Please try again.');
     }
   };
 
@@ -159,6 +212,19 @@ const NewCustomer: React.FC = () => {
       newErrors['address.country'] = 'Country is required';
     }
     
+    if (!formData.uniqueEmail.trim()) {
+      newErrors['contact.uniqueEmail'] = 'Customer unique email is required';
+    } else if (!validateEmail(formData.uniqueEmail)) {
+      newErrors['contact.uniqueEmail'] = 'Invalid email format';
+    }
+    
+    // New unique phone validation
+    if (!formData.uniquePhone.trim()) {
+      newErrors['contact.uniquePhone'] = 'Customer unique phone number is required';
+    } else if (!validatePhone(formData.uniquePhone)) {
+      newErrors['contact.uniquePhone'] = 'Invalid phone number format';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -202,13 +268,11 @@ const NewCustomer: React.FC = () => {
     }
   };
 
-  // Type-safe field validation
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name } = e.target;
     
     const newErrors = { ...errors };
     
-    // Field-specific validation
     if (name === 'customerName') {
       if (!formData.customerName.trim()) {
         newErrors.customerName = 'Customer name is required';
@@ -285,6 +349,8 @@ const NewCustomer: React.FC = () => {
         customer_name: formData.customerName,
         customer_group: formData.customerGroup,
         transporter: formData.transporter,
+        mail_id: formData.uniqueEmail, // Fixed here
+        contact_no: formData.uniquePhone, // Fixed here
         addresses: [
           {
             address_title: formData.address.addressTitle,
@@ -309,7 +375,11 @@ const NewCustomer: React.FC = () => {
         ],
       };
 
-      const response = await fetch('/api/method/lbf_logistica.api.bol.create_customer', {
+      const url = id 
+        ? `/api/method/lbf_logistica.api.bol.update_customer/${id}` // Update endpoint
+        : '/api/method/lbf_logistica.api.bol.create_customer'; // Create endpoint
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -318,15 +388,15 @@ const NewCustomer: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create customer');
+        throw new Error('Failed to save customer');
       }
 
       setFormData(initialFormData);
       setErrors({});
       navigate('/customer_portal/customer-table');
     } catch (error) {
-      console.error('Error creating customer:', error);
-      showErrorPopup('Failed to create customer. Please try again.');
+      console.error('Error saving customer:', error);
+      showErrorPopup('Failed to save customer. Please try again.');
     }
   };
 
@@ -344,19 +414,16 @@ const NewCustomer: React.FC = () => {
     return `${addressTitle}, ${addressLine1}, ${city}, ${country}`;
   };
 
-  // Helper function to determine if a field has an error
   const hasError = (fieldName: keyof ValidationErrors): boolean => {
     return !!errors[fieldName];
   };
 
-  // Type-safe way to get error message
   const getErrorMessage = (fieldName: keyof ValidationErrors): string => {
     return errors[fieldName] || '';
   };
 
   return (
-    <div className="max-w-4xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded-xl relative">
-      {/* Validation Popup */}
+    <div className="max-full border border-gray-100 my-8 mx-auto bg-white p-6 rounded relative">
       {showPopup && (
         <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-10 shadow-md">
           <strong className="font-bold">Error!</strong>
@@ -366,12 +433,12 @@ const NewCustomer: React.FC = () => {
 
       <div className="flex items-center space-x-2 mb-6">
         <span onClick={handleGoBack} className="cursor-pointer"><FaArrowLeft /></span>
-        <h2 className="text-2xl font-semibold">New Customer Details</h2>
+        <h2 className="text-2xl font-semibold">{id ? 'Edit Customer Details' : 'New Customer Details'}</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium">Customer Name <span className="text-red-500">*</span></label>
+          <label className="block text-sm  font-medium">Customer Name <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="customerName"
@@ -397,8 +464,34 @@ const NewCustomer: React.FC = () => {
             <option value="Non-Profit">Non-Profit</option>
           </select>
         </div>
-
-        {/* Transporter Field */}
+        <div>
+          <label className="block text-sm font-medium">Customer Unique Mail <span className="text-red-500">*</span></label>
+          <input
+            type="email"
+            name="uniqueEmail" // Changed to match the state structure
+            value={formData.uniqueEmail} // Changed to match the state structure
+            onChange={handleChange}
+            onBlur={handleBlur} // Added onBlur for validation
+            className={`w-full px-3 py-2 border ${hasError('contact.uniqueEmail') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+          />
+          {hasError('contact.uniqueEmail') && (
+            <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.uniqueEmail')}</p>
+          )}
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Customer Unique Phone <span className="text-red-500">*</span></label>
+          <input
+            type="text"
+            name="uniquePhone" // Changed to match the state structure
+            value={formData.uniquePhone} // Changed to match the state structure
+            onChange={handleChange}
+            onBlur={handleBlur} // Added onBlur for validation
+            className={`w-full px-3 py-2 border ${hasError('contact.uniquePhone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+          />
+          {hasError('contact.uniquePhone') && (
+            <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.uniquePhone')}</p>
+          )}
+        </div>
         <div>
           <label className="block text-sm font-medium">Transporter <span className="text-red-500">*</span></label>
           <select
@@ -421,7 +514,6 @@ const NewCustomer: React.FC = () => {
           )}
         </div>
 
-        {/* Contact Information */}
         <div>
           <label className="block text-sm font-medium">Contact Name <span className="text-red-500">*</span></label>
           <input
@@ -466,9 +558,10 @@ const NewCustomer: React.FC = () => {
           )}
         </div>
 
-        {/* Address Field that expands to show details */}
-        <div className="col-span-2">
-          <label className="block text-sm font-medium">Address <span className="text-red-500">*</span></label>
+
+      </div>
+      <div className="col-span-2 mb-4">
+          <label className="block text-sm  font-medium">Address <span className="text-red-500">*</span></label>
           <div 
             onClick={toggleAddressDetails}
             className={`w-full px-3 py-2 border ${(hasError('address.addressLine1') || hasError('address.city') || hasError('address.country')) ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1 cursor-pointer bg-gray-50`}
@@ -480,9 +573,8 @@ const NewCustomer: React.FC = () => {
           )}
         </div>
 
-        {/* Expanded Address Fields */}
         {showAddressDetails && (
-          <div className="col-span-2 grid grid-cols-2 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <div className="col-span-2 grid grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
             <div>
               <label className="block text-sm font-medium">Address Title</label>
               <input
@@ -555,9 +647,8 @@ const NewCustomer: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
 
-      <hr className="text-gray-300" />
+      <hr className="text-gray-300 mt-4" />
 
       <div className="flex mt-4 justify-end">
         <div className="flex space-x-4">
@@ -575,7 +666,7 @@ const NewCustomer: React.FC = () => {
             className="px-6 py-2 bg-orange-500 text-white rounded-md"
             onClick={handleSubmit}
           >
-            Create Customer
+            {id ? 'Update Customer' : 'Create Customer'}
           </button>
         </div>
       </div>

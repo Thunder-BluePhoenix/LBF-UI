@@ -50,13 +50,13 @@ const AppRoutes = () => {
       <Route path="/customer_portal/material-request-form/" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
       <Route path="/customer_portal/material-request-form/:id" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
       <Route path="/customer_portal/newcustomer" element={<Layout> <div className="p-4"><NewCustomer/></div></Layout> }/>
+      <Route path="/customer_portal/newcustomer/:id" element={<Layout> <div className="p-4"><NewCustomer/></div></Layout> }/>
       <Route path="/customer_portal/customer-table" element={<Layout> <div className="p-4"><CustomerTable/></div></Layout> }/>
       <Route path="/customer_portal/notificationpage" element={<Layout> <div className="p-4"><NotificationPage/></div></Layout> }/>
       <Route path="/customer_portal/InvoiceListView" element={<Layout> <div className="p-4"><InvoiceListView/></div></Layout> }/>
       <Route path="/customer_portal/downloadInvoice" element={<Layout> <div className="p-4"><DownloadInvoice/></div></Layout> }/>
       </Routes>
- 
-    </div>
+ </div>
   );
 };
 

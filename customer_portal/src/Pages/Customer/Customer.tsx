@@ -74,6 +74,7 @@ export default function CustomerTable() {
     const [itemsPerPage, setItemsPerPage] = useState(20)
     const [currentPage, setCurrentPage] = useState(1)
     const navigator = useNavigate()
+    
 
     // Fetch customer data
     useEffect(() => {
@@ -81,37 +82,23 @@ export default function CustomerTable() {
             try {
                 setLoading(true)
                 const response = await fetch('/api/resource/Customer/?fields=["*"]')
-    
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch customers")
                 }
-    
+
                 const data: ApiResponse = await response.json()
-    
-                if (data.data && data.data.length > 0) {
-                    // Sort customers by 'creation' date in descending order (most recent first)
-                    const sortedCustomers = data.data.sort((a, b) => {
-                        return new Date(b.creation).getTime() - new Date(a.creation).getTime()
-                    })
-    
-                    setCustomers(sortedCustomers)
-                    setFilteredCustomers(sortedCustomers)
-                } else {
-                    // Handle empty data scenario, e.g., show recent created customers
-                    setCustomers([])
-                    setFilteredCustomers([])
-                    console.log('No customers found, array is empty')
-                }
+                setCustomers(data.data || [])
+                setFilteredCustomers(data.data || [])
             } catch (err) {
                 setError(err instanceof Error ? err.message : "An error occurred")
             } finally {
                 setLoading(false)
             }
         }
-    
+
         fetchCustomers()
     }, [])
-    
 
     // Handle search
     useEffect(() => {
@@ -145,7 +132,9 @@ export default function CustomerTable() {
         }
     }
 
-    // Handle favorite toggle
+    const handleDetailsRedirect = (id: string) => {
+        navigator(`/customer_portal/newcustomer/${id}`);  // Add the id to the URL
+    };
    
 
     // Pagination
@@ -184,7 +173,7 @@ export default function CustomerTable() {
     if (error) {
         return <div className="text-red-500 p-4">Error: {error}</div>
     }
-
+    console.log(currentCustomers,"responseresponseresponse")
     return (
         <div className="w-full bg-white rounded-lg shadow overflow-hidden">
             {/* Search bar */}
@@ -250,9 +239,11 @@ export default function CustomerTable() {
                                         onChange={() => toggleCustomerSelection(customer.name)}
                                     />
                                 </td>
-                                <td className="px-6 py-2 text-xs text-gray-800 font-bold whitespace-nowrap ">{customer.customer_name}</td>
+                                <td 
+                                onClick={() => handleDetailsRedirect(customer.name)}
+                                className="px-6 py-2 text-xs text-gray-800 font-bold whitespace-nowrap ">{customer.customer_name}</td>
                                 <td className="px-6 py-2 whitespace-nowrap">
-                                    <span className="text-blue-600 text-xs bg-blue-50 rounded-full px-2 py-1">{getCustomerStatus(customer)}</span>
+                                    <span className="text-blue-00 text-xs bg-blue-50 text-blue-600 rounded-full px-2 py-1">{getCustomerStatus(customer)}</span>
                                 </td>
                                 <td className="px-6 py-2 text-xs whitespace-nowrap text-gray-600">{customer.customer_group}</td>
                                 <td className="px-6 py-2 text-xs whitespace-nowrap text-gray-600 ">{customer.territory}</td>

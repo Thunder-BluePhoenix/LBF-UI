@@ -660,6 +660,19 @@ const RedeliveryForm = () => {
     fetchData();
   }, []);
 
+  // useEffect(() => {
+  //   // When service is "Tyre Hotel" and purpose is "Pick Up", set customer to logged-in customer
+  //   if (service === "Tyre Hotel" && purpose === "Pick Up" && customerLoginUser?.customer_name) {
+  //     setSelectedCustomer(customerLoginUser.customer_name);
+  //     setCustomerName(customerLoginUser.customer_name);
+      
+  //     // Also fetch address and contacts for the selected customer
+  //     fetchAddress(customerLoginUser.customer_name);
+  //     fetchContactEmail(customerLoginUser.customer_name);
+  //   }
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [service, purpose, customerLoginUser]);
+
   const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedName = event.target.value
     setSelectedCustomer(selectedName)
