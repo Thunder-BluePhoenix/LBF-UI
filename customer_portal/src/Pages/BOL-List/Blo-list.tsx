@@ -28,7 +28,7 @@ const BillOfLandingList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const itemsPerPage = 10;
-
+console.log(data, "bill of landing ")
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -75,15 +75,15 @@ const BillOfLandingList: React.FC = () => {
   const getStatusClass = (status: string) => {
     switch (status) {
       case 'Closed':
-        return ' text-green-500  bg-green-100  border  border-green-500';
+        return ' text-green-500  bg-green-100 ';
       case 'Open':
-        return ' text-orange-500  bg-orange-100  border  border-orange-500';
+        return ' text-orange-500  bg-orange-100  ';
       case 'Under QC':
-        return ' text-violet-500  bg-violet-100  border  border-violet-500';
+        return ' text-violet-500  bg-violet-100  ';
       case 'Cancelled':
-        return ' text-red-500  bg-red-100  border  border-red-500';
+        return ' text-red-500  bg-red-100  ';
       default:
-        return ' text-gray-500  bg-gray-100  border  border-gray-500';
+        return ' text-gray-500  bg-gray-100 ';
     }
   };
 
@@ -115,7 +115,7 @@ const BillOfLandingList: React.FC = () => {
         <div className="flex items-center space-x-4">
           <div
             onClick={handleGoBack}
-            className="p-[7px] border border-gray-500  rounded-lg flex items-center justify-center bg-gray-100 text-gray-700 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg"
+            className="p-[7px] border border-gray-300  rounded-lg flex items-center justify-center bg-gray-100 text-gray-700 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg"
           >
             <span className="text-xl">
               <FiArrowLeft />
@@ -156,17 +156,17 @@ const BillOfLandingList: React.FC = () => {
 
       {/* Table */}
       <div className="w-full py-4">
-        <table className="min-w-full bg-white shadow rounded-lg ">
-          <thead>
-            <tr className="border-b border-b-gray-300 bord">
-              <th className="p-4 text-left text-xs opacity-[70%]">Serial no.</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Bol ID</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Customer Name</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Service</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Posting Date</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Total Qty</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Accepted Qty</th>
-              <th className="p-4 text-left text-xs opacity-[70%]">Status</th>
+        <table className="min-w-full bg-white shadow rounded ">
+          <thead className='bg-gray-50 border-t border-gray-300'>
+            <tr className="border-b border-gray-300">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial no.</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bol ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posting Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted Qty</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             </tr>
           </thead>
 

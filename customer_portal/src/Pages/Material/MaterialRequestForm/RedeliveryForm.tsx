@@ -7,7 +7,6 @@ import { FaArrowLeft } from "react-icons/fa"
 import { useNavigate, useParams } from "react-router-dom"
 import { MdDelete } from "react-icons/md"
 import ItemTable from "./ItemsTable"
-
 interface ItemList {
   type: any
   weight: any
@@ -32,7 +31,6 @@ interface ItemList {
   item_name: string
   item_code: string
 }
-
 interface FetchedItem {
   schedule_date: string
   item_code: string
@@ -42,19 +40,17 @@ interface FetchedItem {
   value: string
   actual_qty: number
 }
-
 interface Address {
   address_title: string
   address_line1: string
   city: string
   country: string
 }
-
 interface CustomerLoginUser {
+  name: boolean | CustomerLoginUser | null
   customer_name: string
   customer_group: string
 }
-
 interface Contact {
   name: string
   phone: string
@@ -67,9 +63,7 @@ interface Address {
   city: string
   country: string
   address_type: string
-
 }
-
 interface Transporter {
   supplier: string
   cutoff_start_time: string
@@ -78,14 +72,12 @@ interface Transporter {
   address: any
   is_default?: number
 }
-
 interface dataSubmit {
   message?: {
     message: string;
     docstatus: number;
   };
 }
-
 type RowData = {
   id: number;
   item_code: string;
@@ -97,8 +89,6 @@ type RowData = {
   type: string;
   selectedItem: string;
 };
-
-
 const RedeliveryForm = () => {
   //customer state 
   const [customers, setCustomers] = useState<{ name: string }[]>([])
@@ -152,9 +142,7 @@ const RedeliveryForm = () => {
   const [updateTyreItems, setUpdateTyreItems] = useState<any>(null)
   const [itemsRedelivery, setItemsRedelivery] = useState<any>(null)
   const [mezzo, setMezzo] = useState<string>("")
-  const [LicensePlate, setLicensePlate] = useState<string>("")
-
-
+  const [LicensePlate, setLicensePlate] = useState<string>("");
 
   const { id } = useParams<{ id: string }>()
   const resetFormFields = () => {
@@ -198,11 +186,9 @@ const RedeliveryForm = () => {
     }
   }, [id])
   const navigate = useNavigate()
-
   const groupBy = customerLoginUser?.customer_group ?? "Default Group";
-  
+  const  LoginCustomerName = customerLoginUser?.customer_name
   console.log(loginUser,itemsRedelivery, "qqqqqqqqqqqqR")
-
   useEffect(() => {
     if (transporters && transporters.length > 0) {
       const defaultTransporter = transporters.find(item => item.is_default === 1);
@@ -213,24 +199,17 @@ const RedeliveryForm = () => {
       }
     }
   }, [transporters]);
-
-
   const validateForm = () => {
     const errors: string[] = []
-
-
     if (!customerName) {
       errors.push("Customer Name is required.")
     }
-
     if (!selectedContact) {
       errors.push("Contact selection is required.")
     }
-
     if (!DateOfDelivery) {
       errors.push("Date of Delivery is required.")
     }
-
     if (!selectedAddress) {
       errors.push("Address selection is required.")
     }
@@ -240,9 +219,6 @@ const RedeliveryForm = () => {
     if (!purpose) {
       errors.push("Purpose is required.")
     }
-
-
-
     setValidationErrors(errors)
     return errors.length === 0
   }
@@ -251,8 +227,6 @@ const RedeliveryForm = () => {
     setItems(rows);
     console.log("Updated Rows from Child:", rows);
   };
-
-
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setPurpose(event.target.value)
   }
@@ -275,7 +249,6 @@ const RedeliveryForm = () => {
   const handleContactSelect = (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     setSelectedContact(selectedValue);
-
     if (selectedValue) {
       setShowContactFields(true);
       const selectedContactData = contacts.find(c => c.name === selectedValue);
@@ -297,12 +270,15 @@ const RedeliveryForm = () => {
     setMezzo(e.target.value)
   }
   const handleLicensePlateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setLicensePlate(e.target.value)
-  }
+    const value = e.target.value;
+    setLicensePlate(value); // Save to localStorage
+  };
+  useEffect(() => {
+   
+  }, []);
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
   }
-
 
   const handleDateOfDelivery = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfDelivery(e.target.value)
@@ -370,8 +346,6 @@ const RedeliveryForm = () => {
     }
   };
 
-
-
   useEffect(() => {
     if (isEditMode && transportersLoaded && selectedTransporter && transporters.length > 0) {
       const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter);
@@ -385,8 +359,6 @@ const RedeliveryForm = () => {
     }
   }, [isEditMode, transportersLoaded, selectedTransporter, transporters]);
 
-
-
   useEffect(() => {
     if (isEditMode && selectedAddress && addresses.length > 0) {
       const matchingAddress = addresses.find(addr => addr.name === selectedAddress);
@@ -397,62 +369,112 @@ const RedeliveryForm = () => {
     }
   }, [addresses, selectedAddress, isEditMode]);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-
+        // Step 1: Fetch the logged-in user's email
         const userResponse = await axios.get("/api/method/frappe.auth.get_logged_user")
         const loginUserEmail = userResponse.data.message
         setLoginUser(loginUserEmail)
-
+        // Step 2: Fetch the customer data based on the logged-in user's email
         const customerResponse = await axios.get(
           `/api/resource/Customer?fields=["*"]&filters=[["Portal User","user", "=", "${encodeURIComponent(loginUserEmail)}"]]`
         )
-        const customerData = customerResponse.data.data[0]
-        setCustomerLoginUser(customerData)
-
-        const childCustomersResponse = await axios.get(
-          `/api/method/lbf_logistica.api.bol.get_customers_with_parent?customer_name=${encodeURIComponent(customerData.name)}`
-        )
-        setCustomers(childCustomersResponse.data.data)
-
-        const itemsForRedelivery = await axios.get(
-          `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty","custom_tyre_type"]`
-        )
-       
-        setItemsRedelivery(itemsForRedelivery.data)
-
-        const itemsResponse = await axios.get(
-          `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`
-        )
-        setItemList(itemsResponse.data.message || [])
-
-        if (id) {
-          setIsEditMode(true)
-          await fetchExistingData(id)
-        } else {
-          if (childCustomersResponse.data.data.length > 0) {
-            const firstCustomer = childCustomersResponse.data.data[0].name
-            setSelectedCustomer(firstCustomer)
-            setCustomerName(firstCustomer)
-            await fetchAddress(firstCustomer)
-            await fetchContactEmail(firstCustomer)
+        if (customerResponse.data.data && customerResponse.data.data.length > 0) {
+          const customerData = customerResponse.data.data[0]
+          setCustomerLoginUser(customerData)
+          // Step 3: Fetch child customers associated with this customer
+          const childCustomersResponse = await axios.get(
+            `/api/method/lbf_logistica.api.bol.fetch_child_customers?customer=${encodeURIComponent(customerData.name)}`
+          )
+          const data = childCustomersResponse.data
+          console.log(data, "data gagin to")
+          if (data.message && Array.isArray(data.message)) {
+            // Process customers to identify the display name for each
+            const processedCustomers = data.message.map((customer: { custom_details_for_parent_customer: any[]; customer_name: any }) => {
+              // Find if there's an entry in custom_details_for_parent_customer where parent_customer matches the login user's customer name
+              const matchingChildDetail = customer.custom_details_for_parent_customer.find(
+                  detail => detail.parent_customer === customerData.name || detail.parent_customer === customerData.customer_name
+              );
+              if (matchingChildDetail) {
+                return {
+                    ...customer,
+                    displayName: matchingChildDetail.child_customer_name
+                };
+            }
+            // Otherwise use the regular customer_name
+            return {
+                ...customer,
+                displayName: customer.customer_name
+            };
+            })
+            setCustomers(processedCustomers )
+            console.log(processedCustomers,"mmmmmmmmm")
+          
+            if (processedCustomers.length > 0) {
+              const firstCustomer = processedCustomers[0].name
+              setSelectedCustomer(firstCustomer)
+              setCustomerName(firstCustomer)
+              await fetchAddress(firstCustomer)
+              await fetchContactEmail(firstCustomer)
+            }
+          } else {
+            setCustomers([])
+            console.warn("No child customers found or invalid data format")
           }
+          // Step 5: Fetch unique items based on the customer
+          const itemsResponse = await axios.get(
+            `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`
+          )
+          setItemList(itemsResponse.data.message || [])
+  
+          // Step 6: Check if it's in edit mode, fetch existing data if `id` is available
+          if (id) {
+            setIsEditMode(true)
+            await fetchExistingData(id)
+          }
+        } else {
+          console.warn("No customer data found for user:", loginUserEmail)
+          setCustomers([])
         }
-
+  
         setLoading(false)
       } catch (err: any) {
         setError(err.message || "Error fetching data")
         setLoading(false)
       }
     }
-
+  
     fetchData()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
+  useEffect(() => {
+    const fetchRedeliveryItems = async () => {
+      // Check if purpose is "Redelivery" and customerLoginUser is an object with a valid name
+      if (
+        purpose === "Redelivery" &&
+        typeof customerLoginUser === 'object' &&
+        customerLoginUser !== null &&
+        'name' in customerLoginUser &&
+        typeof customerLoginUser.name === 'string'
+      ) {
+        try {
+          const itemsForRedelivery = await axios.get(
+            `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerLoginUser.name)}&license_plate=${encodeURIComponent(LicensePlate)}&fields=["item_code","item_name","actual_qty","custom_tyre_type","custom_license_plate"]`
+          );
+          setItemsRedelivery(itemsForRedelivery.data);
+        } catch (error: any) {
+          console.error("Error fetching items for redelivery:", error.message || error);
+        }
+      }
+    };
+  
+    fetchRedeliveryItems();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [purpose]);
+  
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
     setDateOfPosting(today)
@@ -466,9 +488,6 @@ const RedeliveryForm = () => {
       const addressData = response.data.data || []
       setAddresses(addressData)
 
-
-
-
       if (!isEditMode) {
         setSelectedAddress("")
         setShowAddressFields(false)
@@ -478,7 +497,6 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching address")
     }
   }
-
   const fetchContactEmail = async (customerName: string) => {
     try {
       const response = await axios.get(
@@ -497,14 +515,11 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching Contact and Email")
     }
   }
-
   const fetchExistingData = async (resultId: string) => {
     try {
       const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
       const data = response.data.data
       console.log(data, "fetchexitingdata")
-
-
       setResultData(data.name)
       setSelectedCustomer(data.shipping_to)
       setCustomerName(data.shipping_to)
@@ -522,10 +537,6 @@ const RedeliveryForm = () => {
      setDocStatus(data.docstatus)
       await fetchAddress(data.shipping_to)
       setSelectedAddress(data.shipping_address_name)
-
-
-
-
 
       if (data.shipping_address_name) {
         const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`)
@@ -573,7 +584,6 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching existing data")
     }
   }
-
   const addRow = () => {
     const newItem: ItemList = {
       id: items.length + 1,
@@ -597,7 +607,6 @@ const RedeliveryForm = () => {
       tireWidth: "",
       weight: "",
       type: "",
-
 
      available: undefined,
     }
@@ -659,21 +668,7 @@ const RedeliveryForm = () => {
 
     fetchData();
   }, []);
-
-  // useEffect(() => {
-  //   // When service is "Tyre Hotel" and purpose is "Pick Up", set customer to logged-in customer
-  //   if (service === "Tyre Hotel" && purpose === "Pick Up" && customerLoginUser?.customer_name) {
-  //     setSelectedCustomer(customerLoginUser.customer_name);
-  //     setCustomerName(customerLoginUser.customer_name);
-      
-  //     // Also fetch address and contacts for the selected customer
-  //     fetchAddress(customerLoginUser.customer_name);
-  //     fetchContactEmail(customerLoginUser.customer_name);
-  //   }
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [service, purpose, customerLoginUser]);
-
-  const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
+ const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedName = event.target.value
     setSelectedCustomer(selectedName)
     setCustomerName(selectedName)
@@ -695,7 +690,6 @@ const RedeliveryForm = () => {
       "Content-Type": "application/json",
       ...(csrfToken ? { "X-Frappe-CSRF-Token": csrfToken } : {}),
     }
-
     const myData = {
       name: resultData,
       service: service,
@@ -710,9 +704,6 @@ const RedeliveryForm = () => {
       mezzo: mezzo,
       customer: customerLoginUser?.customer_name,
       customer_contact: selectedContact,
-      // address_of_customer: addressDetails
-      //   ? `${addressDetails.address_title}, ${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`
-      //   : "Address not available",
       shipping_to: customerName,
       shipping_address_name: selectedAddress,
       contact_person: selectedContact,
@@ -793,20 +784,25 @@ const RedeliveryForm = () => {
       console.error('Error submitting form:', error);
     }
   };
+  
 
   const isDocStatusLocked = () => {
     return docStatus === 1;
   };
-
+  const getCustomerDisplayName = (customer: any): string => {
+    if (customer.displayName) {
+        return customer.displayName;
+    }
+    // Fallback to customer_name if displayName is not set
+    return customer.customer_name;
+}
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
-
-  
   return (
-    <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded-xl">
+    <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded">
       <p className="mb-4 text-red-500">{dataSubmit?.message?.message}</p>
-      <div className="flex items-center space-x-2 mb-6">
-        <span onClick={() => navigate(-1)}>
+      <div className="flex items-center  space-x-2 mb-6">
+        <span className="cursor-pointer" onClick={() => navigate(-1)}>
           <FaArrowLeft />
         </span>
         <h2 className="text-xl font-semibold"><span
@@ -823,34 +819,9 @@ const RedeliveryForm = () => {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium">Request By</label>
-            <input
-              type="text"
-              name="request-by"
-              value={customerLoginUser?.customer_name || "Guest"}
-              disabled={isDocStatusLocked()}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Party Type</label>
-            <input
-              type="text"
-              name="request-by"
-              value={groupBy || "Guest"}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium">Customer Name</label>
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
+        <div>
+            <label className="block text-sm font-medium">Customer Name<span className="text-red-500">*</span></label>
             <select
               value={selectedCustomer}
               disabled={isDocStatusLocked()}
@@ -860,14 +831,37 @@ const RedeliveryForm = () => {
               <option value="">Select Customer</option>
               {customers.map((customer: any) => (
                 <option key={customer.name} value={customer.name}>
-                  {customer.name}
+                  {getCustomerDisplayName(customer)}
                 </option>
               ))}
-            
+            <option>{LoginCustomerName}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium">Select Contact</label>
+            <label className="block text-sm font-medium">Request By</label>
+            <input
+              type="text"
+              name="request-by"
+              value={LoginCustomerName}
+              disabled={isDocStatusLocked()}
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Party Type<span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="request-by"
+              value={groupBy || "Guest"}
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
+        <div>
+            <label className="block text-sm font-medium">Select Contact<span className="text-red-500">*</span></label>
             <select
               value={selectedContact}
               onChange={handleContactSelect}
@@ -906,12 +900,11 @@ const RedeliveryForm = () => {
               </div>
             </>
           )}
+        </div>
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
 
-
-
-
-          <div>
-            <label className="block text-sm font-medium">Select Address</label>
+        <div>
+            <label className="block text-sm font-medium">Select Address<span className="text-red-500">*</span></label>
             <select
               value={selectedAddress}
               onChange={handleAddressSelect}
@@ -941,135 +934,8 @@ const RedeliveryForm = () => {
               </div>
             </>
           )}
-
-
-
-          <div>
-            <label className="block text-sm font-medium">Service</label>
-            <select
-              name="purpose"
-              value={service}
-              onChange={handleChangeService}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option>Select Service</option>
-              <option>Peneus Hub</option>
-              <option>Tyre Hotel</option>
-            </select>
-          </div>
-          {service === "Tyre Hotel" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Seasion</label>
-                <select
-                  name="purpose"
-                  value={selectedSeasons}
-                  onChange={handleChangeSeason}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Seasion</option>
-                  {season?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Condition</label>
-                <select
-                  name="purpose"
-                  value={selectedCondition}
-                  onChange={handleChangeCondition}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Condition</option>
-                  {condition?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Reason</label>
-                <select
-                  name="purpose"
-                  value={selectedReason}
-                  onChange={handleChangeReason}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Reason</option>
-                  {reason?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">license plate</label>
-                <input
-                  type="text"
-                  onChange={handleLicensePlateChange}
-                  value={LicensePlate}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter detail"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Mezzo</label>
-                <input
-                  type="text"
-                  value={mezzo}
-                  onChange={handleMezzoChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter detail"
-                />
-              </div>
-
-            </>
-          )}
-
-
-          <div>
-            <label className="block text-sm font-medium">Purpose</label>
-            <select
-              name="purpose"
-              value={purpose}
-              onChange={handleChange}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option></option>
-              <option>Redelivery</option>
-              <option>Pick Up</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Date of Posting</label>
-            <input
-              type="date"
-              name="dateOfPosting"
-              value={dateOfPosting}
-              onChange={handleDateChange}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Date of Delivery</label>
-            <input
-              type="date"
-              name="dateOfDelivery"
-              value={DateOfDelivery}
-              onChange={handleDateOfDelivery}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-
-
-          <div>
-            <label className="block text-sm font-medium">Select Transporter</label>
+        <div>
+            <label className="block text-sm font-medium">Select Transporter<span className="text-red-500">*</span></label>
             <select
               name="name"
               value={selectedTransporter}
@@ -1129,11 +995,137 @@ const RedeliveryForm = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
                 />
               </div>
+            </>
+          )}
+          </div>
 
+          <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
+
+          <div>
+            <label className="block text-sm font-medium">Service<span className="text-red-500">*</span></label>
+            <select
+              name="purpose"
+              value={service}
+              onChange={handleChangeService}
+              disabled={isDocStatusLocked()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            >
+              <option>Select Service</option>
+              <option>Peneus Hub</option>
+              <option>Tyre Hotel</option>
+            </select>
+          </div>
+          {service === "Tyre Hotel" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium">Seasion</label>
+                <select
+                  name="purpose"
+                  value={selectedSeasons}
+                  onChange={handleChangeSeason}
+                  disabled={isDocStatusLocked()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+                >
+                  <option>Select Seasion</option>
+                  {season?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Condition</label>
+                <select
+                  name="purpose"
+                  value={selectedCondition}
+                  onChange={handleChangeCondition}
+                  disabled={isDocStatusLocked()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+                >
+                  <option>Select Condition</option>
+                  {condition?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Reason</label>
+                <select
+                  name="purpose"
+                  value={selectedReason}
+                  onChange={handleChangeReason}
+                  disabled={isDocStatusLocked()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+                >
+                  <option>Select Reason</option>
+                  {reason?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">license plate<span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  onChange={handleLicensePlateChange}
+                  disabled={isDocStatusLocked()}
+                  value={LicensePlate}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Enter detail"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Mezzo</label>
+                <input
+                  type="text"
+                  value={mezzo}
+                  onChange={handleMezzoChange}
+                  disabled={isDocStatusLocked()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Enter detail"
+                />
+              </div>
 
             </>
           )}
+          </div>
 
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
+         <div>
+            <label className="block text-sm font-medium">Purpose<span className="text-red-500">*</span></label>
+            <select
+              name="purpose"
+              value={purpose}
+              onChange={handleChange}
+              disabled={isDocStatusLocked()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            >
+              <option></option>
+              <option>Redelivery</option>
+              <option>Pick Up</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Date of Posting<span className="text-red-500">*</span></label>
+            <input
+              type="date"
+              name="dateOfPosting"
+              value={dateOfPosting}
+              onChange={handleDateChange}
+              disabled={isDocStatusLocked()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Date of Delivery<span className="text-red-500">*</span></label>
+            <input
+              type="date"
+              name="dateOfDelivery"
+              value={DateOfDelivery}
+              onChange={handleDateOfDelivery}
+              disabled={isDocStatusLocked()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            />
+          </div>
         </div>
         {service === "Peneus Hub" && (<div className=" mb-6">
           <table className="w-full text-sm border rounded-md border-gray-300">
@@ -1237,10 +1229,7 @@ const RedeliveryForm = () => {
             itemsRedelivery={itemsRedelivery}
             purpose={purpose}
             abledHandle={isDocStatusLocked}
-            
-            
-
-          />
+            />
         </div>
         )}
 

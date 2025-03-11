@@ -2041,3 +2041,12 @@ const TableComponent: React.FC<TableComponentProps> = ({ itemsData, updateItemDa
 };
 
 export default TableComponent;
+
+
+
+
+
+
+
+
+

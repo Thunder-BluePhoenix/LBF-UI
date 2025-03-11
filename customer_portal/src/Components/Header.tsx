@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
-import  ProfileImage  from "../assets/image.png"
+
 import { useFrappeAuth } from 'frappe-react-sdk';
 import axios from 'axios';
 
@@ -14,8 +14,8 @@ const Header = () => {
   const [loginUser, setLoginUser] = useState('');
   const [partyType, setPartyType] = useState('N/A');
   const navigate = useNavigate();
-   
-  console.log(loading,loginUser)
+
+  console.log(loading, loginUser);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -100,8 +100,11 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Extract the first letter of the customer name
+  const firstLetter = customerName.charAt(0).toUpperCase();
+
   return (
-    <div className="bg-gray-50 border border-gray-300 ml-20 h-16 w-[95%] flex items-center justify-end p-4">
+    <div className="bg-gray-50 fixed border z-1 border-gray-300 ml-20 h-16 w-[95%] flex items-center justify-end p-4">
       <div className="flex items-center gap-6 pr-6">
         <div className="relative p-2 bg-orange-500 rounded-lg">
           <button ref={buttonRef} onClick={toggleDropdown} className="bg-orange-500 text-white rounded-full px-3 pb-1">
@@ -112,10 +115,10 @@ const Header = () => {
               <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/material-request-form')}>
                 Add Redelivery Request
               </span>
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/newcustomer')} >
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/newcustomer')}>
                 Add New Customer
               </span>
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" >
+              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100">
                 Add New Item
               </span>
             </div>
@@ -129,19 +132,32 @@ const Header = () => {
         </div>
 
         <div className="relative">
-          <img
-            ref={profileButtonRef}
-            src={ProfileImage}
-            alt="Profile"
-            className="w-10 h-10 rounded-full cursor-pointer"
-            onClick={toggleProfile}
-          />
+      
+      
+            <div
+              ref={profileButtonRef}
+              className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold cursor-pointer"
+              onClick={toggleProfile}
+            >
+              {firstLetter}
+            </div>
+         
 
           {profileOpen && (
-            <div ref={profileRef} className="absolute flex flex-col top-12 left-0 w-40 bg-white border rounded shadow-lg mt-2 z-10">
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={logoutHandler}>
-                Log Out
-              </span>
+            <div ref={profileRef} className="absolute flex flex-col top-12 left-0 w-40 bg-white border border-gray-300 rounded shadow-lg mt-2 z-10">
+              <div className="px-4 py-3 border-b border-gray-300">
+                <p className="text-sm font-medium">My Account</p>
+              </div>
+              <div className="py-1">
+                <button className="px-4 py-2 text-sm hover:bg-slate-700 w-full text-left">
+                  Profile
+                </button>
+              </div>
+              <div className="py-1 border-t border-gray-300">
+                <button onClick={logoutHandler} className="px-4 py-2 text-sm hover:bg-slate-700 w-full text-left">
+                  Log out
+                </button>
+              </div>
             </div>
           )}
         </div>

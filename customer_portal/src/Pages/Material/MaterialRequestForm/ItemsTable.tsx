@@ -3,6 +3,7 @@ import { MdDelete, MdEdit } from "react-icons/md";
 
 // Define interfaces for API data
 interface ItemData {
+  type: string | undefined;
   name?: string;
   item_code?: string;
   item_name?: string;
@@ -15,21 +16,13 @@ interface ItemsApiResponse {
   message?: ItemData[];
 }
 
-interface BrandData {
-  name: string;
-}
-
-interface BrandApiResponse {
-  data: BrandData[];
-}
-
 // Row data for the table
 interface RowData {
   id: number;
   item_code: string;
   item_name: string;
-  OtherItemCode: string;
-  otherItemName: string;
+  OthersItemCode: string;
+  OthersItemName: string;
   requiredBy: string;
   quantity: string;
   uom: string;
@@ -55,11 +48,23 @@ interface RowData {
 
 // Data structure from API for updating items
 interface UpdateItemData {
+  other_item_code: string;
+  other_item_name: string;
+  marks_others: string;
+  speed_rating_others: string;
+  carcass_others: string;
+  model_others: string;
+  load_index_others: string;
+  aspect_ratio_others: string;
+  tire_widthmm_others: string;
+  diameterinch_others: string;
+  weight_others: string;
+  brandothers: string;
   name: string;
   item_code: string;
   item_name: string;
-  other_item_code?: string;
-  other_item_name?: string;
+  Others_item_code?: string;
+  Others_item_name?: string;
   schedule_date: string;
   qty: number;
   type: string;
@@ -68,25 +73,25 @@ interface UpdateItemData {
   stock_uom: string;
   // Additional fields specific to tire properties
   tire_widthmm?: string;
-  tire_widthmm_others?: string;
+  tire_widthmm_Others?: string;
   diameterinch?: string;
-  diameterinch_others?: string;
+  diameterinch_Others?: string;
   weight?: string;
-  weight_others?: string;
+  weight_Others?: string;
   aspect_ratio?: string;
-  aspect_ratio_others?: string;
+  aspect_ratio_Others?: string;
   load_index?: string;
-  load_index_others?: string;
+  load_index_Others?: string;
   model?: string;
-  model_others?: string;
+  model_Others?: string;
   carcass?: string;
-  carcass_others?: string;
+  carcass_Others?: string;
   speed_rating?: string;
-  speed_rating_others?: string;
+  speed_rating_Others?: string;
   marks?: string;
-  marks_others?: string;
+  marks_Others?: string;
   brand?: string;
-  brandothers?: string;
+  brandOthers?: string;
 }
 
 // Props for the table component
@@ -96,15 +101,15 @@ interface TableComponentProps {
   itemsRedelivery?: ItemsApiResponse;
   purpose?: string;
   onDataChange?: (rows: RowData[]) => void;
-  abledHandle: () => boolean; // Fixed: Added proper type for abledHandle function
+  abledHandle: () => boolean; // Function that returns whether fields should be disabled
 }
 
 // Form data type for the dialog
 interface FormDataType {
   item_code: string;
   item_name: string;
-  OtherItemCode: string;
-  otherItemName: string;
+  OthersItemCode: string;
+  OthersItemName: string;
   requiredBy: string;
   type: string;
   tireWidth: string;
@@ -143,8 +148,6 @@ const TableComponent: React.FC<TableComponentProps> = ({
     }
   }, [purpose, itemsRedelivery, itemsData]);
 
-  console.log(itemsSource, "my first bug fix in 2 hours");
-
   const [rows, setRows] = useState<RowData[]>([
     {
       id: 1,
@@ -156,8 +159,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
       type: "",
       selectedItem: "",
       item_name: "",
-      OtherItemCode: "",
-      otherItemName: "",
+      OthersItemCode: "",
+      OthersItemName: "",
       Brand: "",
       Marks: "",
       SpeedRating: "",
@@ -171,8 +174,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
   const [formData, setFormData] = useState<FormDataType>({
     item_code: "",
     item_name: "",
-    OtherItemCode: "",
-    otherItemName: "",
+    OthersItemCode: "",
+    OthersItemName: "",
     requiredBy: "",
     type: "",
     tireWidth: "",
@@ -194,10 +197,6 @@ const TableComponent: React.FC<TableComponentProps> = ({
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [brandData, setBrandData] = useState<BrandApiResponse | null>(null);
-  const [isLoadingBrands, setIsLoadingBrands] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showBrandDropdown, setShowBrandDropdown] = useState<boolean>(false);
 
   // Initialize rows from updateItemData when it's available
   useEffect(() => {
@@ -210,10 +209,10 @@ const TableComponent: React.FC<TableComponentProps> = ({
           item_code: item.item_code,
           item_name: item.item_name,
           originalItemName: item.item_name,
-          OtherItemCode: item.other_item_code || "",
-          otherItemName: item.other_item_name || "",
+          OthersItemCode: isOthersItem ? (item.other_item_code || "") : "",
+          OthersItemName: isOthersItem ? (item.other_item_name || "") : "",
           requiredBy: item.schedule_date || "",
-          // Fix: Convert number to string to avoid type errors later
+          // Convert number to string to avoid type errors
           quantity: item.qty?.toString() || "",
           uom: item.uom || "Nos",
           uomConversion: item.conversion_factor?.toString() || "1.00",
@@ -245,29 +244,6 @@ const TableComponent: React.FC<TableComponentProps> = ({
     }
   }, [rows, onDataChange]);
 
-  // Fetch brands from API
-  useEffect(() => {
-    const fetchBrandData = async () => {
-      setIsLoadingBrands(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/resource/brand');
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-        const data = await response.json();
-        setBrandData(data);
-      } catch (err) {
-        console.error("Failed to fetch brand data:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch brands");
-      } finally {
-        setIsLoadingBrands(false);
-      }
-    };
-
-    fetchBrandData();
-  }, []);
-
   const addRow = () => {
     const newRows = [
       ...rows,
@@ -281,8 +257,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
         type: "",
         selectedItem: "",
         item_name: "",
-        OtherItemCode: "",
-        otherItemName: "",
+        OthersItemCode: "",
+        OthersItemName: "",
         Brand: "",
         Marks: "",
         SpeedRating: "",
@@ -344,14 +320,6 @@ const TableComponent: React.FC<TableComponentProps> = ({
     setShowDropdown(null);
   };
 
-  const handleBrandSelect = (brandName: string) => {
-    setFormData(prev => ({
-      ...prev,
-      Brand: brandName
-    }));
-    setShowBrandDropdown(false);
-  };
-
   const openDialog = (index: number) => {
     setEditingRowIndex(index);
 
@@ -360,8 +328,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
     setFormData({
       item_code: rowData.item_code || "Others",
       item_name: rowData.item_name || "Others",
-      otherItemName: rowData.otherItemName || "",
-      OtherItemCode: rowData.OtherItemCode || "",
+      OthersItemName: rowData.OthersItemName || "",
+      OthersItemCode: rowData.OthersItemCode || "",
       requiredBy: rowData.requiredBy || "",
       type: rowData.type || "",
       Brand: rowData.Brand || "",
@@ -407,14 +375,14 @@ const TableComponent: React.FC<TableComponentProps> = ({
         if (index === editingRowIndex) {
           return {
             ...row,
-            item_code: formData.item_code,
-            item_name: formData.item_name,
-            otherItemName: formData.otherItemName,
-            OtherItemCode: formData.OtherItemCode,
+            item_code: "Others",  // Always "Others" for edited items in the dialog
+            item_name: "Others",  // Always "Others" for edited items in the dialog
+            OthersItemName: formData.OthersItemName,
+            OthersItemCode: formData.OthersItemCode,
             requiredBy: formData.requiredBy,
-            // Convert to string to ensure consistency
             quantity: formData.quantity.toString(),
             type: formData.type,
+            uom: formData.uom,
             Brand: formData.Brand,
             Marks: formData.Marks,
             SpeedRating: formData.SpeedRating,
@@ -422,9 +390,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
             Model: formData.Model,
             LoadIndex: formData.LoadIndex,
             AspectRatio: formData.AspectRatio,
-            // Keep the selectedItem value as "Others"
             selectedItem: "Others",
-            // Store additional form fields
             tireWidth: formData.tireWidth,
             diameter: formData.diameter,
             weight: formData.weight,
@@ -454,6 +420,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
             <th className="border border-gray-300 p-2">Item Code *</th>
             <th className="border border-gray-300 p-2">Required By *</th>
             <th className="border border-gray-300 p-2">Quantity *</th>
+            <th className="border border-gray-300 p-2">Available Quantity *</th>
             <th className="border border-gray-300 p-2">Type *</th>
             <th className="border border-gray-300 p-2"></th>
           </tr>
@@ -466,20 +433,13 @@ const TableComponent: React.FC<TableComponentProps> = ({
                 <input
                   type="text"
                   className="w-full border-gray-300"
-              
-                  value={
-                    purpose === "Redelivery"
-                      ? `${row.item_code ? row.item_code : ""}${row.item_code && row.type ? "/" : ""}${row.type ? row.type : ""}`
-                      : row.item_code || ""
-                  }
-               
-                
-                  onFocus={() => !abledHandle() && setShowDropdown(index)}
-                  disabled={abledHandle()}
+                  value={row.item_code || ""}
+                  onFocus={() => !isFieldDisabled() && setShowDropdown(index)}
+                  disabled={isFieldDisabled()}
                   onChange={(e) => handleInputChange(index, "item_code", e.target.value)}
                   placeholder="Item Code"
                 />
-                {showDropdown === index && itemsSource && itemsSource.length > 0 && !abledHandle() && (
+                {showDropdown === index && itemsSource && itemsSource.length > 0 && !isFieldDisabled() && (
                   <ul className="absolute left-0 top-full w-full bg-white border border-gray-300 max-h-40 overflow-y-auto z-10">
                     {itemsSource.map((item, i) => (
                       <li
@@ -487,15 +447,20 @@ const TableComponent: React.FC<TableComponentProps> = ({
                         className="p-2 cursor-pointer hover:bg-gray-200"
                         onClick={() => handleItemSelect(index, item)}
                       >
-                        {item.item_code || item.name}
+                        {purpose === "Redelivery"
+                          ? `${item.item_code ? item.item_code : ""}${item.item_code && item.custom_tyre_type ? "/" : ""}${item.custom_tyre_type ? item.custom_tyre_type : ""}`
+                          : item.item_code || item.name
+                        }
                       </li>
                     ))}
-                    <li
-                      className="p-2 cursor-pointer hover:bg-gray-200"
-                      onClick={() => handleOthersSelect(index)}
-                    >
-                      Others
-                    </li>
+                    {purpose === "Pick Up" && !isFieldDisabled() && (
+                      <li
+                        className="p-2 cursor-pointer hover:bg-gray-200"
+                        onClick={() => handleOthersSelect(index)}
+                      >
+                        Others
+                      </li>
+                    )}
                   </ul>
                 )}
               </td>
@@ -519,6 +484,12 @@ const TableComponent: React.FC<TableComponentProps> = ({
                 />
               </td>
               <td className="border border-gray-300 p-2">
+                {/* Display actual quantity if available */}
+                {itemsSource.length > 0 && itemsSource[0]?.actual_qty !== undefined
+                  ? itemsSource[0].actual_qty
+                  : "-"}
+              </td>
+              <td className="border border-gray-300 p-2">
                 <select
                   className="w-full border-gray-300"
                   value={row.type}
@@ -531,7 +502,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                 </select>
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {row.item_code === "Others" && !abledHandle() ? (
+                {row.item_code === "Others" && !isFieldDisabled() ? (
                   <button
                     type="button"
                     onClick={() => openDialog(index)}
@@ -539,7 +510,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   >
                     <MdEdit />
                   </button>
-                ) : !abledHandle() ? (
+                ) : !isFieldDisabled() ? (
                   <button
                     type="button"
                     onClick={() => removeRow(index)}
@@ -553,7 +524,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           ))}
         </tbody>
       </table>
-      {!abledHandle() && (
+      {!isFieldDisabled() && (
         <button
           type="button"
           className="mt-4 p-2 bg-gray-200 text-gray-600 rounded"
@@ -580,8 +551,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
                       name="item_code"
                       placeholder="Others"
                       value={formData.item_code}
-                      onChange={handleFormInputChange}
-                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      readOnly
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
                   </div>
                   <div>
@@ -591,28 +562,28 @@ const TableComponent: React.FC<TableComponentProps> = ({
                       name="item_name"
                       placeholder="Others"
                       value={formData.item_name}
+                      readOnly
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Others Item Code *</label>
+                    <input
+                      type="text"
+                      name="OthersItemCode"
+                      placeholder="Enter code"
+                      value={formData.OthersItemCode}
                       onChange={handleFormInputChange}
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Other Item Code *</label>
+                    <label className="block text-sm font-medium text-gray-700">Others Item Name *</label>
                     <input
                       type="text"
-                      name="OtherItemCode"
-                      placeholder="Others"
-                      value={formData.OtherItemCode}
-                      onChange={handleFormInputChange}
-                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Other Item Name *</label>
-                    <input
-                      type="text"
-                      name="otherItemName"
-                      placeholder="Others"
-                      value={formData.otherItemName}
+                      name="OthersItemName"
+                      placeholder="Enter name"
+                      value={formData.OthersItemName}
                       onChange={handleFormInputChange}
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
@@ -712,29 +683,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
                         name="Brand"
                         value={formData.Brand}
                         onChange={handleFormInputChange}
-                        onFocus={() => setShowBrandDropdown(true)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder={isLoadingBrands ? "Loading brands..." : "Select or type brand"}
                       />
-                      {showBrandDropdown && brandData && (
-                        <ul className="absolute left-0 top-full w-full bg-white border border-gray-300 max-h-40 overflow-y-auto z-10 rounded-md shadow-lg">
-                          {isLoadingBrands ? (
-                            <li className="p-2 text-gray-500">Loading brands...</li>
-                          ) : error ? (
-                            <li className="p-2 text-red-500">Error: {error}</li>
-                          ) : (
-                            brandData.data.map((brand, i) => (
-                              <li
-                                key={i}
-                                className="p-2 cursor-pointer hover:bg-gray-200"
-                                onClick={() => handleBrandSelect(brand.name)}
-                              >
-                                {brand.name}
-                              </li>
-                            ))
-                          )}
-                        </ul>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -761,7 +711,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Weight (others) *</label>
+                    <label className="block text-sm font-medium text-gray-700">Weight (Others) *</label>
                     <input
                       type="text"
                       name="weight"
@@ -776,7 +726,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Quantity *</label>
                     <input
-                      type="text"
+                      type="number"
                       name="quantity"
                       value={formData.quantity}
                       onChange={handleFormInputChange}

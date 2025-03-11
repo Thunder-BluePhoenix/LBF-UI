@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { BiPlus } from "react-icons/bi"
+import { BiPlus, BiSearch } from "react-icons/bi"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import { AiFillCloseCircle } from "react-icons/ai"
 
 // Define types to match the actual API response
 interface CustomerDetailsForWholesaler {
@@ -231,9 +232,9 @@ export default function CustomerTable() {
         }
     }
 
-    const handleDetailsRedirect = (id: string) => {
-        navigate(`/customer_portal/newcustomer/${id}`);  // Add the id to the URL
-    };
+    // const handleDetailsRedirect = (id: string) => {
+    //     navigate(`/customer_portal/newcustomer/${id}`);  // Add the id to the URL
+    // };
    
     // Pagination
     const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage)
@@ -291,7 +292,7 @@ export default function CustomerTable() {
     }
 
     return (
-        <div className="w-full bg-white rounded-lg shadow overflow-hidden">
+        <div className="w-full bg-white rounded shadow overflow-hidden">
             {/* User info banner */}
             {customerLoginUser && (
                 <div className="bg-blue-50 p-4 border-b border-blue-100">
@@ -306,15 +307,27 @@ export default function CustomerTable() {
             
             {/* Search bar */}
             <div className="flex w-full justify-between p-4 border-b border-gray-300">
-                <div className=" mr-4">
-                    <input
-                        type="text"
-                        placeholder="Search customers..."
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
+            <div className="relative   mr-4">
+    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl">
+        <BiSearch />
+    </span>
+    <input
+        type="text"
+        placeholder="Search customers..."
+        className="border border-gray-300 rounded-md pl-10 pr-2 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+    />
+    {searchTerm && (
+        <span
+            onClick={() => setSearchTerm('')}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl cursor-pointer"
+        >
+            <AiFillCloseCircle />
+        </span>
+    )}
+</div>
+
                 <div>
                 <button
                         onClick={() => handleRedirect('/customer_portal/newcustomer')}
@@ -370,7 +383,7 @@ export default function CustomerTable() {
                                         />
                                     </td>
                                     <td 
-                                        onClick={() => handleDetailsRedirect(customer.name)}
+                                        // onClick={() => handleDetailsRedirect(customer.name)}
                                         className="px-6 py-2 text-xs text-gray-800 font-bold whitespace-nowrap cursor-pointer hover:text-blue-600">
                                         {getCustomerDisplayName(customer)}
                                     </td>
