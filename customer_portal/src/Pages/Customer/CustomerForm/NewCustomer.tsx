@@ -87,6 +87,7 @@ const NewCustomer: React.FC = () => {
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showAddressDetails, setShowAddressDetails] = useState(false);
+  const [showContactDetails, setShowContactDetails] = useState(false);
   const [transporters, setTransporters] = useState<Supplier[]>([]);
   const [isLoadingTransporters, setIsLoadingTransporters] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -340,7 +341,9 @@ const NewCustomer: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateForm()) {
       showErrorPopup('Please fix all validation errors before submitting');
-      setShowAddressDetails(true); // Show address details if there are errors there
+      // Show both contact and address details if there are errors there
+      setShowAddressDetails(true);
+      setShowContactDetails(true);
       return;
     }
 
@@ -408,10 +411,23 @@ const NewCustomer: React.FC = () => {
     setShowAddressDetails(!showAddressDetails);
   };
 
+  const toggleContactDetails = () => {
+    setShowContactDetails(!showContactDetails);
+  };
+
   const getFormattedAddress = () => {
     const { addressTitle, addressLine1, city, country } = formData.address;
     if (!addressLine1 && !city) return 'Click to add address details';
     return `${addressTitle}, ${addressLine1}, ${city}, ${country}`;
+  };
+
+  const getFormattedContact = () => {
+    const { firstName, emailId, phone } = formData.contact;
+    if (!firstName) return 'Click to add contact details';
+    if (firstName && !emailId && !phone) return `${firstName}`;
+    if (firstName && emailId && !phone) return `${firstName}, ${emailId}`;
+    if (firstName && !emailId && phone) return `${firstName}, ${phone}`;
+    return `${firstName}, ${emailId}, ${phone}`;
   };
 
   const hasError = (fieldName: keyof ValidationErrors): boolean => {
@@ -438,7 +454,7 @@ const NewCustomer: React.FC = () => {
 
       <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
         <div>
-          <label className="block text-sm  font-medium">Customer Name <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium">Customer Name <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="customerName"
@@ -468,10 +484,10 @@ const NewCustomer: React.FC = () => {
           <label className="block text-sm font-medium">Customer Unique Mail <span className="text-red-500">*</span></label>
           <input
             type="email"
-            name="uniqueEmail" // Changed to match the state structure
-            value={formData.uniqueEmail} // Changed to match the state structure
+            name="uniqueEmail"
+            value={formData.uniqueEmail}
             onChange={handleChange}
-            onBlur={handleBlur} // Added onBlur for validation
+            onBlur={handleBlur}
             className={`w-full px-3 py-2 border ${hasError('contact.uniqueEmail') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
           />
           {hasError('contact.uniqueEmail') && (
@@ -482,10 +498,10 @@ const NewCustomer: React.FC = () => {
           <label className="block text-sm font-medium">Customer Unique Phone <span className="text-red-500">*</span></label>
           <input
             type="text"
-            name="uniquePhone" // Changed to match the state structure
-            value={formData.uniquePhone} // Changed to match the state structure
+            name="uniquePhone"
+            value={formData.uniquePhone}
             onChange={handleChange}
-            onBlur={handleBlur} // Added onBlur for validation
+            onBlur={handleBlur}
             className={`w-full px-3 py-2 border ${hasError('contact.uniquePhone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
           />
           {hasError('contact.uniquePhone') && (
@@ -513,43 +529,38 @@ const NewCustomer: React.FC = () => {
             <p className="mt-1 text-xs text-red-500">{getErrorMessage('transporter')}</p>
           )}
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium">Contact Name <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            name="contact.firstName"
-            value={formData.contact.firstName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className={`w-full px-3 py-2 border ${hasError('contact.firstName') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-          />
-          {hasError('contact.firstName') && (
-            <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.firstName')}</p>
-          )}
+      {/* Contact field with toggle like address */}
+      <div className="col-span-2 mb-4">
+        <label className="block text-sm font-medium">Contact <span className="text-red-500">*</span></label>
+        <div
+          onClick={toggleContactDetails}
+          className={`w-full px-3 py-2 border ${(hasError('contact.firstName') || hasError('contact.emailId') || hasError('contact.phone')) ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1 cursor-pointer bg-gray-50`}
+        >
+          {getFormattedContact()}
         </div>
+        {(hasError('contact.firstName') || hasError('contact.emailId') || hasError('contact.phone')) && !showContactDetails && (
+          <p className="mt-1 text-xs text-red-500">Please complete all required contact fields</p>
+        )}
+      </div>
 
-        {/* Only show phone field if contact name is filled */}
-        {formData.contact.firstName && (
+      {showContactDetails && (
+        <div className="col-span-2 grid grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50 mb-4">
           <div>
-            <label className="block text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">Contact Name <span className="text-red-500">*</span></label>
             <input
               type="text"
-              name="contact.phone"
-              value={formData.contact.phone}
+              name="contact.firstName"
+              value={formData.contact.firstName}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={`w-full px-3 py-2 border ${hasError('contact.phone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+              className={`w-full px-3 py-2 border ${hasError('contact.firstName') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
             />
-            {hasError('contact.phone') && (
-              <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.phone')}</p>
+            {hasError('contact.firstName') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.firstName')}</p>
             )}
           </div>
-        )}
-
-        {/* Add email field that also shows only when contact name is filled */}
-        {formData.contact.firstName && (
-
           <div>
             <label className="block text-sm font-medium">Email <span className="text-red-500">*</span></label>
             <input
@@ -564,13 +575,26 @@ const NewCustomer: React.FC = () => {
               <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.emailId')}</p>
             )}
           </div>
-        )}
+          <div>
+            <label className="block text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="contact.phone"
+              value={formData.contact.phone}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('contact.phone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('contact.phone') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.phone')}</p>
+            )}
+          </div>
+        </div>
+      )}
 
-
-
-      </div>
+      {/* Address field */}
       <div className="col-span-2 mb-4">
-        <label className="block text-sm  font-medium">Address <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-medium">Address <span className="text-red-500">*</span></label>
         <div
           onClick={toggleAddressDetails}
           className={`w-full px-3 py-2 border ${(hasError('address.addressLine1') || hasError('address.city') || hasError('address.country')) ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1 cursor-pointer bg-gray-50`}
