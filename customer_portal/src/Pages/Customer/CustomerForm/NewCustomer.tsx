@@ -93,14 +93,36 @@ const NewCustomer: React.FC = () => {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [customerGroup, setCustomerGroup] = useState<unknown>(null);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
-
+console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustomerGroupcustomerGroup")
   useEffect(() => {
     fetchTransporters();
     if (id) {
       fetchCustomerData(id); // Fetch customer data if ID is present
     }
   }, [id]);
+  
+  useEffect(() => {
+    const fetchCustomerGroup = async () => {
+      try {
+        const response = await fetch('/api/method/lbf_logistica.api.bol.get_customer_group');
+        if (!response.ok) {
+          throw new Error('Failed to fetch customer group');
+        }
+        const data = await response.json();
+        setCustomerGroup(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        setErrors(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomerGroup();
+  }, []);
 
   const fetchTransporters = async () => {
     try {
@@ -468,18 +490,24 @@ const NewCustomer: React.FC = () => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Customer Group</label>
-          <select
-            name="customerGroup"
-            value={formData.customerGroup}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-          >
-            <option value="Commercial">Commercial</option>
-            <option value="Individual">Individual</option>
-            <option value="Non-Profit">Partnership</option>
-          </select>
-        </div>
+  <label className="block text-sm font-medium">Customer Group</label>
+  <select
+    name="customerGroup"
+    value={formData.customerGroup}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+  >
+    {loading ? (
+      <option value="">Loading...</option>
+    ) : (
+      customerGroup?.message?.map((group: { name: string }) => (
+        <option key={group.name} value={group.name}>
+          {group.name}
+        </option>
+      ))
+    )}
+  </select>
+</div>
         <div>
           <label className="block text-sm font-medium">Customer Unique Mail <span className="text-red-500">*</span></label>
           <input
