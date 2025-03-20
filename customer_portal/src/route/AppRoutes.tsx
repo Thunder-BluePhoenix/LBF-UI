@@ -5,17 +5,18 @@ import BillOfLandingList from "../Pages/BOL-List/Blo-list";
 import { useFrappeAuth } from "frappe-react-sdk";
 import { useEffect } from "react";
 import Login from "../Pages/Login";
-import BillOfLandingDitails from "../Pages/BOL-List/BOL-details/BillOfLandingDitails";
-import QualityInspectionData from "../Pages/BOL-List/BOL-details/QualityInspestion";
-import SerialAndBatchNo from "../Pages/BOL-List/BOL-details/SerialAndBatchNo";
+import BillOfLandingDitails from "../Pages/BOL-List/Components/BillOfLandingDitails";
+import QualityInspectionData from "../Pages/BOL-List/Components/QualityInspestion";
+import SerialAndBatchNo from "../Pages/BOL-List/Components/SerialAndBatchNo";
 import MaterialRequestList from "../Pages/Material/MaterialRequest-list";
 import MaterialRequestDetails from "../Pages/Material/MaterialDetails/MaterialRequestDetails";
 import RedeliveryForm from "../Pages/Material/MaterialRequestForm/RedeliveryForm";
-import NewCustomer from "../Pages/Customer/CustomerForm/NewCustomer";
+import NewCustomer from "../Pages/Customer/Components/NewCustomer";
 import InvoiceListView from "../Pages/Invoice/InvoiceListView";
 import DownloadInvoice from "../Pages/Invoice/InvoiceDtails/DownloadInvoice";
 import NotificationPage from "../Pages/Notification/Notification";
 import CustomerTable from "../Pages/Customer/Customer";
+import CustomerDetails from "../Pages/Auth/Login-customer-details/customer-details";
 
 
 
@@ -55,6 +56,7 @@ const AppRoutes = () => {
       <Route path="/customer_portal/notificationpage" element={<Layout> <div className="p-4"><NotificationPage/></div></Layout> }/>
       <Route path="/customer_portal/InvoiceListView" element={<Layout> <div className="p-4"><InvoiceListView/></div></Layout> }/>
       <Route path="/customer_portal/downloadInvoice" element={<Layout> <div className="p-4"><DownloadInvoice/></div></Layout> }/>
+      <Route path="/customer_portal/Login-customerdetails" element={<Layout> <div className="p-4"><CustomerDetails/></div></Layout> }/>
       </Routes>
  </div>
   );

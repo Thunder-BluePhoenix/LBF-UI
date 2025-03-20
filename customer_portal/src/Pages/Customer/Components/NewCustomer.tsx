@@ -87,19 +87,42 @@ const NewCustomer: React.FC = () => {
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showAddressDetails, setShowAddressDetails] = useState(false);
+  const [showContactDetails, setShowContactDetails] = useState(false);
   const [transporters, setTransporters] = useState<Supplier[]>([]);
   const [isLoadingTransporters, setIsLoadingTransporters] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [customerGroup, setCustomerGroup] = useState<unknown>(null);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
-
+console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustomerGroupcustomerGroup")
   useEffect(() => {
     fetchTransporters();
     if (id) {
       fetchCustomerData(id); // Fetch customer data if ID is present
     }
   }, [id]);
+  
+  useEffect(() => {
+    const fetchCustomerGroup = async () => {
+      try {
+        const response = await fetch('/api/method/lbf_logistica.api.bol.get_customer_group');
+        if (!response.ok) {
+          throw new Error('Failed to fetch customer group');
+        }
+        const data = await response.json();
+        setCustomerGroup(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        setErrors(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomerGroup();
+  }, []);
 
   const fetchTransporters = async () => {
     try {
@@ -108,7 +131,7 @@ const NewCustomer: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to fetch transporters');
       }
-      
+
       const result = await response.json();
       setTransporters(result.data || []);
     } catch (error) {
@@ -125,13 +148,13 @@ const NewCustomer: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to fetch customer data');
       }
-      
+
       const result = await response.json();
       console.log(result, "customer update data result");
-      
+
       // Assuming result.data contains the data you're working with
       const data = result.data;
-      
+
       setFormData({
         customerName: data.customer_name || '',
         customerGroup: data.customer_group || '',
@@ -156,7 +179,7 @@ const NewCustomer: React.FC = () => {
         dateOfDelivery: data.date_of_delivery || '',  // No date_of_delivery field in the provided data
         items: data.items || [{ itemName: '', itemCode: '', requiredQty: '', availableQty: '' }],  // Items array is missing
       });
-      
+
     } catch (error) {
       console.error('Error fetching customer data:', error);
       showErrorPopup('Failed to load customer data. Please try again.');
@@ -175,56 +198,56 @@ const NewCustomer: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
-    
+
     if (!formData.customerName.trim()) {
       newErrors.customerName = 'Customer name is required';
     }
-    
+
     if (!formData.transporter) {
       newErrors.transporter = 'Transporter selection is required';
     }
-    
+
     if (!formData.contact.firstName.trim()) {
       newErrors['contact.firstName'] = 'Contact name is required';
     }
-    
+
     if (!formData.contact.emailId.trim()) {
       newErrors['contact.emailId'] = 'Email is required';
     } else if (!validateEmail(formData.contact.emailId)) {
       newErrors['contact.emailId'] = 'Invalid email format';
     }
-    
+
     if (!formData.contact.phone.trim()) {
       newErrors['contact.phone'] = 'Phone number is required';
     } else if (!validatePhone(formData.contact.phone)) {
       newErrors['contact.phone'] = 'Invalid phone number format';
     }
-    
+
     if (!formData.address.addressLine1.trim()) {
       newErrors['address.addressLine1'] = 'Address line is required';
     }
-    
+
     if (!formData.address.city.trim()) {
       newErrors['address.city'] = 'City is required';
     }
-    
+
     if (!formData.address.country.trim()) {
       newErrors['address.country'] = 'Country is required';
     }
-    
+
     if (!formData.uniqueEmail.trim()) {
       newErrors['contact.uniqueEmail'] = 'Customer unique email is required';
     } else if (!validateEmail(formData.uniqueEmail)) {
       newErrors['contact.uniqueEmail'] = 'Invalid email format';
     }
-    
+
     // New unique phone validation
     if (!formData.uniquePhone.trim()) {
       newErrors['contact.uniquePhone'] = 'Customer unique phone number is required';
     } else if (!validatePhone(formData.uniquePhone)) {
       newErrors['contact.uniquePhone'] = 'Invalid phone number format';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -270,16 +293,16 @@ const NewCustomer: React.FC = () => {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name } = e.target;
-    
+
     const newErrors = { ...errors };
-    
+
     if (name === 'customerName') {
       if (!formData.customerName.trim()) {
         newErrors.customerName = 'Customer name is required';
       } else {
         delete newErrors.customerName;
       }
-    } 
+    }
     else if (name === 'contact.firstName') {
       if (!formData.contact.firstName.trim()) {
         newErrors['contact.firstName'] = 'Contact name is required';
@@ -333,14 +356,16 @@ const NewCustomer: React.FC = () => {
         delete newErrors.transporter;
       }
     }
-    
+
     setErrors(newErrors);
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) {
       showErrorPopup('Please fix all validation errors before submitting');
-      setShowAddressDetails(true); // Show address details if there are errors there
+      // Show both contact and address details if there are errors there
+      setShowAddressDetails(true);
+      setShowContactDetails(true);
       return;
     }
 
@@ -375,7 +400,7 @@ const NewCustomer: React.FC = () => {
         ],
       };
 
-      const url = id 
+      const url = id
         ? `/api/method/lbf_logistica.api.bol.update_customer/${id}` // Update endpoint
         : '/api/method/lbf_logistica.api.bol.create_customer'; // Create endpoint
 
@@ -408,10 +433,23 @@ const NewCustomer: React.FC = () => {
     setShowAddressDetails(!showAddressDetails);
   };
 
+  const toggleContactDetails = () => {
+    setShowContactDetails(!showContactDetails);
+  };
+
   const getFormattedAddress = () => {
     const { addressTitle, addressLine1, city, country } = formData.address;
     if (!addressLine1 && !city) return 'Click to add address details';
     return `${addressTitle}, ${addressLine1}, ${city}, ${country}`;
+  };
+
+  const getFormattedContact = () => {
+    const { firstName, emailId, phone } = formData.contact;
+    if (!firstName) return 'Click to add contact details';
+    if (firstName && !emailId && !phone) return `${firstName}`;
+    if (firstName && emailId && !phone) return `${firstName}, ${emailId}`;
+    if (firstName && !emailId && phone) return `${firstName}, ${phone}`;
+    return `${firstName}, ${emailId}, ${phone}`;
   };
 
   const hasError = (fieldName: keyof ValidationErrors): boolean => {
@@ -438,7 +476,7 @@ const NewCustomer: React.FC = () => {
 
       <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
         <div>
-          <label className="block text-sm  font-medium">Customer Name <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium">Customer Name <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="customerName"
@@ -452,26 +490,32 @@ const NewCustomer: React.FC = () => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Customer Group</label>
-          <select
-            name="customerGroup"
-            value={formData.customerGroup}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-          >
-            <option value="Commercial">Commercial</option>
-            <option value="Individual">Individual</option>
-            <option value="Non-Profit">Non-Profit</option>
-          </select>
-        </div>
+  <label className="block text-sm font-medium">Customer Group</label>
+  <select
+    name="customerGroup"
+    value={formData.customerGroup}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+  >
+    {loading ? (
+      <option value="">Loading...</option>
+    ) : (
+      customerGroup?.message?.map((group: { name: string }) => (
+        <option key={group.name} value={group.name}>
+          {group.name}
+        </option>
+      ))
+    )}
+  </select>
+</div>
         <div>
           <label className="block text-sm font-medium">Customer Unique Mail <span className="text-red-500">*</span></label>
           <input
             type="email"
-            name="uniqueEmail" // Changed to match the state structure
-            value={formData.uniqueEmail} // Changed to match the state structure
+            name="uniqueEmail"
+            value={formData.uniqueEmail}
             onChange={handleChange}
-            onBlur={handleBlur} // Added onBlur for validation
+            onBlur={handleBlur}
             className={`w-full px-3 py-2 border ${hasError('contact.uniqueEmail') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
           />
           {hasError('contact.uniqueEmail') && (
@@ -482,10 +526,10 @@ const NewCustomer: React.FC = () => {
           <label className="block text-sm font-medium">Customer Unique Phone <span className="text-red-500">*</span></label>
           <input
             type="text"
-            name="uniquePhone" // Changed to match the state structure
-            value={formData.uniquePhone} // Changed to match the state structure
+            name="uniquePhone"
+            value={formData.uniquePhone}
             onChange={handleChange}
-            onBlur={handleBlur} // Added onBlur for validation
+            onBlur={handleBlur}
             className={`w-full px-3 py-2 border ${hasError('contact.uniquePhone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
           />
           {hasError('contact.uniquePhone') && (
@@ -513,146 +557,163 @@ const NewCustomer: React.FC = () => {
             <p className="mt-1 text-xs text-red-500">{getErrorMessage('transporter')}</p>
           )}
         </div>
-
-        <div>
-          <label className="block text-sm font-medium">Contact Name <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            name="contact.firstName"
-            value={formData.contact.firstName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className={`w-full px-3 py-2 border ${hasError('contact.firstName') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-          />
-          {hasError('contact.firstName') && (
-            <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.firstName')}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Phone <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            name="contact.phone"
-            value={formData.contact.phone}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className={`w-full px-3 py-2 border ${hasError('contact.phone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-          />
-          {hasError('contact.phone') && (
-            <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.phone')}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Email <span className="text-red-500">*</span></label>
-          <input
-            type="email"
-            name="contact.emailId"
-            value={formData.contact.emailId}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className={`w-full px-3 py-2 border ${hasError('contact.emailId') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-          />
-          {hasError('contact.emailId') && (
-            <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.emailId')}</p>
-          )}
-        </div>
-
-
       </div>
-      <div className="col-span-2 mb-4">
-          <label className="block text-sm  font-medium">Address <span className="text-red-500">*</span></label>
-          <div 
-            onClick={toggleAddressDetails}
-            className={`w-full px-3 py-2 border ${(hasError('address.addressLine1') || hasError('address.city') || hasError('address.country')) ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1 cursor-pointer bg-gray-50`}
-          >
-            {getFormattedAddress()}
-          </div>
-          {(hasError('address.addressLine1') || hasError('address.city') || hasError('address.country')) && !showAddressDetails && (
-            <p className="mt-1 text-xs text-red-500">Please complete all required address fields</p>
-          )}
-        </div>
 
-        {showAddressDetails && (
-          <div className="col-span-2 grid grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-            <div>
-              <label className="block text-sm font-medium">Address Title</label>
-              <input
-                type="text"
-                name="address.addressTitle"
-                value={formData.address.addressTitle}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Address Line <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                name="address.addressLine1"
-                value={formData.address.addressLine1}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full px-3 py-2 border ${hasError('address.addressLine1') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-              />
-              {hasError('address.addressLine1') && (
-                <p className="mt-1 text-xs text-red-500">{getErrorMessage('address.addressLine1')}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium">City <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                name="address.city"
-                value={formData.address.city}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full px-3 py-2 border ${hasError('address.city') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-              />
-              {hasError('address.city') && (
-                <p className="mt-1 text-xs text-red-500">{getErrorMessage('address.city')}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Country <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                name="address.country"
-                value={formData.address.country}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full px-3 py-2 border ${hasError('address.country') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
-              />
-              {hasError('address.country') && (
-                <p className="mt-1 text-xs text-red-500">{getErrorMessage('address.country')}</p>
-              )}
-            </div>
-            <div className="col-span-2">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="address.isPrimaryAddress"
-                  checked={formData.address.isPrimaryAddress}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    address: {
-                      ...formData.address,
-                      isPrimaryAddress: e.target.checked
-                    }
-                  })}
-                  className="h-4 w-4"
-                />
-                <span className="text-sm font-medium">Primary Address</span>
-              </label>
-            </div>
-          </div>
+      {/* Contact field with toggle like address */}
+      <div className="col-span-2 mb-4">
+        <label className="block text-sm font-medium">Contact <span className="text-red-500">*</span></label>
+        <div
+          onClick={toggleContactDetails}
+          className={`w-full px-3 py-2 border ${(hasError('contact.firstName') || hasError('contact.emailId') || hasError('contact.phone')) ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1 cursor-pointer bg-gray-50`}
+        >
+          {getFormattedContact()}
+        </div>
+        {(hasError('contact.firstName') || hasError('contact.emailId') || hasError('contact.phone')) && !showContactDetails && (
+          <p className="mt-1 text-xs text-red-500">Please complete all required contact fields</p>
         )}
+      </div>
+
+      {showContactDetails && (
+        <div className="col-span-2 grid grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50 mb-4">
+          <div>
+            <label className="block text-sm font-medium">Contact Name <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="contact.firstName"
+              value={formData.contact.firstName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('contact.firstName') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('contact.firstName') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.firstName')}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Email <span className="text-red-500">*</span></label>
+            <input
+              type="email"
+              name="contact.emailId"
+              value={formData.contact.emailId}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('contact.emailId') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('contact.emailId') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.emailId')}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="contact.phone"
+              value={formData.contact.phone}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('contact.phone') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('contact.phone') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('contact.phone')}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Address field */}
+      <div className="col-span-2 mb-4">
+        <label className="block text-sm font-medium">Address <span className="text-red-500">*</span></label>
+        <div
+          onClick={toggleAddressDetails}
+          className={`w-full px-3 py-2 border ${(hasError('address.addressLine1') || hasError('address.city') || hasError('address.country')) ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1 cursor-pointer bg-gray-50`}
+        >
+          {getFormattedAddress()}
+        </div>
+        {(hasError('address.addressLine1') || hasError('address.city') || hasError('address.country')) && !showAddressDetails && (
+          <p className="mt-1 text-xs text-red-500">Please complete all required address fields</p>
+        )}
+      </div>
+
+      {showAddressDetails && (
+        <div className="col-span-2 grid grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <div>
+            <label className="block text-sm font-medium">Address Title</label>
+            <input
+              type="text"
+              name="address.addressTitle"
+              value={formData.address.addressTitle}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Address Line <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="address.addressLine1"
+              value={formData.address.addressLine1}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('address.addressLine1') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('address.addressLine1') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('address.addressLine1')}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">City <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="address.city"
+              value={formData.address.city}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('address.city') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('address.city') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('address.city')}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Country <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="address.country"
+              value={formData.address.country}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border ${hasError('address.country') ? 'border-red-500' : 'border-gray-300'} rounded-md mt-1`}
+            />
+            {hasError('address.country') && (
+              <p className="mt-1 text-xs text-red-500">{getErrorMessage('address.country')}</p>
+            )}
+          </div>
+          <div className="col-span-2">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="address.isPrimaryAddress"
+                checked={formData.address.isPrimaryAddress}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  address: {
+                    ...formData.address,
+                    isPrimaryAddress: e.target.checked
+                  }
+                })}
+                className="h-4 w-4"
+              />
+              <span className="text-sm font-medium">Primary Address</span>
+            </label>
+          </div>
+        </div>
+      )}
 
       <hr className="text-gray-300 mt-4" />
 
       <div className="flex mt-4 justify-end">
         <div className="flex space-x-4">
-          <button 
+          <button
             className="px-6 py-2 bg-gray-100 border-gray-300 rounded-md text-gray-600"
             onClick={() => {
               setFormData(initialFormData);

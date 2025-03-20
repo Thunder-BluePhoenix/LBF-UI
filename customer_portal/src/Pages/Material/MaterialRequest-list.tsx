@@ -5,6 +5,7 @@ import { AiFillCloseCircle } from 'react-icons/ai';
 import { useNavigate } from 'react-router';
 
 interface Request {
+    required_qty_th: string;
     contact: string;
     address: string;
     name: string;
@@ -120,7 +121,7 @@ const MaterialRequestList: React.FC = () => {
                 <div className="flex items-center space-x-4">
                     <div
                         onClick={() => navigate(-1)}
-                        className="p-[10px] border rounded-lg flex items-center justify-center bg-gray-100 text-gray-700 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg"
+                        className="p-[10px] border border-gray-300 rounded-lg flex items-center justify-center bg-gray-100 text-gray-700 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg"
                     >
                         <span className="text-xl"><FiArrowLeft /></span>
                     </div>
@@ -195,9 +196,10 @@ const MaterialRequestList: React.FC = () => {
                                         className="px-6 py-4 text-xs  text-black cursor-pointer hover:underline">
                                         {request.customer || "Not available"}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.service || "Not available"}</td>
+                                    <td className="px-6 py-4 block truncate max-w-[15rem] text-gray-600 text-xs">{request.service || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.material_request_type || "Not available"}</td>
-                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>
+                                   {request.service === "Peneus Hub" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>)}
+                                   {request.service === "Tyre Hotel" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.required_qty_th || "Not available"}</td>)}
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.contact || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs relative group">
                                         <span className="block truncate max-w-[15rem]">

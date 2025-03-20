@@ -27,6 +27,8 @@ interface Item {
 }
 
 interface Message {
+    reference_material_request: string;
+    reference_shipment_id: string;
     name: string | undefined;
     status: string;
     customer: string;
@@ -161,14 +163,14 @@ const SerialAndBatchNo = () => {
                                     <p className="text-sm">Request ID</p>
                                     <p className="text-xs flex flex-row items-center gap-2">
                                         <CiGift />
-                                        3243
+                                        {messageData.reference_material_request || "Not Available"}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="">Shipment ID</p>
                                     <p className="text-xs flex flex-row items-center gap-2">
                                         <CiDeliveryTruck />
-                                        545444
+                                       {messageData.reference_shipment_id || "Not Available"}
                                     </p>
                                 </div>
                             </div>
