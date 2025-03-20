@@ -420,7 +420,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
             <th className="border border-gray-300 p-2">Item Code *</th>
             <th className="border border-gray-300 p-2">Required By *</th>
             <th className="border border-gray-300 p-2">Quantity *</th>
-            <th className="border border-gray-300 p-2">Available Quantity *</th>
+            {purpose === "Redelivery" && ( <th className="border border-gray-300 p-2">Available Quantity *</th>
+            )}
             <th className="border border-gray-300 p-2">Type *</th>
             <th className="border border-gray-300 p-2"></th>
           </tr>
@@ -483,12 +484,13 @@ const TableComponent: React.FC<TableComponentProps> = ({
                   placeholder="Quantity"
                 />
               </td>
-              <td className="border border-gray-300 p-2">
+              {purpose === "Redelivery" && ( <td className="border border-gray-300 p-2">
                 {/* Display actual quantity if available */}
                 {itemsSource.length > 0 && itemsSource[0]?.actual_qty !== undefined
                   ? itemsSource[0].actual_qty
                   : "-"}
               </td>
+              )}
               <td className="border border-gray-300 p-2">
                 <select
                   className="w-full border-gray-300"

@@ -1,82 +1,98 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaBell } from 'react-icons/fa';
+"use client"
 
-import { useFrappeAuth } from 'frappe-react-sdk';
-import axios from 'axios';
+import { useState, useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
+import { FaBell, FaPlus, FaUser, FaUserPlus, FaSignOutAlt, FaTruck } from "react-icons/fa"
+import { useFrappeAuth } from "frappe-react-sdk"
+import axios from "axios"
+import logo from "../assets/Mask group (1).png"
 
 const Header = () => {
-  const { logout } = useFrappeAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [customerName, setCustomerName] = useState('Guest');
-  const [loading, setLoading] = useState(false);
-  const [loginUser, setLoginUser] = useState('');
-  const [partyType, setPartyType] = useState('N/A');
-  const navigate = useNavigate();
+  const { logout } = useFrappeAuth()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [customerName, setCustomerName] = useState("Guest")
+  const [profileImg, setProfileImg] = useState()
+  const [loading, setLoading] = useState(false)
+  const [loginUser, setLoginUser] = useState("")
+  const [partyType, setPartyType] = useState("N/A")
+  const [notificationCount, setNotificationCount] = useState(0)
+  const navigate = useNavigate()
 
-  console.log(loading, loginUser);
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const profileRef = useRef<HTMLDivElement>(null)
+  const profileButtonRef = useRef<HTMLDivElement>(null)
+  const notificationRef = useRef<HTMLDivElement>(null)
+  const notificationButtonRef = useRef<HTMLDivElement>(null)
+  const [notificationOpen, setNotificationOpen] = useState(false)
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
-  const profileButtonRef = useRef<HTMLImageElement>(null);
-
-  const toggleDropdown = () => setDropdownOpen((prev) => !prev);
-  const toggleProfile = () => setProfileOpen((prev) => !prev);
+  const toggleDropdown = () => setDropdownOpen((prev) => !prev)
+  const toggleProfile = () => { setProfileOpen((prevState) => !prevState); };
+  const toggleNotification = () => setNotificationOpen((prev) => !prev)
 
   const logoutHandler = async () => {
     try {
-      await logout();
-      navigate('/customer_portal/login');
+      await logout()
+      navigate("/customer_portal/login")
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", loading, error)
     }
-  };
+  }
 
   const handleRedirect = (path: string) => {
-    navigate(path);
-    setDropdownOpen(false);
-  };
+    navigate(path)
+    setDropdownOpen(false)
+    setProfileOpen(false)
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        setLoading(true)
 
         // Fetch logged-in user email
-        const { data: userResponse } = await axios.get('/api/method/frappe.auth.get_logged_user');
-        const loginUserEmail = userResponse.message;
-        setLoginUser(loginUserEmail);
+        const { data: userResponse } = await axios.get("/api/method/frappe.auth.get_logged_user")
+        const loginUserEmail = userResponse.message
+        setLoginUser(loginUserEmail)
 
         // Fetch customer details
-        const { data: customerResponse } = await axios.get(
-          '/api/resource/Customer',
-          {
-            params: {
-              fields: JSON.stringify(['*']),
-              filters: JSON.stringify([['Portal User', 'user', '=', loginUserEmail]]),
-            },
-          }
-        );
+        const { data: customerResponse } = await axios.get("/api/resource/Customer", {
+          params: {
+            fields: JSON.stringify(["*"]),
+            filters: JSON.stringify([["Portal User", "user", "=", loginUserEmail]]),
+          },
+        })
 
         if (customerResponse.data.length > 0) {
-          const customerData = customerResponse.data[0];
-          setCustomerName(customerData.customer_name);
-          setPartyType(customerData.customer_group);
+          const customerData = customerResponse.data[0]
+          setCustomerName(customerData.customer_name)
+          setProfileImg(customerData.image)
+          setPartyType(customerData.customer_group)
+          // For demo purposes, set a random notification count
+          setNotificationCount(Math.floor(Math.random() * 5))
         }
       } catch (error) {
-        console.error('Error fetching customer data:', error);
+        console.error("Error fetching customer data:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node) &&
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
@@ -87,88 +103,197 @@ const Header = () => {
       }
 
       if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target as Node) &&
-        profileButtonRef.current &&
-        !profileButtonRef.current.contains(event.target as Node)
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node) &&
+        notificationButtonRef.current &&
+        !notificationButtonRef.current.contains(event.target as Node)
       ) {
-        setProfileOpen(false);
+        setNotificationOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+
   // Extract the first letter of the customer name
-  const firstLetter = customerName.charAt(0).toUpperCase();
+  const firstLetter = customerName.charAt(0).toUpperCase()
 
   return (
-    <div className="bg-gray-50 fixed border z-1 border-gray-300 ml-20 h-16 w-[95%] flex items-center justify-end p-4">
-      <div className="flex items-center gap-6 pr-6">
-        <div className="relative p-2 bg-orange-500 rounded-lg">
-          <button ref={buttonRef} onClick={toggleDropdown} className="bg-orange-500 text-white rounded-full px-3 pb-1">
-            +
+    <header className="fixed top-0 right-0 left-20 h-16 bg-white border-b border-gray-200  z-40 flex items-center justify-between px-6">
+      {/* Left side - Page title */}
+      <div className="flex items-center">
+        <img src={logo || "/placeholder.svg"} alt="Company Logo" className="h-8 w-10" />
+      </div>
+
+      {/* Right side - Actions and profile */}
+      <div className="flex items-center gap-4">
+        {/* Add button with dropdown */}
+        <div className="relative">
+          <button
+            ref={buttonRef}
+            onClick={toggleDropdown}
+            className="flex items-center cursor-pointer justify-center w-9 h-9 bg-orange-500 hover:bg-orange-600 text-white rounded-full transition-colors"
+            aria-label="Add new item"
+          >
+            <FaPlus />
           </button>
+
           {dropdownOpen && (
-            <div ref={dropdownRef} className="absolute flex flex-col top-12 left-0 w-64 bg-white border border-gray-300 rounded shadow-lg mt-2 z-10">
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/material-request-form')}>
-                Add Redelivery Request
-              </span>
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleRedirect('/customer_portal/newcustomer')}>
-                Add New Customer
-              </span>
-              <span className="py-3 px-4 cursor-pointer hover:bg-gray-100">
-                Add New Item
-              </span>
+            <div
+              ref={dropdownRef}
+              className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 overflow-hidden"
+            >
+              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                <h3 className="font-medium text-sm text-gray-700">Create New</h3>
+              </div>
+
+              <div className="py-1">
+                <button
+                  onClick={() => handleRedirect("/customer_portal/material-request-form")}
+                  className="flex items-center w-full px-4 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <FaTruck />
+                  Add Redelivery Request
+                </button>
+
+                <button
+                  onClick={() => handleRedirect("/customer_portal/newcustomer")}
+                  className="flex items-center w-full px-4 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <FaUserPlus />
+                  Add New Customer
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="p-2 border border-gray-300 rounded-lg">
-          <span className="w-5 h-5 text-gray-500">
+        {/* Notification bell */}
+        <div className="relative">
+          <div
+            ref={notificationButtonRef}
+            onClick={toggleNotification}
+            className="flex items-center justify-center w-9 h-9 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full cursor-pointer transition-colors"
+          >
             <FaBell />
-          </span>
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full">
+                {notificationCount}
+              </span>
+            )}
+          </div>
+
+          {notificationOpen && (
+            <div
+              ref={notificationRef}
+              className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50"
+            >
+              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                <h3 className="font-medium text-sm text-gray-700">Notifications</h3>
+                <button className="text-xs text-orange-500 hover:text-orange-600">Mark all as read</button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {notificationCount > 0 ? (
+                  Array(notificationCount)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div key={i} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
+                        <div className="flex gap-2 items-start">
+                          <div className="flex-shrink-0 bg-orange-100 rounded-full p-2 mr-3">
+                            <FaTruck />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">New delivery request</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Your delivery request #{1000 + i} has been processed
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {i + 1} hour{i !== 0 ? "s" : ""} ago
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <div className="px-4 py-6 text-center text-gray-500">
+                    <p>No new notifications</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center">
+                <button
+                  onClick={() => navigate("/customer_portal/notificationpage")}
+                  className="text-sm text-orange-500 hover:text-orange-600"
+                >
+                  View all notifications
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Profile dropdown */}
         <div className="relative">
-      
-      
+          <div className="flex items-center gap-3 " >
             <div
-              ref={profileButtonRef}
-              className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold cursor-pointer"
               onClick={toggleProfile}
+              ref={profileButtonRef}
+              className="w-9 h-9 rounded-full bg-orange-100 cursor-pointer flex items-center justify-center text-orange-600 font-bold"
             >
-              {firstLetter}
+              {profileImg ? (
+                <img src={profileImg} alt="Profile" className="w-full h-full object-cover rounded-full" />
+              ) : (
+                firstLetter
+              )}
             </div>
-         
+
+
+            <div className="hidden md:flex flex-col">
+              <span className="text-sm font-medium text-gray-800 line-clamp-1">{customerName}</span>
+              <span className="text-xs text-gray-500 line-clamp-1">{partyType}</span>
+            </div>
+          </div>
 
           {profileOpen && (
-            <div ref={profileRef} className="absolute flex flex-col top-12 left-0 w-40 bg-white border border-gray-300 rounded shadow-lg mt-2 z-10">
-              <div className="px-4 py-3 border-b border-gray-300">
-                <p className="text-sm font-medium">My Account</p>
+            <div
+              ref={profileRef}
+              className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50"
+            >
+              <div className="px-4 py-3 border-b border-gray-200">
+                <p className="text-sm font-medium text-gray-800">{customerName}</p>
+                <p className="text-xs text-gray-500 mt-1">{loginUser}</p>
               </div>
+
               <div className="py-1">
-                <button className="px-4 py-2 text-sm hover:bg-slate-700 w-full text-left">
+                <button
+                  onClick={() => handleRedirect("/customer_portal/Login-customerdetails")}
+                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <FaUser />
                   Profile
                 </button>
               </div>
-              <div className="py-1 border-t border-gray-300">
-                <button onClick={logoutHandler} className="px-4 py-2 text-sm hover:bg-slate-700 w-full text-left">
+
+              <div className="py-1 border-t border-gray-200">
+                <button
+                  onClick={logoutHandler}
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <FaSignOutAlt />
                   Log out
                 </button>
               </div>
             </div>
           )}
         </div>
-
-        <div className="flex flex-col text-sm">
-          <span className="font-semibold">{customerName}</span>
-          <span>{partyType}</span>
-        </div>
       </div>
-    </div>
-  );
-};
+    </header>
+  )
+}
 
-export default Header;
+export default Header
+

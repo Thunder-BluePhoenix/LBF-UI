@@ -7,6 +7,9 @@ import { useNavigate } from 'react-router-dom';
 
 
 interface Request {
+  total_tyres_without_rim: string;
+  total_tyres_with_rim: string;
+  total_qty_th: string;
   name: string;
   customer: string;
   customer_address: string | null;
@@ -172,25 +175,28 @@ console.log(data, "bill of landing ")
 
           <tbody>
             {paginatedRequests.map((request, index) => (
+              
               <tr
                 key={request.name}
                 onClick={() => handleBillOfLanding(request.name)}
                 className="border-b border-b-gray-300  hover:bg-gray-100 cursor-pointer"
               >
-                <td className="p-4 text-xs opacity-[70%]">
+                <td className="px-6 py-3 text-xs opacity-[70%]">
                   {index + 1 + (currentPage - 1) * itemsPerPage}
                 </td>
                 <td 
                  
-                className="p-4 text-xs opacity-[100%]">{request.name}</td>
-                <td className="p-4 text-xs opacity-[70%] text-black hover:underline cursor-pointer">
+                className="px-6 py-3 text-xs opacity-[100%]">{request.name}</td>
+                <td className="px-6 py-3 text-xs opacity-[70%] text-black hover:underline cursor-pointer">
                   {request.customer}
                 </td>
-                <td className="p-4 text-xs opacity-[70%]">{request.service}</td>
-                <td className="p-4 text-xs opacity-[70%]">{request.posting_date}</td>
-                <td className="p-4 text-xs opacity-[70%]">{request.total_qty}</td>
-                <td className="p-4 text-xs opacity-[70%]">{request.total_qty_accepted}</td>
-                <td className="p-4 text-xs">
+                <td className="px-6 py-3 text-xs opacity-[70%]">{request.service}</td>
+                <td className="px-6 py-3 text-xs opacity-[70%]">{request.posting_date}</td>
+                {request.service === "Peneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty}</td>)}
+                {request.service === "Tyre Hotel" && ( <td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_th}</td>)}
+                {request.service === "Peneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_accepted}</td>)}
+                {request.service === "Tyre Hotel" && (<td className="px-6 py-3 text-xs opacity-[70%]">{Number(request.total_tyres_without_rim) + Number(request.total_tyres_with_rim)}</td>)}
+                <td className="px-6 py-3 text-xs">
                   <span
                     className={`px-3 py-1 rounded-lg text-xs ${getStatusClass(
                       request.status // Assuming status is taken from the first item

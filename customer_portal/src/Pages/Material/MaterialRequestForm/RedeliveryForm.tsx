@@ -148,6 +148,7 @@ const RedeliveryForm = () => {
   const resetFormFields = () => {
     setSelectedCustomer("")
     setSelectedReason("")
+    setLicensePlate("")
     setTyreItems("")
     setLicensePlate("")
     setItemsRedelivery("")
@@ -189,8 +190,8 @@ const RedeliveryForm = () => {
   }, [id])
   const navigate = useNavigate()
   const groupBy = customerLoginUser?.customer_group ?? "Default Group";
-  const  LoginCustomerName = customerLoginUser?.customer_name
-  console.log(loginUser,itemsRedelivery, "qqqqqqqqqqqqR")
+  const LoginCustomerName = customerLoginUser?.customer_name
+  console.log(loginUser, itemsRedelivery, "qqqqqqqqqqqqR")
   useEffect(() => {
     if (transporters && transporters.length > 0) {
       const defaultTransporter = transporters.find(item => item.is_default === 1);
@@ -225,8 +226,7 @@ const RedeliveryForm = () => {
     return errors.length === 0
   }
   const handleDataChange = (rows: RowData[]) => {
-    // This function will receive the updated rows from the child
-    setItems(rows);
+    setItems(rows as unknown as ItemList[]);  // Use type assertion to bypass the type error
     console.log("Updated Rows from Child:", rows);
   };
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -276,7 +276,7 @@ const RedeliveryForm = () => {
     setLicensePlate(value); // Save to localStorage
   };
   useEffect(() => {
-   
+
   }, []);
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
@@ -397,23 +397,23 @@ const RedeliveryForm = () => {
             const processedCustomers = data.message.map((customer: { custom_details_for_parent_customer: any[]; customer_name: any }) => {
               // Find if there's an entry in custom_details_for_parent_customer where parent_customer matches the login user's customer name
               const matchingChildDetail = customer.custom_details_for_parent_customer.find(
-                  detail => detail.parent_customer === customerData.name || detail.parent_customer === customerData.customer_name
+                detail => detail.parent_customer === customerData.name || detail.parent_customer === customerData.customer_name
               );
               if (matchingChildDetail) {
                 return {
-                    ...customer,
-                    displayName: matchingChildDetail.child_customer_name
+                  ...customer,
+                  displayName: matchingChildDetail.child_customer_name
                 };
-            }
-            // Otherwise use the regular customer_name
-            return {
+              }
+              // Otherwise use the regular customer_name
+              return {
                 ...customer,
                 displayName: customer.customer_name
-            };
+              };
             })
-            setCustomers(processedCustomers )
-            console.log(processedCustomers,"mmmmmmmmm")
-          
+            setCustomers(processedCustomers)
+            console.log(processedCustomers, "mmmmmmmmm")
+
             if (processedCustomers.length > 0) {
               const firstCustomer = processedCustomers[0].name
               setSelectedCustomer(firstCustomer)
@@ -430,7 +430,7 @@ const RedeliveryForm = () => {
             `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`
           )
           setItemList(itemsResponse.data.message || [])
-  
+
           // Step 6: Check if it's in edit mode, fetch existing data if `id` is available
           if (id) {
             setIsEditMode(true)
@@ -440,14 +440,14 @@ const RedeliveryForm = () => {
           console.warn("No customer data found for user:", loginUserEmail)
           setCustomers([])
         }
-  
+
         setLoading(false)
       } catch (err: any) {
         setError(err.message || "Error fetching data")
         setLoading(false)
       }
     }
-  
+
     fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
@@ -472,11 +472,11 @@ const RedeliveryForm = () => {
         }
       }
     };
-  
+
     fetchRedeliveryItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purpose]);
-  
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [purpose, LicensePlate]);
+
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
     setDateOfPosting(today)
@@ -530,13 +530,13 @@ const RedeliveryForm = () => {
       setDateOfDelivery(data.schedule_date)
       setDateOfRequredBy(data.items[0]?.schedule_date || "")
       setService(data.service)
-     setSelectedReason(data.reason)
+      setSelectedReason(data.reason)
       setSelectedCondition(data.condition)
-     setSelectSeason(data.season)
-     setUpdateTyreItems(data.th_items)
-     setLicensePlate(data.license_plate)
-     setMezzo(data.mezzo)
-     setDocStatus(data.docstatus)
+      setSelectSeason(data.season)
+      setUpdateTyreItems(data.th_items)
+      setLicensePlate(data.license_plate)
+      setMezzo(data.mezzo)
+      setDocStatus(data.docstatus)
       await fetchAddress(data.shipping_to)
       setSelectedAddress(data.shipping_address_name)
 
@@ -602,7 +602,7 @@ const RedeliveryForm = () => {
       Brand: "",
       Carcass: "",
       diameter: "",
-      LoadIndex:"",
+      LoadIndex: "",
       Marks: "",
       Model: "",
       SpeedRating: "",
@@ -610,7 +610,7 @@ const RedeliveryForm = () => {
       weight: "",
       type: "",
 
-     available: undefined,
+      available: undefined,
     }
     setItems([...items, newItem])
   }
@@ -670,7 +670,7 @@ const RedeliveryForm = () => {
 
     fetchData();
   }, []);
- const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedName = event.target.value
     setSelectedCustomer(selectedName)
     setCustomerName(selectedName)
@@ -786,18 +786,18 @@ const RedeliveryForm = () => {
       console.error('Error submitting form:', error);
     }
   };
-  
+
 
   const isDocStatusLocked = () => {
     return docStatus === 1;
   };
   const getCustomerDisplayName = (customer: any): string => {
     if (customer.displayName) {
-        return customer.displayName;
+      return customer.displayName;
     }
     // Fallback to customer_name if displayName is not set
     return customer.customer_name;
-}
+  }
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
   return (
@@ -822,7 +822,7 @@ const RedeliveryForm = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-        <div>
+          <div>
             <label className="block text-sm font-medium">Customer Name<span className="text-red-500">*</span></label>
             <select
               value={selectedCustomer}
@@ -836,7 +836,7 @@ const RedeliveryForm = () => {
                   {getCustomerDisplayName(customer)}
                 </option>
               ))}
-            <option>{LoginCustomerName}</option>
+              <option>{LoginCustomerName}</option>
             </select>
           </div>
           <div>
@@ -862,7 +862,7 @@ const RedeliveryForm = () => {
           </div>
         </div>
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-        <div>
+          <div>
             <label className="block text-sm font-medium">Select Contact<span className="text-red-500">*</span></label>
             <select
               value={selectedContact}
@@ -905,7 +905,7 @@ const RedeliveryForm = () => {
         </div>
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
 
-        <div>
+          <div>
             <label className="block text-sm font-medium">Select Address<span className="text-red-500">*</span></label>
             <select
               value={selectedAddress}
@@ -936,7 +936,7 @@ const RedeliveryForm = () => {
               </div>
             </>
           )}
-        <div>
+          <div>
             <label className="block text-sm font-medium">Select Transporter<span className="text-red-500">*</span></label>
             <select
               name="name"
@@ -999,9 +999,9 @@ const RedeliveryForm = () => {
               </div>
             </>
           )}
-          </div>
+        </div>
 
-          <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
 
           <div>
             <label className="block text-sm font-medium">Service<span className="text-red-500">*</span></label>
@@ -1070,7 +1070,7 @@ const RedeliveryForm = () => {
                   disabled={isDocStatusLocked()}
                   value={LicensePlate}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter detail"
+                  placeholder="Enter license plate"
                 />
               </div>
 
@@ -1088,10 +1088,10 @@ const RedeliveryForm = () => {
 
             </>
           )}
-          </div>
+        </div>
 
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
-         <div>
+          <div>
             <label className="block text-sm font-medium">Purpose<span className="text-red-500">*</span></label>
             <select
               name="purpose"
@@ -1130,95 +1130,96 @@ const RedeliveryForm = () => {
           </div>
         </div>
         {service === "Peneus Hub" && (<div className=" mb-6">
-          <table className="w-full text-sm border rounded-md border-gray-300">
+          <h1 className="text-lg font-bold mb-4">Item TH</h1>
+          <table className="w-full  border rounded-md border-gray-300">
             <thead>
-              <tr className="border-b bg-gray-300 border-gray-300">
-                <th className="p-2 text-left">No.</th>
-                <th className="p-2 text-left">Item Code *</th>
-                <th className="p-2 text-left">Item Name</th>
-                <th className="p-2 text-left">Required By *</th>
-                <th className="p-2 text-left">Qty</th>
-                <th className="p-2 text-left">Available Qty</th>
-                <th className="p-2 text-left">Actions</th>
+              <tr className="border-b bg-gray-50 border-gray-300">
+                <th className="border border-gray-300 p-2">No.</th>
+                <th className="border border-gray-300 p-2">Item Code *</th>
+                <th className="border border-gray-300 p-2">Item Name</th>
+                <th className="border border-gray-300 p-2">Required By *</th>
+                <th className="border border-gray-300 p-2">Qty</th>
+                <th className="border border-gray-300 p-2">Available Qty</th>
+                <th className="border border-gray-300 p-2">Actions</th>
               </tr>
             </thead>
             <tbody>
-  {items.map((item, index) => (
-    <tr key={item.id} className="border-b rounded-md border-gray-300">
-      <td className=" p-2 text-left">{item.id}</td>
-      <td className=" ">
-        <div className="relative">
-          <div
-            onClick={() => !isDocStatusLocked() && setOpen(open === item.id ? null : item.id)}
-            className={`w-full text-left px-2 py-2 border-x border-gray-300 ${isDocStatusLocked() ? 'cursor-not-allowed opacity-50' : ''}`}
-          >
-            {item.item_code || "Select item..."}
-          </div>
-          {open === item.id && !isDocStatusLocked() && (
-            <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
-              <input
-                type="text"
-                placeholder="Search items..."
-                className="w-full p-2 border border-gray-300"
-              />
-              <ul className="max-h-32 overflow-y-auto z-50">
-                {itemList.map((code) => (
-                  <li
-                    key={code.value}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleItemSelect(item.id, code)}
-                  >
-                    {code.item_code}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </td>
-      <td className=" ">
-        <input
-          type="text"
-          value={item.item_name}
-          readOnly
-          className="w-full p-2 border-x border-gray-300 "
-        />
-      </td>
-      <td className=" ">
-        <input
-          type="date"
-          value={DateOfRequredBy}
-          onChange={handleDateOfRequredBy}
-          className="w-full p-2 border-x border-gray-300"
-          disabled={isDocStatusLocked()}
-        />
-      </td>
-      <td className=" ">
-        <input
-          type="number"
-          value={item.quantity}
-          onChange={(e) => {
-            const updatedItems = items.map((i) =>
-              i.id === item.id ? { ...i, quantity: Number.parseInt(e.target.value, 10) } : i,
-            );
-            setItems(updatedItems);
-          }}
-          className="w-full p-2 border-x border-gray-300"
-          disabled={isDocStatusLocked()}
-        />
-      </td>
-      <td className="border-r border-gray-300">{item.available}</td>
-      <td className="">
-        <span
-          onClick={() => !isDocStatusLocked() && removeRow(index)}
-          className={`py-1 flex items-center justify-center text-black text-xl rounded-md ${isDocStatusLocked() ? 'cursor-not-allowed opacity-50' : ''}`}
-        >
-          <MdDelete />
-        </span>
-      </td>
-    </tr>
-  ))}
-</tbody>
+              {items.map((item, index) => (
+                <tr key={item.id} className="border-b rounded-md border-gray-300">
+                  <td className=" p-2 text-left">{item.id}</td>
+                  <td className=" ">
+                    <div className="relative">
+                      <div
+                        onClick={() => !isDocStatusLocked() && setOpen(open === item.id ? null : item.id)}
+                        className={`w-full text-left px-2 py-2 border-x border-gray-300 ${isDocStatusLocked() ? 'cursor-not-allowed opacity-50' : ''}`}
+                      >
+                        {item.item_code || "Select item..."}
+                      </div>
+                      {open === item.id && !isDocStatusLocked() && (
+                        <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
+                          <input
+                            type="text"
+                            placeholder="Search items..."
+                            className="w-full p-2 border border-gray-300"
+                          />
+                          <ul className="max-h-32 overflow-y-auto z-50">
+                            {itemList.map((code) => (
+                              <li
+                                key={code.value}
+                                className="p-2 hover:bg-gray-100 cursor-pointer"
+                                onClick={() => handleItemSelect(item.id, code)}
+                              >
+                                {code.item_code}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className=" ">
+                    <input
+                      type="text"
+                      value={item.item_name}
+                      readOnly
+                      className="w-full p-2 border-x border-gray-300 "
+                    />
+                  </td>
+                  <td className=" ">
+                    <input
+                      type="date"
+                      value={DateOfRequredBy}
+                      onChange={handleDateOfRequredBy}
+                      className="w-full p-2 border-x border-gray-300"
+                      disabled={isDocStatusLocked()}
+                    />
+                  </td>
+                  <td className=" ">
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const updatedItems = items.map((i) =>
+                          i.id === item.id ? { ...i, quantity: Number.parseInt(e.target.value, 10) } : i,
+                        );
+                        setItems(updatedItems);
+                      }}
+                      className="w-full p-2 border-x border-gray-300"
+                      disabled={isDocStatusLocked()}
+                    />
+                  </td>
+                  <td className="border-r border-gray-300">{item.available}</td>
+                  <td className="">
+                    <span
+                      onClick={() => !isDocStatusLocked() && removeRow(index)}
+                      className={`py-1 flex items-center justify-center text-black text-xl rounded-md ${isDocStatusLocked() ? 'cursor-not-allowed opacity-50' : ''}`}
+                    >
+                      <MdDelete />
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
 
           </table>
         </div>
@@ -1231,7 +1232,7 @@ const RedeliveryForm = () => {
             itemsRedelivery={itemsRedelivery}
             purpose={purpose}
             abledHandle={isDocStatusLocked}
-            />
+          />
         </div>
         )}
 

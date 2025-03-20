@@ -5,6 +5,7 @@ import { AiFillCloseCircle } from 'react-icons/ai';
 import { useNavigate } from 'react-router';
 
 interface Request {
+    required_qty_th: string;
     contact: string;
     address: string;
     name: string;
@@ -197,7 +198,8 @@ const MaterialRequestList: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 block truncate max-w-[15rem] text-gray-600 text-xs">{request.service || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.material_request_type || "Not available"}</td>
-                                    <td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>
+                                   {request.service === "Peneus Hub" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>)}
+                                   {request.service === "Tyre Hotel" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.required_qty_th || "Not available"}</td>)}
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.contact || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs relative group">
                                         <span className="block truncate max-w-[15rem]">

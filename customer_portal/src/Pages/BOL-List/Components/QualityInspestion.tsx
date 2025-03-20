@@ -11,6 +11,7 @@ interface Reading {
 }
 
 interface QualityInspectionData {
+    accepted_warehouse: string;
     status: string;
     item_code: string;
     item_name: string;
@@ -26,6 +27,9 @@ interface Item {
 }
 
 interface Message {
+    reference_material_request: string;
+    reference_shipment_id: string;
+    accepted_warehouse: string;
     name: string;
     customer: string;
     posting_date: string;
@@ -46,6 +50,7 @@ const QualityInspectionData = () => {
     console.log(messageData, "ttf");
 
     // Safely accessing nested properties
+    const accepted_warehouse = messageData.accepted_warehouse || "N/A";
     const firstItem = messageData?.items?.[0]?.quality_inspection_data || null;
     const status = firstItem?.status || "N/A";
     const itemCode = firstItem?.item_code || "N/A";
@@ -55,8 +60,6 @@ const QualityInspectionData = () => {
     const itemModified = firstItem?.modified || "N/A";
     const itemInspection = firstItem?.inspection_type || "N/A";
     const readings = firstItem?.readings || [];
-
-    console.log(readings, "reading data");
 
     const getStatusClass = (status: string) => {
         switch (status) {
@@ -72,8 +75,6 @@ const QualityInspectionData = () => {
                 return 'text-gray-500 bg-gray-100 border border-gray-500';
         }
     };
-
-    console.log("Message Data:", messageData);
 
     return (
         <div className="p-6 min-h-screen">
@@ -156,14 +157,15 @@ const QualityInspectionData = () => {
                                         <p className="text-sm">Request ID</p>
                                         <p className="text-xs flex flex-row items-center gap-2">
                                             <CiGift />
-                                            3243
+                                            {messageData.reference_material_request || "Not Available"}
+                                            
                                         </p>
                                     </div>
                                     <div>
                                         <p className="">Shipment ID</p>
                                         <p className="text-xs flex flex-row items-center gap-2">
                                             <CiDeliveryTruck />
-                                            545444
+                                            {messageData.reference_shipment_id || "Not Available"}
                                         </p>
                                     </div>
                                 </div>
@@ -191,7 +193,7 @@ const QualityInspectionData = () => {
                                     <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                     <div className="flex flex-col">
                                         <span className="text-sm font-medium ">Warehouse</span>
-                                        <span className="text-sm  text-gray-500">N/A</span>
+                                        <span className="text-sm  text-gray-500">{accepted_warehouse}</span>
                                     </div>
                                 </div>
                             </div>
