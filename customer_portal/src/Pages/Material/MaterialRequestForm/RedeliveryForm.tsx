@@ -8,6 +8,8 @@ import { useNavigate, useParams } from "react-router-dom"
 import { MdDelete } from "react-icons/md"
 import ItemTable from "./ItemsTable"
 interface ItemList {
+  OthersItemName: any
+  OthersItemCode: any
   type: any
   weight: any
   tireWidth: any
@@ -596,8 +598,8 @@ const RedeliveryForm = () => {
       name: "",
       item_name: "",
       item_code: "",
-      OtherItemCode: "",
-      otherItemName: "",
+      OthersItemCode: "",
+      OthersItemName: "",
       AspectRatio: "",
       Brand: "",
       Carcass: "",
@@ -611,6 +613,8 @@ const RedeliveryForm = () => {
       type: "",
 
       available: undefined,
+      otherItemName: "",
+      OtherItemCode: ""
     }
     setItems([...items, newItem])
   }
@@ -721,8 +725,8 @@ const RedeliveryForm = () => {
         uom: "Nos",
         conversion_factor: 1.0,
         description: "",
-        other_item_code: item.OtherItemCode,
-        other_item_name: item.otherItemName,
+        other_item_code: item.OthersItemCode,
+        other_item_name: item.OthersItemName,
         aspect_ratio_others: item.AspectRatio,
         brandothers: item.Brand,
         carcass_others: item.Carcass,
@@ -1102,7 +1106,7 @@ const RedeliveryForm = () => {
             >
               <option></option>
               <option>Redelivery</option>
-              <option>Pick Up</option>
+              {service === "Tyre Hotel" && (<option>Pick Up</option>)}
             </select>
           </div>
           <div>
