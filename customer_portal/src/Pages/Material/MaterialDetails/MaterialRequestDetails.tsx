@@ -25,6 +25,7 @@ interface MaterialRequestDetails {
   required_qty_th: number;
   address_of_customer: string;
   items: MaterialRequestItem[];
+  th_items:MaterialRequestItem[]; 
 }
 
 const MaterialRequestDetails = () => {
@@ -33,6 +34,10 @@ const MaterialRequestDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { id } = useParams();
+
+  const finalItems = requestDetails?.items?.length ? requestDetails.items : requestDetails?.th_items;
+
+console.log(finalItems,"final items with phht")
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -167,7 +172,7 @@ const MaterialRequestDetails = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {requestDetails?.items?.map((item, index) => (
+                      {finalItems?.map((item, index) => (
                         <tr key={index} className="hover:bg-gray-100 transition-colors duration-200">
                           <td className="py-4 px-6 text-sm text-gray-900 whitespace-nowrap">{index + 1}</td>
                           <td className="py-4 px-6 text-sm text-gray-900 whitespace-nowrap">{item?.item_code || "N/A"}</td>
