@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 import { BiPlus, BiSearch } from 'react-icons/bi';
-import { AiFillCloseCircle } from 'react-icons/ai';
+import { AiFillCloseCircle, } from 'react-icons/ai';
+import { CiDeliveryTruck } from 'react-icons/ci';
 import { useNavigate } from 'react-router';
 
 interface Request {
@@ -17,7 +18,7 @@ interface Request {
     schedule_date: string | null;
     material_request_type: string;
     docstatus: number;
-    id: string; // Added unique identifier for each request
+    id: string;
 }
 
 const MaterialRequestList: React.FC = () => {
@@ -26,9 +27,36 @@ const MaterialRequestList: React.FC = () => {
     const [requestList, setRequestList] = useState<Request[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const navigate = useNavigate();
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const itemsPerPage = 10;
-    console.log(requestList, "materialrequest")
+
+    const toggleDropdown = () => setDropdownOpen((prev) => !prev);
+
+
+    const handleRedirect = (path: string) => {
+        navigate(path);
+        setDropdownOpen(false);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node) &&
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target as Node)
+            ) {
+                setDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     useEffect(() => {
         const fetchRequests = async () => {
             try {
@@ -92,12 +120,8 @@ const MaterialRequestList: React.FC = () => {
         setSearchQuery('');
     };
 
-    const handleRedirectToRedeliveryRequest = () => {
-        navigate('/customer_portal/material-request-form');
-    };
-
     const handleRedirectToMaterialDetails = (id: string) => {
-        navigate(`/customer_portal/material-request-details/${id}`);  // Add the id to the URL
+        navigate(`/customer_portal/material-request-details/${id}`);
     };
 
     const handlePageChange = (newPage: number) => {
@@ -115,7 +139,7 @@ const MaterialRequestList: React.FC = () => {
     if (error) return <p>{error}</p>;
 
     return (
-        <div className=" w-full shadow">
+        <div className="w-full shadow">
             {/* Header and Search */}
             <div className="flex p-4 items-center justify-between mb-2">
                 <div className="flex items-center space-x-4">
@@ -155,16 +179,66 @@ const MaterialRequestList: React.FC = () => {
                 </div>
 
                 <div className="flex justify-end">
-                    <button
-                        onClick={handleRedirectToRedeliveryRequest}
-                        className="flex items-center space-x-2 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600"
-                    >
-                        <span className="text-xl"><BiPlus /></span>
-                        <span>Add Request</span>
-                    </button>
+                    <div className="relative">
+                        <button
+                            ref={buttonRef}
+                            onClick={toggleDropdown}
+                            className="flex items-center space-x-2 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600">
+                            <span className="text-xl"><BiPlus /></span>
+                            <span>Add Request</span>
+                        </button>
+
+                        {dropdownOpen && (
+                            <div
+                                ref={dropdownRef}
+                                className="absolute right-0 mt-2 w-85 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 overflow-hidden"
+                            >
+                                <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                                    <h3 className="font-medium text-sm text-gray-700">Create New</h3>
+                                </div>
+
+                                <div className="py-1">
+
+
+
+                                    <div className="transition-all duration-300 ease-in-out">
+                                        <button
+                                            onClick={() =>
+                                                handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Peneus Hub")
+                                            }
+                                            className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <CiDeliveryTruck />
+                                            Request For Redelivery - Peneus Hub
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleRedirect("/customer_portal/material-request-form?purpose=Pick Up&service=Tyre Hotel")
+                                            }
+                                            className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <CiDeliveryTruck />
+                                            Request For Pickup - Tyre Hotel
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Tyre Hotel")
+                                            }
+                                            className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <CiDeliveryTruck />
+                                            Request For Redelivery - Tyre Hotel
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
+            {/* Rest of the existing code remains the same */}
             {/* Table */}
             {paginatedRequests.length > 0 ? (
                 <div className="w-full">
@@ -179,16 +253,14 @@ const MaterialRequestList: React.FC = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Contact</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Address</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-
                             </tr>
                         </thead>
 
                         <tbody>
                             {paginatedRequests.map((request) => (
                                 <tr
-                                    key={request.name}  // Unique key
+                                    key={request.name}
                                     className="border-b border-gray-300 hover:bg-gray-100 "
-                                // Redirect to material details page
                                 >
                                     <td className="px-6 py-2 text-xs text-gray-800 font-bold">{request.customer || "Not available"}</td>
                                     <td
@@ -198,8 +270,8 @@ const MaterialRequestList: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 block truncate max-w-[15rem] text-gray-600 text-xs">{request.service || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.material_request_type || "Not available"}</td>
-                                   {request.service === "Peneus Hub" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>)}
-                                   {request.service === "Tyre Hotel" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.required_qty_th || "Not available"}</td>)}
+                                    {request.service === "Peneus Hub" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>)}
+                                    {request.service === "Tyre Hotel" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.required_qty_th || "Not available"}</td>)}
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.contact || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs relative group">
                                         <span className="block truncate max-w-[15rem]">
@@ -219,7 +291,6 @@ const MaterialRequestList: React.FC = () => {
                                             {getStatusFromNumber(request.docstatus)}
                                         </span>
                                     </td>
-
                                 </tr>
                             ))}
                         </tbody>

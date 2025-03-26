@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaBell, FaPlus, FaUser, FaUserPlus, FaSignOutAlt, FaTruck } from "react-icons/fa"
+import { FaBell, FaPlus, FaUser, FaSignOutAlt, FaTruck, FaChevronDown, FaChevronUp } from "react-icons/fa"
 import { useFrappeAuth } from "frappe-react-sdk"
 import axios from "axios"
 import logo from "../assets/Mask group (1).png"
+import { MdAddShoppingCart } from "react-icons/md"
+import { AiOutlineUserAdd } from "react-icons/ai"
+import { CiDeliveryTruck } from "react-icons/ci"
 
 const Header = () => {
   const { logout } = useFrappeAuth()
@@ -16,6 +19,7 @@ const Header = () => {
   const [loading, setLoading] = useState(false)
   const [loginUser, setLoginUser] = useState("")
   const [partyType, setPartyType] = useState("N/A")
+  const [isExpanded, setIsExpanded] = useState(false)
   const [notificationCount, setNotificationCount] = useState(0)
   const navigate = useNavigate()
 
@@ -28,7 +32,9 @@ const Header = () => {
   const [notificationOpen, setNotificationOpen] = useState(false)
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev)
-  const toggleProfile = () => { setProfileOpen((prevState) => !prevState); };
+  const toggleProfile = () => {
+    setProfileOpen((prevState) => !prevState)
+  }
   const toggleNotification = () => setNotificationOpen((prev) => !prev)
 
   const logoutHandler = async () => {
@@ -90,7 +96,7 @@ const Header = () => {
         profileButtonRef.current &&
         !profileButtonRef.current.contains(event.target as Node)
       ) {
-        setProfileOpen(false);
+        setProfileOpen(false)
       }
 
       if (
@@ -99,7 +105,7 @@ const Header = () => {
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
       ) {
-        setDropdownOpen(false);
+        setDropdownOpen(false)
       }
 
       if (
@@ -108,15 +114,17 @@ const Header = () => {
         notificationButtonRef.current &&
         !notificationButtonRef.current.contains(event.target as Node)
       ) {
-        setNotificationOpen(false);
+        setNotificationOpen(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
-
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded)
+  }
 
   // Extract the first letter of the customer name
   const firstLetter = customerName.charAt(0).toUpperCase()
@@ -144,7 +152,7 @@ const Header = () => {
           {dropdownOpen && (
             <div
               ref={dropdownRef}
-              className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 overflow-hidden"
+              className="absolute right-0 mt-2 w-85 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 overflow-hidden"
             >
               <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
                 <h3 className="font-medium text-sm text-gray-700">Create New</h3>
@@ -152,18 +160,54 @@ const Header = () => {
 
               <div className="py-1">
                 <button
-                  onClick={() => handleRedirect("/customer_portal/material-request-form")}
+                  onClick={toggleExpand}
                   className="flex items-center w-full px-4 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  <FaTruck />
-                  Add Redelivery Request
+                  <div className="flex items-center gap-2">
+                    <MdAddShoppingCart />
+                    Add Request
+                  </div>
+                  {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
                 </button>
+
+                {isExpanded && (
+                  <div className="transition-all duration-300 ease-in-out">
+                    <button
+                      onClick={() =>
+                        handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Peneus Hub")
+                      }
+                      className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <CiDeliveryTruck />
+                      Request For Redelivery - Peneus Hub
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleRedirect("/customer_portal/material-request-form?purpose=Pick Up&service=Tyre Hotel")
+                      }
+                      className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <CiDeliveryTruck />
+                      Request For Pickup - Tyre Hotel
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Tyre Hotel")
+                      }
+                      className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <CiDeliveryTruck />
+                      Request For Redelivery - Tyre Hotel
+                    </button>
+
+                  </div>
+                )}
 
                 <button
                   onClick={() => handleRedirect("/customer_portal/newcustomer")}
                   className="flex items-center w-full px-4 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  <FaUserPlus />
+                  <AiOutlineUserAdd />
                   Add New Customer
                 </button>
               </div>
@@ -239,19 +283,22 @@ const Header = () => {
 
         {/* Profile dropdown */}
         <div className="relative">
-          <div className="flex items-center gap-3 " >
+          <div className="flex items-center gap-3 ">
             <div
               onClick={toggleProfile}
               ref={profileButtonRef}
               className="w-9 h-9 rounded-full bg-orange-100 cursor-pointer flex items-center justify-center text-orange-600 font-bold"
             >
               {profileImg ? (
-                <img src={profileImg} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                <img
+                  src={profileImg || "/placeholder.svg"}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
               ) : (
                 firstLetter
               )}
             </div>
-
 
             <div className="hidden md:flex flex-col">
               <span className="text-sm font-medium text-gray-800 line-clamp-1">{customerName}</span>
@@ -272,7 +319,8 @@ const Header = () => {
               <div className="py-1">
                 <button
                   onClick={() => handleRedirect("/customer_portal/Login-customerdetails")}
-                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  className="flex items-center w-full gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
                   <FaUser />
                   Profile
                 </button>
