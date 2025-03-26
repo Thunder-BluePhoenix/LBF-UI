@@ -102,6 +102,7 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
     if (id) {
       fetchCustomerData(id); // Fetch customer data if ID is present
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
   
   useEffect(() => {
@@ -191,10 +192,7 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
     return emailRegex.test(email);
   };
 
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^\d{10,15}$/;
-    return phoneRegex.test(phone.replace(/[-()\s]/g, ''));
-  };
+
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
@@ -219,7 +217,7 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
 
     if (!formData.contact.phone.trim()) {
       newErrors['contact.phone'] = 'Phone number is required';
-    } else if (!validatePhone(formData.contact.phone)) {
+    } else if (!(formData.contact.phone)) {
       newErrors['contact.phone'] = 'Invalid phone number format';
     }
 
@@ -244,7 +242,7 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
     // New unique phone validation
     if (!formData.uniquePhone.trim()) {
       newErrors['contact.uniquePhone'] = 'Customer unique phone number is required';
-    } else if (!validatePhone(formData.uniquePhone)) {
+    } else if (!(formData.uniquePhone)) {
       newErrors['contact.uniquePhone'] = 'Invalid phone number format';
     }
 
@@ -322,7 +320,7 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
     else if (name === 'contact.phone') {
       if (!formData.contact.phone.trim()) {
         newErrors['contact.phone'] = 'Phone number is required';
-      } else if (!validatePhone(formData.contact.phone)) {
+      } else if (!(formData.contact.phone)) {
         newErrors['contact.phone'] = 'Invalid phone number format';
       } else {
         delete newErrors['contact.phone'];
