@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Layout from "../Components/Layout";
 import Home from "../Pages/Home/home";
@@ -17,14 +18,6 @@ import DownloadInvoice from "../Pages/Invoice/InvoiceDtails/DownloadInvoice";
 import NotificationPage from "../Pages/Notification/Notification";
 import CustomerTable from "../Pages/Customer/Customer";
 import CustomerDetails from "../Pages/Auth/Login-customer-details/customer-details";
-
-
-
-
-
-
-
-  // Assuming this is the correct path
 
 const AppRoutes = () => {
     const { currentUser, isLoading, isValidating } = useFrappeAuth()

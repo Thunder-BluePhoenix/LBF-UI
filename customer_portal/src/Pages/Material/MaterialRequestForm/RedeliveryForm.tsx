@@ -1,10 +1,12 @@
 "use client"
 
+import type React from "react"
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type ChangeEvent, type FormEvent, Key, ReactNode, useEffect, useState } from "react"
+import { type ChangeEvent, type FormEvent, type Key, type ReactNode, useEffect, useState } from "react"
 import axios from "axios"
 import { FaArrowLeft } from "react-icons/fa"
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams, } from "react-router-dom"
 import { MdDelete } from "react-icons/md"
 import ItemTable from "./ItemsTable"
 interface ItemList {
@@ -23,7 +25,7 @@ interface ItemList {
   AspectRatio: any
   otherItemName: any
   OtherItemCode: any
-  available: ReactNode,
+  available: ReactNode
   id: number
   requiredBy: string
   quantity: number
@@ -76,29 +78,29 @@ interface Transporter {
 }
 interface dataSubmit {
   message?: {
-    message: string;
-    docstatus: number;
-  };
+    message: string
+    docstatus: number
+  }
 }
 type RowData = {
-  id: number;
-  item_code: string;
-  item_name: string;
-  requiredBy: string;
-  quantity: string;
-  uom: string;
-  uomConversion: string;
-  type: string;
-  selectedItem: string;
-};
+  id: number
+  item_code: string
+  item_name: string
+  requiredBy: string
+  quantity: string
+  uom: string
+  uomConversion: string
+  type: string
+  selectedItem: string
+}
 const RedeliveryForm = () => {
-  //customer state 
+  //customer state
   const [customers, setCustomers] = useState<{ name: string }[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<string>("")
   const [customerName, setCustomerName] = useState<string>("")
   const [customerLoginUser, setCustomerLoginUser] = useState<CustomerLoginUser | null>(null)
   const [loginUser, setLoginUser] = useState<string | null>(null)
-  //contact state 
+  //contact state
   const [contact, setContact] = useState<string>("")
   const [contacts, setContacts] = useState<Contact[]>([])
   const [selectedContact, setSelectedContact] = useState<string>("")
@@ -133,7 +135,7 @@ const RedeliveryForm = () => {
   const [resultData, setResultData] = useState("")
   const [dataSubmit, setDataSubmit] = useState<dataSubmit | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
-  const [docStatus, setDocStatus] = useState<number | null>(null);
+  const [docStatus, setDocStatus] = useState<number | null>(null)
   const [reason, setReason] = useState<any>("")
   const [selectedReason, setSelectedReason] = useState("")
   const [season, setSeason] = useState<any>("")
@@ -144,7 +146,11 @@ const RedeliveryForm = () => {
   const [updateTyreItems, setUpdateTyreItems] = useState<any>(null)
   const [itemsRedelivery, setItemsRedelivery] = useState<any>(null)
   const [mezzo, setMezzo] = useState<string>("")
-  const [LicensePlate, setLicensePlate] = useState<string>("");
+  const [LicensePlate, setLicensePlate] = useState<string>("")
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const purposeParam = searchParams.get("purpose")
+  const serviceParam = searchParams.get("service")
 
   const { id } = useParams<{ id: string }>()
   const resetFormFields = () => {
@@ -179,31 +185,53 @@ const RedeliveryForm = () => {
     setResultData("")
     setDataSubmit(null)
     setDocStatus(null)
+    if (!serviceParam) {
+      setService("")
+    } else {
+      setService(serviceParam)
+    }
+    setShowContactFields(false)
+    setDateOfPosting(new Date().toISOString().split("T")[0])
+    setDateOfDelivery("")
+    setDateOfRequredBy("")
+    if (!purposeParam) {
+      setPurpose("")
+    } else {
+      setPurpose(purposeParam)
+    }
+    setSelectedTransporter("")
+    setTransporterDetails(null)
+    setShowTransporterFields(false)
+    setItems([])
+    setValidationErrors([])
+    setResultData("")
+    setDataSubmit(null)
+    setDocStatus(null)
   }
 
   useEffect(() => {
     if (id) {
       setIsEditMode(true)
-    }
-    else {
+    } else {
       setIsEditMode(false)
       resetFormFields()
     }
-  }, [id])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, purposeParam, serviceParam])
   const navigate = useNavigate()
-  const groupBy = customerLoginUser?.customer_group ?? "Default Group";
+  const groupBy = customerLoginUser?.customer_group ?? "Default Group"
   const LoginCustomerName = customerLoginUser?.customer_name
   console.log(loginUser, itemsRedelivery, "qqqqqqqqqqqqR")
   useEffect(() => {
     if (transporters && transporters.length > 0) {
-      const defaultTransporter = transporters.find(item => item.is_default === 1);
+      const defaultTransporter = transporters.find((item) => item.is_default === 1)
       if (defaultTransporter) {
-        setSelectedTransporter(defaultTransporter.supplier);
-        setTransporterDetails(defaultTransporter);
-        setShowTransporterFields(true);
+        setSelectedTransporter(defaultTransporter.supplier)
+        setTransporterDetails(defaultTransporter)
+        setShowTransporterFields(true)
       }
     }
-  }, [transporters]);
+  }, [transporters])
   const validateForm = () => {
     const errors: string[] = []
     if (!customerName) {
@@ -228,9 +256,9 @@ const RedeliveryForm = () => {
     return errors.length === 0
   }
   const handleDataChange = (rows: RowData[]) => {
-    setItems(rows as unknown as ItemList[]);  // Use type assertion to bypass the type error
-    console.log("Updated Rows from Child:", rows);
-  };
+    setItems(rows as unknown as ItemList[]) // Use type assertion to bypass the type error
+    console.log("Updated Rows from Child:", rows)
+  }
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setPurpose(event.target.value)
   }
@@ -251,21 +279,21 @@ const RedeliveryForm = () => {
   }
 
   const handleContactSelect = (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value;
-    setSelectedContact(selectedValue);
+    const selectedValue = event.target.value
+    setSelectedContact(selectedValue)
     if (selectedValue) {
-      setShowContactFields(true);
-      const selectedContactData = contacts.find(c => c.name === selectedValue);
+      setShowContactFields(true)
+      const selectedContactData = contacts.find((c) => c.name === selectedValue)
       if (selectedContactData) {
-        setContact(selectedContactData.phone || "");
-        setEmail(selectedContactData.email_id || "");
+        setContact(selectedContactData.phone || "")
+        setEmail(selectedContactData.email_id || "")
       }
     } else {
-      setShowContactFields(false);
-      setContact("");
-      setEmail("");
+      setShowContactFields(false)
+      setContact("")
+      setEmail("")
     }
-  };
+  }
 
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfPosting(e.target.value)
@@ -274,12 +302,10 @@ const RedeliveryForm = () => {
     setMezzo(e.target.value)
   }
   const handleLicensePlateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLicensePlate(value); // Save to localStorage
-  };
-  useEffect(() => {
-
-  }, []);
+    const value = e.target.value
+    setLicensePlate(value) // Save to localStorage
+  }
+  useEffect(() => {}, [])
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
   }
@@ -289,89 +315,90 @@ const RedeliveryForm = () => {
   }
 
   const handleAddressSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value;
-    setSelectedAddress(selectedValue);
+    const selectedValue = event.target.value
+    setSelectedAddress(selectedValue)
 
     if (selectedValue) {
-      setShowAddressFields(true);
-      const selectedAddressData = addresses.find(a => a.name === selectedValue);
-      setAddressDetails(selectedAddressData || null);
+      setShowAddressFields(true)
+      const selectedAddressData = addresses.find((a) => a.name === selectedValue)
+      setAddressDetails(selectedAddressData || null)
 
       try {
-        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`);
-        const transporterData = transporterResponse?.data?.data.custom_transporters;
-        setTransporters(transporterData);
-        setTransportersLoaded(true);
+        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`)
+        const transporterData = transporterResponse?.data?.data.custom_transporters
+        setTransporters(transporterData)
+        setTransportersLoaded(true)
 
         if (!transporterData || transporterData.length === 0) {
-          setShowTransporterFields(false);
-          setTransporterDetails(null);
-          setSelectedTransporter('');
+          setShowTransporterFields(false)
+          setTransporterDetails(null)
+          setSelectedTransporter("")
         }
 
         if (isEditMode && selectedTransporter) {
-          const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter);
+          const matchedTransporter = transporterData.find(
+            (t: { supplier: string }) => t.supplier === selectedTransporter,
+          )
           if (matchedTransporter) {
-            setTransporterDetails(matchedTransporter);
-            setShowTransporterFields(true);
+            setTransporterDetails(matchedTransporter)
+            setShowTransporterFields(true)
           } else {
-            setShowTransporterFields(false);
+            setShowTransporterFields(false)
           }
         }
       } catch (error) {
-        console.error("Error fetching transporter data:", error);
-        setTransporters([]);
-        setTransportersLoaded(false);
-        setShowTransporterFields(false);
+        console.error("Error fetching transporter data:", error)
+        setTransporters([])
+        setTransportersLoaded(false)
+        setShowTransporterFields(false)
       }
     } else {
-      setShowAddressFields(false);
-      setAddressDetails(null);
-      setTransporters([]);
-      setShowTransporterFields(false);
+      setShowAddressFields(false)
+      setAddressDetails(null)
+      setTransporters([])
+      setShowTransporterFields(false)
     }
-  };
+  }
   const handleTransporterSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value;
-    setSelectedTransporter(selectedValue);
+    const selectedValue = event.target.value
+    setSelectedTransporter(selectedValue)
 
     if (selectedValue && transporters.length > 0) {
-      const matchedTransporter = transporters.find(t => t.supplier === selectedValue);
+      const matchedTransporter = transporters.find((t) => t.supplier === selectedValue)
       if (matchedTransporter) {
-        setTransporterDetails(matchedTransporter);
-        setShowTransporterFields(true);
+        setTransporterDetails(matchedTransporter)
+        setShowTransporterFields(true)
       } else {
-        setTransporterDetails(null);
-        setShowTransporterFields(false);
+        setTransporterDetails(null)
+        setShowTransporterFields(false)
       }
     } else {
-      setTransporterDetails(null);
-      setShowTransporterFields(false);
+      setTransporterDetails(null)
+      setShowTransporterFields(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (isEditMode && transportersLoaded && selectedTransporter && transporters.length > 0) {
-      const matchedTransporter = transporters.find(t => t.supplier === selectedTransporter);
+      const matchedTransporter = transporters.find((t) => t.supplier === selectedTransporter)
       if (matchedTransporter) {
-        setTransporterDetails(matchedTransporter);
-        setShowTransporterFields(true);
-      }
-      else {
-        setShowTransporterFields(false);
+        setTransporterDetails(matchedTransporter)
+        setShowTransporterFields(true)
+      } else {
+        setShowTransporterFields(false)
       }
     }
-  }, [isEditMode, transportersLoaded, selectedTransporter, transporters]);
+  }, [isEditMode, transportersLoaded, selectedTransporter, transporters])
 
   useEffect(() => {
     if (isEditMode && selectedAddress && addresses.length > 0) {
-      const matchingAddress = addresses.find(addr => addr.name === selectedAddress);
+      const matchingAddress = addresses.find((addr) => addr.name === selectedAddress)
       if (matchingAddress) {
-        setAddressDetails(matchingAddress);
-        setShowAddressFields(true);
+        setAddressDetails(matchingAddress)
+        setShowAddressFields(true)
       }
     }
-  }, [addresses, selectedAddress, isEditMode]);
+  }, [addresses, selectedAddress, isEditMode])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -383,38 +410,42 @@ const RedeliveryForm = () => {
         setLoginUser(loginUserEmail)
         // Step 2: Fetch the customer data based on the logged-in user's email
         const customerResponse = await axios.get(
-          `/api/resource/Customer?fields=["*"]&filters=[["Portal User","user", "=", "${encodeURIComponent(loginUserEmail)}"]]`
+          `/api/resource/Customer?fields=["*"]&filters=[["Portal User","user", "=", "${encodeURIComponent(loginUserEmail)}"]]`,
         )
         if (customerResponse.data.data && customerResponse.data.data.length > 0) {
           const customerData = customerResponse.data.data[0]
           setCustomerLoginUser(customerData)
           // Step 3: Fetch child customers associated with this customer
           const childCustomersResponse = await axios.get(
-            `/api/method/lbf_logistica.api.bol.fetch_child_customers?customer=${encodeURIComponent(customerData.name)}`
+            `/api/method/lbf_logistica.api.bol.fetch_child_customers?customer=${encodeURIComponent(customerData.name)}`,
           )
           const data = childCustomersResponse.data
           console.log(data, "data gagin to")
           if (data.message && Array.isArray(data.message)) {
             // Process customers to identify the display name for each
-            const processedCustomers = data.message.map((customer: { custom_details_for_parent_customer: any[]; customer_name: any }) => {
-              // Find if there's an entry in custom_details_for_parent_customer where parent_customer matches the login user's customer name
-              const matchingChildDetail = customer.custom_details_for_parent_customer.find(
-                detail => detail.parent_customer === customerData.name || detail.parent_customer === customerData.customer_name
-              );
-              if (matchingChildDetail) {
+            const processedCustomers = data.message.map(
+              (customer: { custom_details_for_parent_customer: any[]; customer_name: any }) => {
+                // Find if there's an entry in custom_details_for_parent_customer where parent_customer matches the login user's customer name
+                const matchingChildDetail = customer.custom_details_for_parent_customer.find(
+                  (detail) =>
+                    detail.parent_customer === customerData.name ||
+                    detail.parent_customer === customerData.customer_name,
+                )
+                if (matchingChildDetail) {
+                  return {
+                    ...customer,
+                    displayName: matchingChildDetail.child_customer_name,
+                  }
+                }
+                // Otherwise use the regular customer_name
                 return {
                   ...customer,
-                  displayName: matchingChildDetail.child_customer_name
-                };
-              }
-              // Otherwise use the regular customer_name
-              return {
-                ...customer,
-                displayName: customer.customer_name
-              };
-            })
+                  displayName: customer.customer_name,
+                }
+              },
+            )
             setCustomers(processedCustomers)
-            console.log(processedCustomers, "mmmmmmmmm")
+          
 
             if (processedCustomers.length > 0) {
               const firstCustomer = processedCustomers[0].name
@@ -429,7 +460,7 @@ const RedeliveryForm = () => {
           }
           // Step 5: Fetch unique items based on the customer
           const itemsResponse = await axios.get(
-            `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`
+            `/api/method/lbf_logistica.api.bol.get_unique_items?customer=${encodeURIComponent(customerData.name)}&fields=["item_code","item_name","actual_qty"]`,
           )
           setItemList(itemsResponse.data.message || [])
 
@@ -459,25 +490,25 @@ const RedeliveryForm = () => {
       // Check if purpose is "Redelivery" and customerLoginUser is an object with a valid name
       if (
         purpose === "Redelivery" &&
-        typeof customerLoginUser === 'object' &&
+        typeof customerLoginUser === "object" &&
         customerLoginUser !== null &&
-        'name' in customerLoginUser &&
-        typeof customerLoginUser.name === 'string'
+        "name" in customerLoginUser &&
+        typeof customerLoginUser.name === "string"
       ) {
         try {
           const itemsForRedelivery = await axios.get(
-            `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerLoginUser.name)}&license_plate=${encodeURIComponent(LicensePlate)}&fields=["item_code","item_name","actual_qty","custom_tyre_type","custom_license_plate"]`
-          );
-          setItemsRedelivery(itemsForRedelivery.data);
+            `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerLoginUser.name)}&license_plate=${encodeURIComponent(LicensePlate)}&fields=["item_code","item_name","actual_qty","custom_tyre_type","custom_license_plate"]`,
+          )
+          setItemsRedelivery(itemsForRedelivery.data)
         } catch (error: any) {
-          console.error("Error fetching items for redelivery:", error.message || error);
+          console.error("Error fetching items for redelivery:", error.message || error)
         }
       }
-    };
+    }
 
-    fetchRedeliveryItems();
+    fetchRedeliveryItems()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purpose, LicensePlate]);
+  }, [purpose, LicensePlate])
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
@@ -487,7 +518,7 @@ const RedeliveryForm = () => {
   const fetchAddress = async (customerName: string) => {
     try {
       const response = await axios.get(
-        `/api/resource/Address?fields=["name","address_title","city","country","address_type","address_line1"]&filters=[["Dynamic Link", "link_name", "=", "${encodeURIComponent(customerName)}"]]`
+        `/api/resource/Address?fields=["name","address_title","city","country","address_type","address_line1"]&filters=[["Dynamic Link", "link_name", "=", "${encodeURIComponent(customerName)}"]]`,
       )
       const addressData = response.data.data || []
       setAddresses(addressData)
@@ -504,7 +535,7 @@ const RedeliveryForm = () => {
   const fetchContactEmail = async (customerName: string) => {
     try {
       const response = await axios.get(
-        `/api/method/lbf_logistica.api.bol.get_customer_contacts?customer_name=${encodeURIComponent(customerName)}`
+        `/api/method/lbf_logistica.api.bol.get_customer_contacts?customer_name=${encodeURIComponent(customerName)}`,
       )
       const contactData = response?.data?.message || []
       setContacts(contactData)
@@ -543,21 +574,25 @@ const RedeliveryForm = () => {
       setSelectedAddress(data.shipping_address_name)
 
       if (data.shipping_address_name) {
-        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`)
+        const transporterResponse = await axios.get(
+          `/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`,
+        )
         const transporterData = transporterResponse?.data?.data.custom_transporters
         setTransporters(transporterData)
         setTransportersLoaded(true)
 
         if (data.transporter_name) {
           setSelectedTransporter(data.transporter_name)
-          const matchedTransporter = transporterData.find((t: { supplier: any }) => t.supplier === data.transporter_name)
+          const matchedTransporter = transporterData.find(
+            (t: { supplier: any }) => t.supplier === data.transporter_name,
+          )
           if (matchedTransporter) {
             setTransporterDetails({
               supplier: data.transporter_name,
               cutoff_start_time: matchedTransporter.cutoff_start_time,
               cutoff_end_time: matchedTransporter.cutoff_end_time,
               name: matchedTransporter.name,
-              address: matchedTransporter.address
+              address: matchedTransporter.address,
             })
             setShowTransporterFields(true)
           }
@@ -614,7 +649,7 @@ const RedeliveryForm = () => {
 
       available: undefined,
       otherItemName: "",
-      OtherItemCode: ""
+      OtherItemCode: "",
     }
     setItems([...items, newItem])
   }
@@ -629,13 +664,13 @@ const RedeliveryForm = () => {
       items.map((item) =>
         item.id === itemId
           ? {
-            ...item,
-            item_code: selectedItem.item_code,
-            item_name: selectedItem.item_name,
-            quantity: selectedItem.items_quantity,
-            available: selectedItem.actual_qty,
-            requiredBy: selectedItem.schedule_date,
-          }
+              ...item,
+              item_code: selectedItem.item_code,
+              item_name: selectedItem.item_name,
+              quantity: selectedItem.items_quantity,
+              available: selectedItem.actual_qty,
+              requiredBy: selectedItem.schedule_date,
+            }
           : item,
       ),
     )
@@ -646,34 +681,33 @@ const RedeliveryForm = () => {
     const fetchData = async () => {
       try {
         // Using Promise.all to fetch all the APIs concurrently
-        const [reasonRes, seasonRes, conditionRes, itemRes,] = await Promise.all([
-          fetch('/api/resource/Reason'),
-          fetch('/api/resource/Season'),
-          fetch('/api/resource/Condition'),
-          fetch('/api/resource/Item'),
-        ]);
+        const [reasonRes, seasonRes, conditionRes, itemRes] = await Promise.all([
+          fetch("/api/resource/Reason"),
+          fetch("/api/resource/Season"),
+          fetch("/api/resource/Condition"),
+          fetch("/api/resource/Item"),
+        ])
 
         // Parsing the response to JSON
-        const reason = await reasonRes.json();
-        const season = await seasonRes.json();
-        const condition = await conditionRes.json();
-        const item = await itemRes.json();
+        const reason = await reasonRes.json()
+        const season = await seasonRes.json()
+        const condition = await conditionRes.json()
+        const item = await itemRes.json()
 
-
-        setReason(reason);
-        setSeason(season);
-        setCondition(condition);
-        setTyreItems(item);
+        setReason(reason)
+        setSeason(season)
+        setCondition(condition)
+        setTyreItems(item)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
-        setError('Error fetching data');
+        setError("Error fetching data")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [purpose])
   const handleCustomerSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedName = event.target.value
     setSelectedCustomer(selectedName)
@@ -744,7 +778,11 @@ const RedeliveryForm = () => {
     try {
       let result
       if (isEditMode && id) {
-        result = await axios.put(`/api/method/lbf_logistica.api.bol.save_material_request_instruction_log/${resultData}?fields=["*"]`, myData, { headers })
+        result = await axios.put(
+          `/api/method/lbf_logistica.api.bol.save_material_request_instruction_log/${resultData}?fields=["*"]`,
+          myData,
+          { headers },
+        )
       } else {
         result = await axios.post("/api/method/lbf_logistica.api.bol.save_material_request_instruction_log", myData, {
           headers,
@@ -761,46 +799,44 @@ const RedeliveryForm = () => {
   }
 
   const handleFinalSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const csrfToken = 'your-csrf-token';
+    e.preventDefault()
+    const csrfToken = "your-csrf-token"
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-Frappe-CSRF-Token': csrfToken } : {})
-    };
+      "Content-Type": "application/json",
+      ...(csrfToken ? { "X-Frappe-CSRF-Token": csrfToken } : {}),
+    }
 
     const siubmitData = {
       name: resultData,
-    };
+    }
 
     try {
-      const submitResult = await fetch('/api/method/lbf_logistica.api.bol.submit_material_request', {
-        method: 'POST',
+      const submitResult = await fetch("/api/method/lbf_logistica.api.bol.submit_material_request", {
+        method: "POST",
         headers: headers,
         body: JSON.stringify(siubmitData),
-      });
-      const resultSubmitJson = await submitResult.json();
+      })
+      const resultSubmitJson = await submitResult.json()
       setDataSubmit(resultSubmitJson)
       if (resultSubmitJson.message?.docstatus !== undefined) {
-        setDocStatus(resultSubmitJson.message.docstatus);
+        setDocStatus(resultSubmitJson.message.docstatus)
       }
 
-
-      console.log(resultSubmitJson);
+      console.log(resultSubmitJson)
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error("Error submitting form:", error)
     }
-  };
-
+  }
 
   const isDocStatusLocked = () => {
-    return docStatus === 1;
-  };
+    return docStatus === 1
+  }
   const getCustomerDisplayName = (customer: any): string => {
     if (customer.displayName) {
-      return customer.displayName;
+      return customer.displayName
     }
     // Fallback to customer_name if displayName is not set
-    return customer.customer_name;
+    return customer.customer_name
   }
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
@@ -811,23 +847,28 @@ const RedeliveryForm = () => {
         <span className="cursor-pointer" onClick={() => navigate(-1)}>
           <FaArrowLeft />
         </span>
-        <h2 className="text-xl font-semibold"><span
-          className={`${!isDocStatusLocked()
-            ? isEditMode
-              ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
-              : "bg-green-500 text-white px-2 py-1 rounded-lg"
-            : "bg-blue-500 text-white px-2 py-1 rounded-lg"
+        <h2 className="text-xl font-semibold">
+          <span
+            className={`${
+              !isDocStatusLocked()
+                ? isEditMode
+                  ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
+                  : "bg-green-500 text-white px-2 py-1 rounded-lg"
+                : "bg-blue-500 text-white px-2 py-1 rounded-lg"
             }`}
-        >
-          {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
-        </span> Material Request</h2>
-
+          >
+            {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
+          </span>{" "}
+          Material Request
+        </h2>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
           <div>
-            <label className="block text-sm font-medium">Customer Name<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Customer Name<span className="text-red-500">*</span>
+            </label>
             <select
               value={selectedCustomer}
               disabled={isDocStatusLocked()}
@@ -855,7 +896,9 @@ const RedeliveryForm = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Party Type<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Party Type<span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="request-by"
@@ -867,7 +910,9 @@ const RedeliveryForm = () => {
         </div>
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
           <div>
-            <label className="block text-sm font-medium">Select Contact<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Select Contact<span className="text-red-500">*</span>
+            </label>
             <select
               value={selectedContact}
               onChange={handleContactSelect}
@@ -908,9 +953,10 @@ const RedeliveryForm = () => {
           )}
         </div>
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-
           <div>
-            <label className="block text-sm font-medium">Select Address<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Select Address<span className="text-red-500">*</span>
+            </label>
             <select
               value={selectedAddress}
               onChange={handleAddressSelect}
@@ -928,7 +974,6 @@ const RedeliveryForm = () => {
 
           {showAddressFields && addressDetails && (
             <>
-
               <div>
                 <label className="block text-sm font-medium">City & Country</label>
                 <input
@@ -941,7 +986,9 @@ const RedeliveryForm = () => {
             </>
           )}
           <div>
-            <label className="block text-sm font-medium">Select Transporter<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Select Transporter<span className="text-red-500">*</span>
+            </label>
             <select
               name="name"
               value={selectedTransporter}
@@ -951,11 +998,8 @@ const RedeliveryForm = () => {
             >
               <option value="">Select Transporter</option>
               {transporters.map((transporter, index) => (
-                <option
-                  key={transporter.name || index}
-                  value={transporter.supplier || ''}
-                >
-                  {transporter.supplier || 'Unnamed Transporter'}
+                <option key={transporter.name || index} value={transporter.supplier || ""}>
+                  {transporter.supplier || "Unnamed Transporter"}
                 </option>
               ))}
             </select>
@@ -967,17 +1011,16 @@ const RedeliveryForm = () => {
                 <label className="block text-sm font-medium">Supplier</label>
                 <input
                   type="text"
-                  value={transporterDetails?.supplier || ''}
+                  value={transporterDetails?.supplier || ""}
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
                 />
               </div>
               <div>
-
                 <label className="block text-sm font-medium">Cutoff Start Time</label>
                 <input
                   type="text"
-                  value={transporterDetails?.cutoff_start_time || ''}
+                  value={transporterDetails?.cutoff_start_time || ""}
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
                 />
@@ -987,7 +1030,7 @@ const RedeliveryForm = () => {
                 <label className="block text-sm font-medium">Cutoff End Time</label>
                 <input
                   type="text"
-                  value={transporterDetails?.cutoff_end_time || ''}
+                  value={transporterDetails?.cutoff_end_time || ""}
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
                 />
@@ -996,7 +1039,7 @@ const RedeliveryForm = () => {
                 <label className="block text-sm font-medium">Weekdays Off</label>
                 <input
                   type="text"
-                  value={transporterDetails?.cutoff_end_time || ''}
+                  value={transporterDetails?.cutoff_end_time || ""}
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
                 />
@@ -1006,9 +1049,10 @@ const RedeliveryForm = () => {
         </div>
 
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-
           <div>
-            <label className="block text-sm font-medium">Service<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Service<span className="text-red-500">*</span>
+            </label>
             <select
               name="purpose"
               value={service}
@@ -1033,7 +1077,8 @@ const RedeliveryForm = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
                 >
                   <option>Select Seasion</option>
-                  {season?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
+                  {season?.data?.map((item: any, index: Key) => (
+                    <option key={index}>{item.name}</option>
                   ))}
                 </select>
               </div>
@@ -1048,7 +1093,8 @@ const RedeliveryForm = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
                 >
                   <option>Select Condition</option>
-                  {condition?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
+                  {condition?.data?.map((item: any, index: Key) => (
+                    <option key={index}>{item.name}</option>
                   ))}
                 </select>
               </div>
@@ -1062,12 +1108,15 @@ const RedeliveryForm = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
                 >
                   <option>Select Reason</option>
-                  {reason?.data?.map((item: any, index: Key) => (<option key={index}>{item.name}</option>
+                  {reason?.data?.map((item: any, index: Key) => (
+                    <option key={index}>{item.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium">license plate<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium">
+                  license plate<span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   onChange={handleLicensePlateChange}
@@ -1089,14 +1138,15 @@ const RedeliveryForm = () => {
                   placeholder="Enter detail"
                 />
               </div>
-
             </>
           )}
         </div>
 
         <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium">Purpose<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Purpose<span className="text-red-500">*</span>
+            </label>
             <select
               name="purpose"
               value={purpose}
@@ -1104,13 +1154,14 @@ const RedeliveryForm = () => {
               disabled={isDocStatusLocked()}
               className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
             >
-              <option></option>
               <option>Redelivery</option>
-              {service === "Tyre Hotel" && (<option>Pick Up</option>)}
+              {service === "Tyre Hotel" && <option>Pick Up</option>}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium">Date of Posting<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Date of Posting<span className="text-red-500">*</span>
+            </label>
             <input
               type="date"
               name="dateOfPosting"
@@ -1122,7 +1173,9 @@ const RedeliveryForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Date of Delivery<span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium">
+              Date of Delivery<span className="text-red-500">*</span>
+            </label>
             <input
               type="date"
               name="dateOfDelivery"
@@ -1133,126 +1186,127 @@ const RedeliveryForm = () => {
             />
           </div>
         </div>
-        {service === "Peneus Hub" && (<div className=" mb-6">
-          <h1 className="text-lg font-bold mb-4">Item TH</h1>
-          <table className="w-full  border rounded-md border-gray-300">
-            <thead>
-              <tr className="border-b bg-gray-50 border-gray-300">
-                <th className="border border-gray-300 p-2">No.</th>
-                <th className="border border-gray-300 p-2">Item Code *</th>
-                <th className="border border-gray-300 p-2">Item Name</th>
-                <th className="border border-gray-300 p-2">Required By *</th>
-                <th className="border border-gray-300 p-2">Qty</th>
-                <th className="border border-gray-300 p-2">Available Qty</th>
-                <th className="border border-gray-300 p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr key={item.id} className="border-b rounded-md border-gray-300">
-                  <td className=" p-2 text-left">{item.id}</td>
-                  <td className=" ">
-                    <div className="relative">
-                      <div
-                        onClick={() => !isDocStatusLocked() && setOpen(open === item.id ? null : item.id)}
-                        className={`w-full text-left px-2 py-2 border-x border-gray-300 ${isDocStatusLocked() ? 'cursor-not-allowed opacity-50' : ''}`}
-                      >
-                        {item.item_code || "Select item..."}
-                      </div>
-                      {open === item.id && !isDocStatusLocked() && (
-                        <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
-                          <input
-                            type="text"
-                            placeholder="Search items..."
-                            className="w-full p-2 border border-gray-300"
-                          />
-                          <ul className="max-h-32 overflow-y-auto z-50">
-                            {itemList.map((code) => (
-                              <li
-                                key={code.value}
-                                className="p-2 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleItemSelect(item.id, code)}
-                              >
-                                {code.item_code}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className=" ">
-                    <input
-                      type="text"
-                      value={item.item_name}
-                      readOnly
-                      className="w-full p-2 border-x border-gray-300 "
-                    />
-                  </td>
-                  <td className=" ">
-                    <input
-                      type="date"
-                      value={DateOfRequredBy}
-                      onChange={handleDateOfRequredBy}
-                      className="w-full p-2 border-x border-gray-300"
-                      disabled={isDocStatusLocked()}
-                    />
-                  </td>
-                  <td className=" ">
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => {
-                        const updatedItems = items.map((i) =>
-                          i.id === item.id ? { ...i, quantity: Number.parseInt(e.target.value, 10) } : i,
-                        );
-                        setItems(updatedItems);
-                      }}
-                      className="w-full p-2 border-x border-gray-300"
-                      disabled={isDocStatusLocked()}
-                    />
-                  </td>
-                  <td className="border-r border-gray-300">{item.available}</td>
-                  <td className="">
-                    <span
-                      onClick={() => !isDocStatusLocked() && removeRow(index)}
-                      className={`py-1 flex items-center justify-center text-black text-xl rounded-md ${isDocStatusLocked() ? 'cursor-not-allowed opacity-50' : ''}`}
-                    >
-                      <MdDelete />
-                    </span>
-                  </td>
+        {service === "Peneus Hub" && (
+          <div className=" mb-6">
+            <h1 className="text-lg font-bold mb-4">Item TH</h1>
+            <table className="w-full  border rounded-md border-gray-300">
+              <thead>
+                <tr className="border-b bg-gray-50 border-gray-300">
+                  <th className="border border-gray-300 p-2">No.</th>
+                  <th className="border border-gray-300 p-2">Item Code *</th>
+                  <th className="border border-gray-300 p-2">Item Name</th>
+                  <th className="border border-gray-300 p-2">Required By *</th>
+                  <th className="border border-gray-300 p-2">Qty</th>
+                  <th className="border border-gray-300 p-2">Available Qty</th>
+                  <th className="border border-gray-300 p-2">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={item.id} className="border-b rounded-md border-gray-300">
+                    <td className=" p-2 text-left">{item.id}</td>
+                    <td className=" ">
+                      <div className="relative">
+                        <div
+                          onClick={() => !isDocStatusLocked() && setOpen(open === item.id ? null : item.id)}
+                          className={`w-full text-left px-2 py-2 border-x border-gray-300 ${isDocStatusLocked() ? "cursor-not-allowed opacity-50" : ""}`}
+                        >
+                          {item.item_code || "Select item..."}
+                        </div>
+                        {open === item.id && !isDocStatusLocked() && (
+                          <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
+                            <input
+                              type="text"
+                              placeholder="Search items..."
+                              className="w-full p-2 border border-gray-300"
+                            />
+                            <ul className="max-h-32 overflow-y-auto z-50">
+                              {itemList.map((code) => (
+                                <li
+                                  key={code.value}
+                                  className="p-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleItemSelect(item.id, code)}
+                                >
+                                  {code.item_code}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className=" ">
+                      <input
+                        type="text"
+                        value={item.item_name}
+                        readOnly
+                        className="w-full p-2 border-x border-gray-300 "
+                      />
+                    </td>
+                    <td className=" ">
+                      <input
+                        type="date"
+                        value={DateOfRequredBy}
+                        onChange={handleDateOfRequredBy}
+                        className="w-full p-2 border-x border-gray-300"
+                        disabled={isDocStatusLocked()}
+                      />
+                    </td>
+                    <td className=" ">
+                      <input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const updatedItems = items.map((i) =>
+                            i.id === item.id ? { ...i, quantity: Number.parseInt(e.target.value, 10) } : i,
+                          )
+                          setItems(updatedItems)
+                        }}
+                        className="w-full p-2 border-x border-gray-300"
+                        disabled={isDocStatusLocked()}
+                      />
+                    </td>
+                    <td className="border-r border-gray-300">{item.available}</td>
+                    <td className="">
+                      <span
+                        onClick={() => !isDocStatusLocked() && removeRow(index)}
+                        className={`py-1 flex items-center justify-center text-black text-xl rounded-md ${isDocStatusLocked() ? "cursor-not-allowed opacity-50" : ""}`}
+                      >
+                        <MdDelete />
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-        {service === "Tyre Hotel" && (<div className="mb-6">
-          <ItemTable
-            itemsData={tyreItems}
-            updateItemData={updateTyreItems}
-            onDataChange={handleDataChange}
-            itemsRedelivery={itemsRedelivery}
-            purpose={purpose}
-            abledHandle={isDocStatusLocked}
-          />
-        </div>
+        {service === "Tyre Hotel" && (
+          <div className="mb-6">
+            <ItemTable
+              itemsData={tyreItems}
+              updateItemData={updateTyreItems}
+              onDataChange={handleDataChange}
+              itemsRedelivery={itemsRedelivery}
+              purpose={purpose}
+              abledHandle={isDocStatusLocked}
+            />
+          </div>
         )}
 
         <div className="flex flex-row justify-between">
-          {service === "Peneus Hub" && (<div className="flex flex-row gap-3">
-            {!isDocStatusLocked() && (
-              <button
-                type="button"
-                onClick={addRow}
-                className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-              >
-                Add Row
-              </button>
-            )}
-
-          </div>
+          {service === "Peneus Hub" && (
+            <div className="flex flex-row gap-3">
+              {!isDocStatusLocked() && (
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                >
+                  Add Row
+                </button>
+              )}
+            </div>
           )}
 
           {validationErrors.length > 0 && (
@@ -1290,12 +1344,17 @@ const RedeliveryForm = () => {
             {isEditMode && !isDocStatusLocked() && (
               <button
                 className="bg-blue-400 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors "
-                onClick={handleFinalSubmit}>
+                onClick={handleFinalSubmit}
+              >
                 Submit
               </button>
             )}
           </div>
-          {error && <p style={{ color: "red" }}>{error},<br>{dataSubmit?.message?.message}</br></p>}
+          {error && (
+            <p style={{ color: "red" }}>
+              {error},<br>{dataSubmit?.message?.message}</br>
+            </p>
+          )}
         </div>
       </form>
     </div>
@@ -1303,3 +1362,4 @@ const RedeliveryForm = () => {
 }
 
 export default RedeliveryForm
+

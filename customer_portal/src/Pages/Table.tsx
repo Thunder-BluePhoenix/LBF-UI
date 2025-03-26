@@ -1,32 +1,254 @@
 "use client"
 
-import { useEffect, useState } from "react"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { type ChangeEvent, type FormEvent, Key, ReactNode, useEffect, useState } from "react"
+import axios from "axios"
+import { FaArrowLeft } from "react-icons/fa"
+import { useNavigate, useParams } from "react-router-dom"
 import { MdDelete } from "react-icons/md"
+import ItemTable from "./ItemsTable"
 
-interface ItemList {
-  id: number
-  requiredBy: string
-  quantity: number
-  targetWarehouse: string
-  uom: string
-  name: string
-  item_name: string
-  item_code: string
-}
-
-interface FetchedItem {
-  item_code: string
-  item_name: string
-  items_quantity: number
-  label: string
-  value: string
-}
-
-export default function InventoryTable() {
-  const [items, setItems] = useState<ItemList[]>([])
+const RedeliveryForm = () => {
+  //customer state 
+  const [customers, setCustomers] = useState<{ name: string }[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("")
+  const [customerName, setCustomerName] = useState<string>("")
+  const [customerLoginUser, setCustomerLoginUser] = useState<CustomerLoginUser | null>(null)
+  const [loginUser, setLoginUser] = useState<string | null>(null)
+  //contact state 
+  const [contact, setContact] = useState<string>("")
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [selectedContact, setSelectedContact] = useState<string>("")
+  const [showContactFields, setShowContactFields] = useState(false)
+  const [email, setEmail] = useState<string>("")
+  //address state
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [selectedAddress, setSelectedAddress] = useState<string>("")
+  const [showAddressFields, setShowAddressFields] = useState(false)
+  const [addressDetails, setAddressDetails] = useState<Address | null>(null)
+  //date of posting and date of requredby
+  const [dateOfPosting, setDateOfPosting] = useState<string>("")
+  const [DateOfDelivery, setDateOfDelivery] = useState<string>("")
+  const [DateOfRequredBy, setDateOfRequredBy] = useState<string>("")
+  //Transporter state
+  const [transporters, setTransporters] = useState<Transporter[]>([])
+  const [selectedTransporter, setSelectedTransporter] = useState<string>("")
+  const [showTransporterFields, setShowTransporterFields] = useState(false)
+  const [transporterDetails, setTransporterDetails] = useState<Transporter | null>(null)
+  const [transportersLoaded, setTransportersLoaded] = useState(false)
+  //error and validation
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  //items list and item state
   const [itemList, setItemList] = useState<FetchedItem[]>([])
+  const [items, setItems] = useState<ItemList[]>([])
+  //other state
+  const [purpose, setPurpose] = useState<string>("")
+  const [service, setService] = useState<string>("")
   const [open, setOpen] = useState<number | null>(null)
+  const [resultData, setResultData] = useState("")
+  const [dataSubmit, setDataSubmit] = useState<dataSubmit | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [docStatus, setDocStatus] = useState<number | null>(null);
+  const [reason, setReason] = useState<any>("")
+  const [selectedReason, setSelectedReason] = useState("")
+  const [season, setSeason] = useState<any>("")
+  const [selectedSeasons, setSelectSeason] = useState("")
+  const [condition, setCondition] = useState<any>("")
+  const [selectedCondition, setSelectedCondition] = useState("")
+  const [tyreItems, setTyreItems] = useState<any>("")
+  const [updateTyreItems, setUpdateTyreItems] = useState<any>(null)
+  const [itemsRedelivery, setItemsRedelivery] = useState<any>(null)
+  const [mezzo, setMezzo] = useState<string>("")
+  const [LicensePlate, setLicensePlate] = useState<string>("");
 
+  const { id } = useParams<{ id: string }>()
+  const resetFormFields = () => {
+    setSelectedCustomer("")
+    setSelectedReason("")
+    setLicensePlate("")
+    setTyreItems("")
+    setLicensePlate("")
+    setItemsRedelivery("")
+    setUpdateTyreItems("")
+    setSelectSeason("")
+    setSelectedCondition("")
+    setCustomerName("")
+    setSelectedAddress("")
+    setAddressDetails(null)
+    setShowAddressFields(false)
+    setSelectedContact("")
+    setContact("")
+    setEmail("")
+    setMezzo("")
+    setService("")
+    setShowContactFields(false)
+    setDateOfPosting(new Date().toISOString().split("T")[0])
+    setDateOfDelivery("")
+    setDateOfRequredBy("")
+    setPurpose("")
+    setSelectedTransporter("")
+    setTransporterDetails(null)
+    setShowTransporterFields(false)
+    setItems([])
+    setValidationErrors([])
+    setResultData("")
+    setDataSubmit(null)
+    setDocStatus(null)
+  }
+
+  useEffect(() => {
+    if (id) {
+      setIsEditMode(true)
+    }
+    else {
+      setIsEditMode(false)
+      resetFormFields()
+    }
+  }, [id])
+  const navigate = useNavigate()
+  const groupBy = customerLoginUser?.customer_group ?? "Default Group";
+  const LoginCustomerName = customerLoginUser?.customer_name
+  console.log(loginUser, itemsRedelivery, "qqqqqqqqqqqqR")
+  useEffect(() => {
+    if (transporters && transporters.length > 0) {
+      c
+
+  useEffect(() => {
+    const fetchRedeliveryItems = async () => {
+      // Check if purpose is "Redelivery" and customerLoginUser is an object with a valid name
+      if (
+        purpose === "Redelivery" &&
+        typeof customerLoginUser === 'object' &&
+        customerLoginUser !== null &&
+        'name' in customerLoginUser &&
+        typeof customerLoginUser.name === 'string'
+      ) {
+        try {
+          const itemsForRedelivery = await axios.get(
+            `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerLoginUser.name)}&license_plate=${encodeURIComponent(LicensePlate)}&fields=["item_code","item_name","actual_qty","custom_tyre_type","custom_license_plate"]`
+          );
+          setItemsRedelivery(itemsForRedelivery.data);
+        } catch (error: any) {
+          console.error("Error fetching items for redelivery:", error.message || error);
+        }
+      }
+    };
+
+    fetchRedeliveryItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [purpose, LicensePlate]);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0]
+    setDateOfPosting(today)
+  }, [])
+
+  const fetchAddress = async (customerName: string) => {
+    try {
+      const response = await axios.get(
+        `/api/resource/Address?fields=["name","address_title","city","country","address_type","address_line1"]&filters=[["Dynamic Link", "link_name", "=", "${encodeURIComponent(customerName)}"]]`
+      )
+      const addressData = response.data.data || []
+      setAddresses(addressData)
+
+      if (!isEditMode) {
+        setSelectedAddress("")
+        setShowAddressFields(false)
+        setAddressDetails(null)
+      }
+    } catch (err: any) {
+      setError(err.message || "Error fetching address")
+    }
+  }
+  const fetchContactEmail = async (customerName: string) => {
+    try {
+      const response = await axios.get(
+        `/api/method/lbf_logistica.api.bol.get_customer_contacts?customer_name=${encodeURIComponent(customerName)}`
+      )
+      const contactData = response?.data?.message || []
+      setContacts(contactData)
+
+      if (!isEditMode) {
+        setSelectedContact("")
+        setShowContactFields(false)
+        setContact("")
+        setEmail("")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error fetching Contact and Email")
+    }
+  }
+  const fetchExistingData = async (resultId: string) => {
+    try {
+      const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
+      const data = response.data.data
+      console.log(data, "fetchexitingdata")
+      setResultData(data.name)
+      setSelectedCustomer(data.shipping_to)
+      setCustomerName(data.shipping_to)
+      setDateOfPosting(data.transaction_date)
+      setPurpose(data.material_request_type)
+      setDateOfDelivery(data.schedule_date)
+      setDateOfRequredBy(data.items[0]?.schedule_date || "")
+      setService(data.service)
+      setSelectedReason(data.reason)
+      setSelectedCondition(data.condition)
+      setSelectSeason(data.season)
+      setUpdateTyreItems(data.th_items)
+      setLicensePlate(data.license_plate)
+      setMezzo(data.mezzo)
+      setDocStatus(data.docstatus)
+      await fetchAddress(data.shipping_to)
+      setSelectedAddress(data.shipping_address_name)
+
+      if (data.shipping_address_name) {
+        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`)
+        const transporterData = transporterResponse?.data?.data.custom_transporters
+        setTransporters(transporterData)
+        setTransportersLoaded(true)
+
+        if (data.transporter_name) {
+          setSelectedTransporter(data.transporter_name)
+          const matchedTransporter = transporterData.find((t: { supplier: any }) => t.supplier === data.transporter_name)
+          if (matchedTransporter) {
+            setTransporterDetails({
+              supplier: data.transporter_name,
+              cutoff_start_time: matchedTransporter.cutoff_start_time,
+              cutoff_end_time: matchedTransporter.cutoff_end_time,
+              name: matchedTransporter.name,
+              address: matchedTransporter.address
+            })
+            setShowTransporterFields(true)
+          }
+        }
+      }
+
+      await fetchContactEmail(data.shipping_to)
+      setSelectedContact(data.customer_contact)
+      setContact(data.contact)
+      setEmail(data.email)
+      setShowContactFields(true)
+
+      if (data.items && Array.isArray(data.items)) {
+        const fetchedItems = data.items.map((item: any, index: number) => ({
+          id: index + 1,
+          item_code: item.item_code,
+          item_name: item.item_name,
+          quantity: item.qty,
+          requiredBy: item.schedule_date,
+          targetWarehouse: item.warehouse,
+          uom: item.uom,
+          name: item.name,
+          available: item.custom_max_order_qty,
+        }))
+        setItems(fetchedItems)
+      }
+    } catch (err: any) {
+      setError(err.message || "Error fetching existing data")
+    }
+  }
   const addRow = () => {
     const newItem: ItemList = {
       id: items.length + 1,
@@ -37,6 +259,23 @@ export default function InventoryTable() {
       name: "",
       item_name: "",
       item_code: "",
+      OthersItemCode: "",
+      OthersItemName: "",
+      AspectRatio: "",
+      Brand: "",
+      Carcass: "",
+      diameter: "",
+      LoadIndex: "",
+      Marks: "",
+      Model: "",
+      SpeedRating: "",
+      tireWidth: "",
+      weight: "",
+      type: "",
+
+      available: undefined,
+      otherItemName: "",
+      OtherItemCode: ""
     }
     setItems([...items, newItem])
   }
@@ -46,150 +285,87 @@ export default function InventoryTable() {
     setItems(updatedItems)
   }
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await fetch(
-          '/api/method/lbf_logistica.api.bol.get_unique_items?customer=anil&fields=["item_code","item_name","safety_stock"]',
-        )
-        const data = await response.json()
-        const fetchedItemCodes = data.message
-        console.log(fetchedItemCodes, "Items fetched")
-        setItemList(fetchedItemCodes)
-      } catch (error) {
-        console.error("Error fetching items:", error)
-      }
-    }
-
-    fetchItems()
-  }, [])
-
   const handleItemSelect = (itemId: number, selectedItem: FetchedItem) => {
     setItems(
       items.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              item_code: selectedItem.item_code,
-              item_name: selectedItem.item_name,
-              quantity: selectedItem.items_quantity,
-              // You can add more fields here if they are available in the FetchedItem
-            }
+            ...item,
+            item_code: selectedItem.item_code,
+            item_name: selectedItem.item_name,
+            quantity: selectedItem.items_quantity,
+            available: selectedItem.actual_qty,
+            requiredBy: selectedItem.schedule_date,
+          }
           : item,
       ),
     )
     setOpen(null)
-  }
+ 
 
-  const handleInputChange = (itemId: number, field: keyof ItemList, value: string | number) => {
-    setItems(items.map((item) => (item.id === itemId ? { ...item, [field]: value } : item)))
-  }
 
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
   return (
-    <div className="p-4 space-y-4">
-      <div className="rounded-lg bg-white shadow-md">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Items</h2>
-          <div className="relative ">
-            <table className="w-full text-sm border border-gray-300">
-              <thead>
-                <tr className="border-b border-gray-300">
-                  <th className="p-2 text-left">
-                    <input type="checkbox" className="h-4 w-4" />
-                  </th>
-                  <th className="p-2 text-left">No.</th>
-                  <th className="p-2 text-left">Item Code *</th>
-                  <th className="p-2 text-left">Item Name</th>
-                  <th className="p-2 text-left">Required By *</th>
-                  <th className="p-2 text-left">Available Qty</th>
-                  <th className="p-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id} className="border-b border-gray-300">
-                    <td className="pl-2">
-                      <input type="checkbox" className="h-4 w-4" />
-                    </td>
-                    <td className="">{item.id}</td>
-                    <td className="">
-                      <div className="relative">
-                        <div
-                          onClick={() => setOpen(open === item.id ? null : item.id)}
-                          className="w-full text-left px-2 py-2 border border-gray-300 rounded-md"
-                        >
-                          {item.item_code || "Select item..."}
-                        </div>
-                        {open === item.id && (
-                          <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
-                            <input
-                              type="text"
-                              placeholder="Search items..."
-                              className="w-full p-2 border border-gray-300"
-                            />
-                            <ul className="max-h-32 overflow-y-auto z-50">
-                              {itemList.map((code) => (
-                                <li
-                                  key={code.value}
-                                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => handleItemSelect(item.id, code)}
-                                >
-                                  {code.item_code}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="">
-                      <input
-                        type="text"
-                        value={item.item_name}
-                        readOnly
-                        className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
-                      />
-                    </td>
-                    <td className="">
-                      <input
-                        type="text"
-                        value={item.requiredBy}
-                        onChange={(e) => handleInputChange(item.id, "requiredBy", e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      />
-                    </td>
-                    <td className="">
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => handleInputChange(item.id, "quantity", Number(e.target.value))}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      />
-                    </td>
-                  
-                    <td className="">
-                      <span onClick={() => removeRow(index)} className="px-2 py-1  text-red-500 text-xl rounded-md">
-                      <MdDelete />
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
+
+          <div>
+            <label className="block text-sm font-medium">Service<span className="text-red-500">*</span></label>
+            <select
+              name="purpose"
+              value={service}
+              onChange={handleChangeService}
+              disabled={isDocStatusLocked()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            >
+              <option>Select Service</option>
+              <option>Peneus Hub</option>
+              <option>Tyre Hotel</option>
+            </select>
           </div>
-          <div className="mt-4 flex justify-between items-center">
-            <button onClick={addRow} className="px-4 py-2 bg-blue-500 text-white rounded-md">
-              Add Row
-            </button>
-          </div>
-        </div>
-      </div>
+          {service === "Tyre Hotel" && (
+
+   
+       
+    
 
 
+
+        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium">Purpose<span className="text-red-500">*</span></label>
+            <select
+              name="purpose"
+              value={purpose}
+              onChange={handleChange}
+              disabled={isDocStatusLocked()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
+            >
+              <option></option>
+              <option>Redelivery</option>
+              {service === "Tyre Hotel" && (<option>Pick Up</option>)}
+            </select>
+          </div>
+
+
+   
+
+    
       
+
+
+
+
+
+
+
+      </form>
     </div>
   )
 }
+
+export default RedeliveryForm
 
 
 
