@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { FaBell, FaPlus, FaUser, FaSignOutAlt, FaTruck, FaChevronDown, FaChevronUp } from "react-icons/fa"

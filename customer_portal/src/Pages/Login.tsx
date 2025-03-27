@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { BiHide, BiShowAlt } from "react-icons/bi"
 import { useFrappeAuth } from "frappe-react-sdk"
@@ -17,13 +15,11 @@ const Login = () => {
   const [rotation, setRotation] = useState(0)
   const [speed, setSpeed] = useState(1)
 
-  // Enhanced tire rotation with variable speed
   useEffect(() => {
     const interval = setInterval(() => {
-      // Gradually change speed to simulate realistic physics
       setSpeed(prevSpeed => {
         const newSpeed = prevSpeed + (Math.random() * 0.2 - 0.1)
-        return Math.max(0.5, Math.min(2, newSpeed)) // Keep speed between 0.5 and 2
+        return Math.max(0.5, Math.min(2, newSpeed))
       })
       
       setRotation(prev => (prev + speed) % 360)
@@ -58,7 +54,6 @@ const Login = () => {
     }
   }
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: {
@@ -97,7 +92,6 @@ const Login = () => {
     },
   }
 
-  // Tire rotation animation with dynamic speed
   const tireRotation = {
     rotate: rotation,
     transition: {
@@ -115,7 +109,7 @@ const Login = () => {
         initial="hidden"
         animate="visible"
       >
-        {/* Large background tire */}
+       
         <motion.div
           className="absolute -left-20 -top-20 w-40 h-40 rounded-full border-8 border-dashed opacity-30"
           style={{
@@ -125,8 +119,6 @@ const Login = () => {
           }}
           animate={tireRotation}
         />
-        
-        {/* Small background tire with opposite rotation */}
         <motion.div
           className="absolute -right-16 -bottom-16 w-32 h-32 rounded-full border-8 border-dashed opacity-30"
           style={{
@@ -144,7 +136,6 @@ const Login = () => {
           initial="hidden"
           animate="visible"
         >
-          {/* Tire with tread pattern on left side */}
           <motion.div
             className="absolute -left-4 -top-4 w-16 h-16 rounded-full"
             style={{
@@ -154,13 +145,11 @@ const Login = () => {
             }}
             animate={tireRotation}
           >
-            {/* Add tread pattern as a pseudo-element via CSS class */}
+        
             <div className="w-full h-full rounded-full border-4 border-dashed border-gray-800 opacity-70"></div>
           </motion.div>
           
           <img src={Frame || "/placeholder.svg"} className="w-[400px] relative z-10" alt="Frame" />
-          
-          {/* Tire with rim details on right side */}
           <motion.div
             className="absolute right-4 bottom-4 w-20 h-20 rounded-full overflow-hidden"
             style={{
@@ -169,15 +158,14 @@ const Login = () => {
             }}
             animate={{ rotate: -rotation }}
           >
-            {/* Tread pattern */}
             <div className="w-full h-full rounded-full border-4 border-dashed border-gray-800 opacity-80"></div>
-            {/* Tire hub */}
+          
             <div className="absolute top-1/3 left-1/3 w-1/3 h-1/3 rounded-full bg-gray-500 shadow-inner"></div>
           </motion.div>
         </motion.div>
 
         <div className="p-4 flex flex-col gap-2 rounded-xl w-96 relative">
-          {/* Small decorative tire in form section */}
+
         
           <motion.img
             src={Frame2}
@@ -279,7 +267,7 @@ const Login = () => {
                 </motion.div>
               ) : (
                 <>
-                  {/* Animated mini tire along button */}
+
                   <motion.div
                     className="absolute top-1/2 w-8 h-8 rounded-full opacity-70"
                     style={{
@@ -299,13 +287,10 @@ const Login = () => {
                       times: [0, 0.5, 1],
                     }}
                   >
-                    {/* Tire tread */}
+
                     <div className="w-full h-full rounded-full border-2 border-dashed border-white"></div>
                   </motion.div>
-                  
-                  Log in
-                  
-                  {/* Second mini tire along button */}
+                   Log in
                   <motion.div
                     className="absolute top-1/2 w-8 h-8 rounded-full opacity-70"
                     style={{
@@ -326,15 +311,12 @@ const Login = () => {
                       times: [0, 0.5, 1],
                     }}
                   >
-                    {/* Tire tread */}
                     <div className="w-full h-full rounded-full border-2 border-dashed border-white"></div>
                   </motion.div>
                 </>
               )}
             </motion.button>
           </form>
-
-          {/* Bottom left tire with tread pattern */}
         </div>
       </motion.div>
     </div>

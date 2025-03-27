@@ -3,99 +3,28 @@
 import type React from "react"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type ChangeEvent, type FormEvent, type Key, type ReactNode, useEffect, useState } from "react"
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import axios from "axios"
-import { FaArrowLeft } from "react-icons/fa"
 import { useLocation, useNavigate, useParams, } from "react-router-dom"
-import { MdDelete } from "react-icons/md"
-import ItemTable from "./ItemsTable"
-interface ItemList {
-  OthersItemName: any
-  OthersItemCode: any
-  type: any
-  weight: any
-  tireWidth: any
-  SpeedRating: any
-  Model: any
-  Marks: any
-  LoadIndex: any
-  diameter: any
-  Carcass: any
-  Brand: any
-  AspectRatio: any
-  otherItemName: any
-  OtherItemCode: any
-  available: ReactNode
-  id: number
-  requiredBy: string
-  quantity: number
-  targetWarehouse: string
-  uom: string
-  name: string
-  item_name: string
-  item_code: string
-}
-interface FetchedItem {
-  schedule_date: string
-  item_code: string
-  item_name: string
-  items_quantity: number
-  label: string
-  value: string
-  actual_qty: number
-}
-interface Address {
-  address_title: string
-  address_line1: string
-  city: string
-  country: string
-}
-interface CustomerLoginUser {
-  name: boolean | CustomerLoginUser | null
-  customer_name: string
-  customer_group: string
-}
-interface Contact {
-  name: string
-  phone: string
-  email_id: string
-}
-interface Address {
-  name: string
-  address_title: string
-  address_line1: string
-  city: string
-  country: string
-  address_type: string
-}
-interface Transporter {
-  supplier: string
-  cutoff_start_time: string
-  cutoff_end_time: string
-  name: any
-  address: any
-  is_default?: number
-}
+import TableComponent from "./components/ItemsTableForTH"
+import { CustomerSection } from "./components/customer-section"
+import { ContactSection } from "./components/contact-section"
+import { AddressTransporterSection } from "./components/address-transporter-section"
+import { ServiceSection } from "./components/service-section"
+import { PurposeDateSection } from "./components/purpose-date-section"
+import type { ItemList, FetchedItem, Address, Contact, CustomerLoginUser, Transporter, RowData, } from "./types/redelivery-form"
+import MaterialRequestHeader from "./components/topbarOfForm"
+import ItemTable from "./components/itemsTableForPH"
+
 interface dataSubmit {
   message?: {
     message: string
     docstatus: number
   }
 }
-type RowData = {
-  id: number
-  item_code: string
-  item_name: string
-  requiredBy: string
-  quantity: string
-  uom: string
-  uomConversion: string
-  type: string
-  selectedItem: string
-}
 const RedeliveryForm = () => {
   //customer state
-  const [customers, setCustomers] = useState<{ name: string }[]>([])
+  const [customers, setCustomers] = useState<[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<string>("")
   const [customerName, setCustomerName] = useState<string>("")
   const [customerLoginUser, setCustomerLoginUser] = useState<CustomerLoginUser | null>(null)
@@ -216,7 +145,7 @@ const RedeliveryForm = () => {
       setIsEditMode(false)
       resetFormFields()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, purposeParam, serviceParam])
   const navigate = useNavigate()
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
@@ -305,7 +234,7 @@ const RedeliveryForm = () => {
     const value = e.target.value
     setLicensePlate(value) // Save to localStorage
   }
-  useEffect(() => {}, [])
+  useEffect(() => { }, [])
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
   }
@@ -445,7 +374,7 @@ const RedeliveryForm = () => {
               },
             )
             setCustomers(processedCustomers)
-          
+
 
             if (processedCustomers.length > 0) {
               const firstCustomer = processedCustomers[0].name
@@ -664,13 +593,13 @@ const RedeliveryForm = () => {
       items.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              item_code: selectedItem.item_code,
-              item_name: selectedItem.item_name,
-              quantity: selectedItem.items_quantity,
-              available: selectedItem.actual_qty,
-              requiredBy: selectedItem.schedule_date,
-            }
+            ...item,
+            item_code: selectedItem.item_code,
+            item_name: selectedItem.item_name,
+            quantity: selectedItem.items_quantity,
+            available: selectedItem.actual_qty,
+            requiredBy: selectedItem.schedule_date,
+          }
           : item,
       ),
     )
@@ -828,462 +757,97 @@ const RedeliveryForm = () => {
     }
   }
 
-  const isDocStatusLocked = () => {
+  const isDocStatusLocked: () => boolean = () => {
     return docStatus === 1
-  }
-  const getCustomerDisplayName = (customer: any): string => {
-    if (customer.displayName) {
-      return customer.displayName
-    }
-    // Fallback to customer_name if displayName is not set
-    return customer.customer_name
   }
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
   return (
     <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded">
       <p className="mb-4 text-red-500">{dataSubmit?.message?.message}</p>
-      <div className="flex items-center  space-x-2 mb-6">
-        <span className="cursor-pointer" onClick={() => navigate(-1)}>
-          <FaArrowLeft />
-        </span>
-        <h2 className="text-xl font-semibold">
-          <span
-            className={`${
-              !isDocStatusLocked()
-                ? isEditMode
-                  ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
-                  : "bg-green-500 text-white px-2 py-1 rounded-lg"
-                : "bg-blue-500 text-white px-2 py-1 rounded-lg"
-            }`}
-          >
-            {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
-          </span>{" "}
-          Material Request
-        </h2>
-      </div>
-
+      <MaterialRequestHeader
+        navigate={navigate}
+        isEditMode={isEditMode}
+        isDocStatusLocked={isDocStatusLocked}
+      />
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Customer Name<span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedCustomer}
-              disabled={isDocStatusLocked()}
-              onChange={handleCustomerSelect}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Customer</option>
-              {customers.map((customer: any) => (
-                <option key={customer.name} value={customer.name}>
-                  {getCustomerDisplayName(customer)}
-                </option>
-              ))}
-              <option>{LoginCustomerName}</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Request By</label>
-            <input
-              type="text"
-              name="request-by"
-              value={LoginCustomerName}
-              disabled={isDocStatusLocked()}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Party Type<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="request-by"
-              value={groupBy || "Guest"}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Select Contact<span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedContact}
-              onChange={handleContactSelect}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Contact</option>
-              {contacts.map((contact) => (
-                <option key={contact.name} value={contact.name}>
-                  {contact.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <CustomerSection
+          selectedCustomer={selectedCustomer}
+          customerName={customerName}
+          loginCustomerName={LoginCustomerName}
+          groupBy={groupBy}
+          customers={customers}
+          isDocStatusLocked={isDocStatusLocked}
+          onCustomerSelect={handleCustomerSelect}
+        />
+        <ContactSection
+          selectedContact={selectedContact}
+          contact={contact}
+          email={email}
+          contacts={contacts}
+          showContactFields={showContactFields}
+          isDocStatusLocked={isDocStatusLocked}
+          onContactSelect={handleContactSelect}
+        />
+        <AddressTransporterSection
+          selectedAddress={selectedAddress}
+          addresses={addresses}
+          showAddressFields={showAddressFields}
+          addressDetails={addressDetails}
+          selectedTransporter={selectedTransporter}
+          transporters={transporters}
+          showTransporterFields={showTransporterFields}
+          transporterDetails={transporterDetails}
+          isDocStatusLocked={isDocStatusLocked}
+          onAddressSelect={handleAddressSelect}
+          onTransporterSelect={handleTransporterSelect}
+        />
+        <ServiceSection
+          service={service}
+          selectedSeasons={selectedSeasons}
+          selectedCondition={selectedCondition}
+          selectedReason={selectedReason}
+          licensePlate={LicensePlate}
+          mezzo={mezzo}
+          season={season}
+          condition={condition}
+          reason={reason}
+          isDocStatusLocked={isDocStatusLocked}
+          onServiceChange={handleChangeService}
+          onSeasonChange={handleChangeSeason}
+          onConditionChange={handleChangeCondition}
+          onReasonChange={handleChangeReason}
+          onLicensePlateChange={handleLicensePlateChange}
+          onMezzoChange={handleMezzoChange}
+        />
+        <PurposeDateSection
+          purpose={purpose}
+          dateOfPosting={dateOfPosting}
+          dateOfDelivery={DateOfDelivery}
+          service={service}
+          isDocStatusLocked={isDocStatusLocked}
+          onPurposeChange={handleChange}
+          onDateOfPostingChange={handleDateChange}
+          onDateOfDeliveryChange={handleDateOfDelivery}
+        />
 
-          {showContactFields && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Contact</label>
-                <input
-                  type="text"
-                  value={contact}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Email ID</label>
-                <input
-                  type="email"
-                  value={email}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
-        </div>
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Select Address<span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedAddress}
-              onChange={handleAddressSelect}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Address</option>
-              {addresses.map((addr) => (
-                <option key={addr.name} value={addr.name}>
-                  {addr.address_title} - {addr.address_type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {showAddressFields && addressDetails && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">City & Country</label>
-                <input
-                  type="text"
-                  value={`${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
-          <div>
-            <label className="block text-sm font-medium">
-              Select Transporter<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="name"
-              value={selectedTransporter}
-              onChange={handleTransporterSelect}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Transporter</option>
-              {transporters.map((transporter, index) => (
-                <option key={transporter.name || index} value={transporter.supplier || ""}>
-                  {transporter.supplier || "Unnamed Transporter"}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {showTransporterFields && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Supplier</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.supplier || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Cutoff Start Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.cutoff_start_time || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Cutoff End Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.cutoff_end_time || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Weekdays Off</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.cutoff_end_time || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Service<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="purpose"
-              value={service}
-              onChange={handleChangeService}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option>Select Service</option>
-              <option>Peneus Hub</option>
-              <option>Tyre Hotel</option>
-            </select>
-          </div>
-          {service === "Tyre Hotel" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Seasion</label>
-                <select
-                  name="purpose"
-                  value={selectedSeasons}
-                  onChange={handleChangeSeason}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Seasion</option>
-                  {season?.data?.map((item: any, index: Key) => (
-                    <option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Condition</label>
-                <select
-                  name="purpose"
-                  value={selectedCondition}
-                  onChange={handleChangeCondition}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Condition</option>
-                  {condition?.data?.map((item: any, index: Key) => (
-                    <option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Reason</label>
-                <select
-                  name="purpose"
-                  value={selectedReason}
-                  onChange={handleChangeReason}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Reason</option>
-                  {reason?.data?.map((item: any, index: Key) => (
-                    <option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  license plate<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  onChange={handleLicensePlateChange}
-                  disabled={isDocStatusLocked()}
-                  value={LicensePlate}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter license plate"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Mezzo</label>
-                <input
-                  type="text"
-                  value={mezzo}
-                  onChange={handleMezzoChange}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter detail"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium">
-              Purpose<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="purpose"
-              value={purpose}
-              onChange={handleChange}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option>Redelivery</option>
-              {service === "Tyre Hotel" && <option>Pick Up</option>}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Date of Posting<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="dateOfPosting"
-              value={dateOfPosting}
-              onChange={handleDateChange}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">
-              Date of Delivery<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="dateOfDelivery"
-              value={DateOfDelivery}
-              onChange={handleDateOfDelivery}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-        </div>
         {service === "Peneus Hub" && (
-          <div className=" mb-6">
-            <h1 className="text-lg font-bold mb-4">Item TH</h1>
-            <table className="w-full  border rounded-md border-gray-300">
-              <thead>
-                <tr className="border-b bg-gray-50 border-gray-300">
-                  <th className="border border-gray-300 p-2">No.</th>
-                  <th className="border border-gray-300 p-2">Item Code *</th>
-                  <th className="border border-gray-300 p-2">Item Name</th>
-                  <th className="border border-gray-300 p-2">Required By *</th>
-                  <th className="border border-gray-300 p-2">Qty</th>
-                  <th className="border border-gray-300 p-2">Available Qty</th>
-                  <th className="border border-gray-300 p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id} className="border-b rounded-md border-gray-300">
-                    <td className=" p-2 text-left">{item.id}</td>
-                    <td className=" ">
-                      <div className="relative">
-                        <div
-                          onClick={() => !isDocStatusLocked() && setOpen(open === item.id ? null : item.id)}
-                          className={`w-full text-left px-2 py-2 border-x border-gray-300 ${isDocStatusLocked() ? "cursor-not-allowed opacity-50" : ""}`}
-                        >
-                          {item.item_code || "Select item..."}
-                        </div>
-                        {open === item.id && !isDocStatusLocked() && (
-                          <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
-                            <input
-                              type="text"
-                              placeholder="Search items..."
-                              className="w-full p-2 border border-gray-300"
-                            />
-                            <ul className="max-h-32 overflow-y-auto z-50">
-                              {itemList.map((code) => (
-                                <li
-                                  key={code.value}
-                                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => handleItemSelect(item.id, code)}
-                                >
-                                  {code.item_code}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className=" ">
-                      <input
-                        type="text"
-                        value={item.item_name}
-                        readOnly
-                        className="w-full p-2 border-x border-gray-300 "
-                      />
-                    </td>
-                    <td className=" ">
-                      <input
-                        type="date"
-                        value={DateOfRequredBy}
-                        onChange={handleDateOfRequredBy}
-                        className="w-full p-2 border-x border-gray-300"
-                        disabled={isDocStatusLocked()}
-                      />
-                    </td>
-                    <td className=" ">
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const updatedItems = items.map((i) =>
-                            i.id === item.id ? { ...i, quantity: Number.parseInt(e.target.value, 10) } : i,
-                          )
-                          setItems(updatedItems)
-                        }}
-                        className="w-full p-2 border-x border-gray-300"
-                        disabled={isDocStatusLocked()}
-                      />
-                    </td>
-                    <td className="border-r border-gray-300">{item.available}</td>
-                    <td className="">
-                      <span
-                        onClick={() => !isDocStatusLocked() && removeRow(index)}
-                        className={`py-1 flex items-center justify-center text-black text-xl rounded-md ${isDocStatusLocked() ? "cursor-not-allowed opacity-50" : ""}`}
-                      >
-                        <MdDelete />
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ItemTable
+            items={items}
+            itemList={itemList}
+            open={open}
+            setOpen={setOpen}
+            DateOfRequredBy={DateOfRequredBy}
+            handleDateOfRequredBy={handleDateOfRequredBy}
+            isDocStatusLocked={isDocStatusLocked}
+            handleItemSelect={handleItemSelect}
+            setItems={setItems}
+            removeRow={removeRow}
+          />
         )}
         {service === "Tyre Hotel" && (
           <div className="mb-6">
-            <ItemTable
+            <TableComponent
               itemsData={tyreItems}
               updateItemData={updateTyreItems}
               onDataChange={handleDataChange}

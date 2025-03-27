@@ -26,6 +26,9 @@ interface Item {
 interface Supplier {
   name: string;
 }
+interface CustomerGroupResponse {
+  message: { name: string }[];
+}
 
 interface FormData {
   uniqueEmail: string;
@@ -94,13 +97,12 @@ const NewCustomer: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
-  const [customerGroup, setCustomerGroup] = useState<unknown>(null);
+  const [customerGroup, setCustomerGroup] = useState<CustomerGroupResponse | null>(null);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
-console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustomerGroupcustomerGroup")
   useEffect(() => {
     fetchTransporters();
     if (id) {
-      fetchCustomerData(id); // Fetch customer data if ID is present
+      fetchCustomerData(id);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -151,34 +153,31 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
       }
 
       const result = await response.json();
-      console.log(result, "customer update data result");
-
-      // Assuming result.data contains the data you're working with
       const data = result.data;
 
       setFormData({
         customerName: data.customer_name || '',
         customerGroup: data.customer_group || '',
         transporter: data.transporter || '',
-        uniqueEmail: data.contact.uniqueEmail || '', // Fixed here
-        uniquePhone: data.contact.uniquePhone || '', // Fixed here
+        uniqueEmail: data.contact.uniqueEmail || '', 
+        uniquePhone: data.contact.uniquePhone || '', 
         contact: {
-          firstName: data.contacts?.[0]?.first_name || '',  // Contacts array is missing
+          firstName: data.contacts?.[0]?.first_name || '',  
           emailId: data.contacts?.[0]?.email_id || '',
           phone: data.contacts?.[0]?.phone || '',
         },
         address: {
-          addressTitle: data.addresses?.[0]?.address_title || 'Office',  // Addresses array is missing
+          addressTitle: data.addresses?.[0]?.address_title || 'Office',  
           addressLine1: data.addresses?.[0]?.address_line1 || '',
           city: data.addresses?.[0]?.city || '',
           country: data.addresses?.[0]?.country || 'United States',
           isPrimaryAddress: data.addresses?.[0]?.is_primary_address === 1,
         },
-        purpose: data.purpose || 'Redelivery',  // No purpose field in the provided data, handle accordingly
-        requestedBy: data.requested_by || '',  // No requested_by field in the provided data, handle accordingly
-        dateOfPosting: data.date_of_posting || '',  // No date_of_posting field in the provided data
-        dateOfDelivery: data.date_of_delivery || '',  // No date_of_delivery field in the provided data
-        items: data.items || [{ itemName: '', itemCode: '', requiredQty: '', availableQty: '' }],  // Items array is missing
+        purpose: data.purpose || 'Redelivery',  
+        requestedBy: data.requested_by || '',  
+        dateOfPosting: data.date_of_posting || '', 
+        dateOfDelivery: data.date_of_delivery || '', 
+        items: data.items || [{ itemName: '', itemCode: '', requiredQty: '', availableQty: '' }],  
       });
 
     } catch (error) {
@@ -399,8 +398,8 @@ console.log(customerGroup,loading,"customerGroupcustomerGroupcustomerGroupcustom
       };
 
       const url = id
-        ? `/api/method/lbf_logistica.api.bol.update_customer/${id}` // Update endpoint
-        : '/api/method/lbf_logistica.api.bol.create_customer'; // Create endpoint
+        ? `/api/method/lbf_logistica.api.bol.update_customer/${id}` 
+        : '/api/method/lbf_logistica.api.bol.create_customer'; 
 
       const response = await fetch(url, {
         method: 'POST',

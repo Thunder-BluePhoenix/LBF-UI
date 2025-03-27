@@ -205,14 +205,6 @@ const QualityInspectionData = () => {
                                         <span className="text-sm  text-gray-500">{itemInspection}</span>
                                     </div>
                                 </div>
-                                {/* <div className="flex flex-row">
-                                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium ">Supplier Delivery Note</span>
-                                    <span className="text-sm  text-gray-500">N/A</span>
-                                </div>
-                            </div> */}
-
                                 <div className="flex flex-row">
                                     <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                                     <div className="flex flex-col">

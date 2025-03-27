@@ -259,13 +259,14 @@ const MaterialRequestList: React.FC = () => {
                         <tbody>
                             {paginatedRequests.map((request) => (
                                 <tr
+                                    onClick={() => handleRedirectToMaterialDetails(request.name)}
                                     key={request.name}
-                                    className="border-b border-gray-300 hover:bg-gray-100 "
+                                    className="border-b border-gray-300 cursor-pointer hover:bg-gray-100 "
                                 >
                                     <td className="px-6 py-2 text-xs text-gray-800 font-bold">{request.customer || "Not available"}</td>
                                     <td
-                                        onClick={() => handleRedirectToMaterialDetails(request.name)}
-                                        className="px-6 py-4 text-xs  text-black cursor-pointer hover:underline">
+                                        
+                                        className="px-6 py-4 text-xs  text-black">
                                         {request.customer || "Not available"}
                                     </td>
                                     <td className="px-6 py-4 block truncate max-w-[15rem] text-gray-600 text-xs">{request.service || "Not available"}</td>

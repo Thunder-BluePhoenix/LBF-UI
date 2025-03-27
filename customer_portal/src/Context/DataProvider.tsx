@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 
@@ -59,9 +60,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data: Message = await response.json();
-
-        // Log the fetched data to confirm the API response
-        console.log("Fetched data:", data);
 
         // Set the API data
         setApiData(data);

@@ -70,8 +70,6 @@ const BillOfLandingDetails = () => {
         return ' text-gray-500  bg-gray-100  border  border-gray-500';
     }
   };
-
-  console.log(messageData, "hello")
   return (
     <div className="p-6 min-h-screen">
       <div className="max-w-6xl mx-auto bg-white border border-gray-100 rounded-lg shadow-lg p-8 pt-0">
@@ -187,15 +185,6 @@ const BillOfLandingDetails = () => {
                   <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
                 </div>
               </div>
-
-              {/* <div className="flex flex-row">
-                <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium ">Purpose</span>
-                  <span className="text-sm  text-gray-500">{messageData?.service}</span>
-                </div>
-              </div> */}
-
               <div className="flex flex-row">
                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
                 <div className="flex flex-col">
@@ -238,11 +227,6 @@ const BillOfLandingDetails = () => {
               </div>
              
               <div className="flex flex-row">
-                {/* <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium ">Handling In charge</span>
-                  <span className="text-sm  text-gray-500">{messageData?.posting_date || "Not Available"}</span>
-                </div> */}
               </div>
             </div>
           </div>

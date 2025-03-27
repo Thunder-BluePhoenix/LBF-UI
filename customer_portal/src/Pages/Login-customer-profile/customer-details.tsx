@@ -89,8 +89,6 @@ const CustomerDetails = () => {
         const { data: userResponse } = await axios.get("/api/method/frappe.auth.get_logged_user")
         const loginUserEmail = userResponse.message
         setLoginUser(loginUserEmail)
-
-        // Fetch customer details
         const { data: customerResponse } = await axios.get("/api/resource/Customer", {
           params: {
             fields: JSON.stringify(["*"]),
@@ -114,39 +112,12 @@ const CustomerDetails = () => {
 
     fetchData()
   }, [])
-
-  // Format date function
-  // const formatDate = (dateString) => {
-  //   if (!dateString) return 'N/A';
-  //   const date = new Date(dateString);
-  //   return date.toLocaleString();
-  // };
-
-  // Handle changes to customer data
-
-
-  // Tab content renderer
   const renderTabContent = () => {
     switch (activeTab) {
       case 'Details':
         return (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* <div className="flex items-center justify-center">
-                {customerData.image ? (
-                  <img 
-                    src={customerData.image} 
-                    alt="Customer profile" 
-                    className="object-cover rounded-lg shadow-md max-h-64 w-full"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                    </svg>
-                  </div>
-                )}
-              </div> */}
               <div>
                 <label className="block text-[14px] font-light text-gray-700">Customer Name <span className="text-red-500">*</span></label>
                 <input 
@@ -295,24 +266,14 @@ const CustomerDetails = () => {
     }
   };
 
-
-
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading customer data...</div>;
   }
-
-
-  // List of tabs
   const tabs = ['Details', 'Address & Contact',];
 
   return (
     <div className=" min-h-screen p-4">
       <div className="max-w-6xl border border-gray-300 mx-auto bg-white rounded-lg ">
-        {/* Customer Header */}
-       
-     
-        
-        {/* Tabs */}
         <div className="border-b bg-gray-50 border-gray-200">
           <nav className="flex overflow-x-auto">
             {tabs.map((tab) => (
@@ -330,8 +291,6 @@ const CustomerDetails = () => {
             ))}
           </nav>
         </div>
-        
-        {/* Tab Content */}
         <div className="p-6">
           {renderTabContent()}
         </div>

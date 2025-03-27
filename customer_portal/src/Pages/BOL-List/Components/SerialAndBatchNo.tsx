@@ -203,10 +203,6 @@ const SerialAndBatchNo = () => {
                             </div>
                             <div className="flex flex-row">
                                 <div className="bg-gray-300 h-10 w-[1px] mr-4"></div>
-                                {/* <div className="flex flex-col">
-                                    <span className="text-sm font-medium ">Supplier Delivery Note</span>
-                                    <span className="text-sm  text-gray-500">{messageData?.posting_date}</span>
-                                </div> */}
                             </div>
                         </div>
                         <hr className="mb-4 text-gray-300"></hr>
