@@ -11,12 +11,12 @@ import QualityInspectionData from "../Pages/BOL-List/Components/QualityInspestio
 import SerialAndBatchNo from "../Pages/BOL-List/Components/SerialAndBatchNo";
 import MaterialRequestList from "../Pages/Material-List/MaterialRequest-list";
 import MaterialRequestDetails from "../Pages/Material-List/Components/MaterialRequestDetails";
-
 import NewCustomer from "../Pages/Customer/Components/NewCustomer";
 import NotificationPage from "../Pages/Notification/Notification";
 import CustomerTable from "../Pages/Customer/Customer";
 import CustomerDetails from "../Pages/Login-customer-profile/customer-details";
 import RedeliveryForm from "../Pages/Material-request-from/redelivery-form";
+import ModalMaterialListForTH from "../Pages/Material-request-from/components/modalMaterialListForTH";
 
 const AppRoutes = () => {
     const { currentUser, isLoading, isValidating } = useFrappeAuth()
@@ -42,6 +42,7 @@ const AppRoutes = () => {
       <Route path="/customer_portal/material-request-details/:id" element={<Layout> <div className="p-4"><MaterialRequestDetails/></div></Layout> }/>
       <Route path="/customer_portal/material-request-form/" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
       <Route path="/customer_portal/material-request-form/:id" element={<Layout> <div className="p-4"><RedeliveryForm/></div></Layout> }/>
+      <Route path="/customer_portal/modal-material-list-for-th/" element={<Layout> <div className="p-4"><ModalMaterialListForTH/></div></Layout> }/>
       <Route path="/customer_portal/newcustomer" element={<Layout> <div className="p-4"><NewCustomer/></div></Layout> }/>
       <Route path="/customer_portal/newcustomer/:id" element={<Layout> <div className="p-4"><NewCustomer/></div></Layout> }/>
       <Route path="/customer_portal/customer-table" element={<Layout> <div className="p-4"><CustomerTable/></div></Layout> }/>

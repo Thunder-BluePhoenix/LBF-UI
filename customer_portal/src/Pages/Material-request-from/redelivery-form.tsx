@@ -5,16 +5,26 @@ import type React from "react"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import axios from "axios"
-import { useLocation, useNavigate, useParams, } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import TableComponent from "./components/ItemsTableForTH"
 import { CustomerSection } from "./components/customer-section"
 import { ContactSection } from "./components/contact-section"
 import { AddressTransporterSection } from "./components/address-transporter-section"
 import { ServiceSection } from "./components/service-section"
 import { PurposeDateSection } from "./components/purpose-date-section"
-import type { ItemList, FetchedItem, Address, Contact, CustomerLoginUser, Transporter, RowData, } from "./types/redelivery-form"
+import type {
+  ItemList,
+  FetchedItem,
+  Address,
+  Contact,
+  CustomerLoginUser,
+  Transporter,
+  RowData,
+} from "./types/redelivery-form"
 import MaterialRequestHeader from "./components/topbarOfForm"
 import ItemTable from "./components/itemsTableForPH"
+import { useDataContext } from "../../Context/DataProvider"
+import ModalMaterialListForTH from "./components/modalMaterialListForTH"
 
 interface dataSubmit {
   message?: {
@@ -76,10 +86,13 @@ const RedeliveryForm = () => {
   const [itemsRedelivery, setItemsRedelivery] = useState<any>(null)
   const [mezzo, setMezzo] = useState<string>("")
   const [LicensePlate, setLicensePlate] = useState<string>("")
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+  const { selectedItemId, licensePlateFilter } = useDataContext()
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
   const purposeParam = searchParams.get("purpose")
   const serviceParam = searchParams.get("service")
+
+  const isModalMaterialListForTh = searchParams.get("modal-material-list-for-th") === "true"
 
   const { id } = useParams<{ id: string }>()
   const resetFormFields = () => {
@@ -150,7 +163,7 @@ const RedeliveryForm = () => {
   const navigate = useNavigate()
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
   const LoginCustomerName = customerLoginUser?.customer_name
-  console.log(loginUser, itemsRedelivery, "qqqqqqqqqqqqR")
+  console.log(loginUser, licensePlateFilter, selectedItemId, "login user")
   useEffect(() => {
     if (transporters && transporters.length > 0) {
       const defaultTransporter = transporters.find((item) => item.is_default === 1)
@@ -186,7 +199,6 @@ const RedeliveryForm = () => {
   }
   const handleDataChange = (rows: RowData[]) => {
     setItems(rows as unknown as ItemList[]) // Use type assertion to bypass the type error
-    console.log("Updated Rows from Child:", rows)
   }
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setPurpose(event.target.value)
@@ -206,23 +218,33 @@ const RedeliveryForm = () => {
     const selectedSeason = event.target.value
     setSelectSeason(selectedSeason)
   }
-
   const handleContactSelect = (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value
-    setSelectedContact(selectedValue)
-    if (selectedValue) {
-      setShowContactFields(true)
-      const selectedContactData = contacts.find((c) => c.name === selectedValue)
+    const selectedValue = event.target.value;
+    
+    setSelectedContact(selectedValue); // Update selected contact
+    
+    // No need to update phone/email here, let useEffect handle it
+  };
+  
+  useEffect(() => {
+    if (selectedContact) {
+      const selectedContactData = contacts.find((c) => c.name === selectedContact);
+      
       if (selectedContactData) {
-        setContact(selectedContactData.phone || "")
-        setEmail(selectedContactData.email_id || "")
+        setContact(selectedContactData.phone || "");
+        setEmail(selectedContactData.email_id || "");
+      } else {
+        setContact("");
+        setEmail("");
       }
     } else {
-      setShowContactFields(false)
-      setContact("")
-      setEmail("")
+      setContact("");
+      setEmail("");
     }
-  }
+    
+    setShowContactFields(!!selectedContact); // Ensure it's a boolean
+  }, [selectedContact]);
+  
 
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfPosting(e.target.value)
@@ -234,7 +256,15 @@ const RedeliveryForm = () => {
     const value = e.target.value
     setLicensePlate(value) // Save to localStorage
   }
-  useEffect(() => { }, [])
+  useEffect(() => {
+    // Set the license plate to the context filter value when it changes
+    if (licensePlateFilter) {
+      setLicensePlate(licensePlateFilter);
+    }
+  }, [licensePlateFilter]);
+
+  useEffect(() => {}, [])
+  
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
   }
@@ -246,48 +276,59 @@ const RedeliveryForm = () => {
   const handleAddressSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value
     setSelectedAddress(selectedValue)
+  }
 
-    if (selectedValue) {
-      setShowAddressFields(true)
-      const selectedAddressData = addresses.find((a) => a.name === selectedValue)
-      setAddressDetails(selectedAddressData || null)
-
+  useEffect(() => {
+    if (!selectedAddress) {
+      setShowAddressFields(false);
+      setAddressDetails(null);
+      setTransporters([]);
+      setShowTransporterFields(false);
+      return;
+    }
+  
+    setShowAddressFields(true);
+    
+    const selectedAddressData = addresses.find((a) => a.name === selectedAddress);
+    setAddressDetails(selectedAddressData || null);
+  
+    const fetchTransporters = async () => {
       try {
-        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`)
-        const transporterData = transporterResponse?.data?.data.custom_transporters
-        setTransporters(transporterData)
-        setTransportersLoaded(true)
-
-        if (!transporterData || transporterData.length === 0) {
-          setShowTransporterFields(false)
-          setTransporterDetails(null)
-          setSelectedTransporter("")
+        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedAddress)}`);
+        const transporterData = transporterResponse?.data?.data.custom_transporters || [];
+  
+        setTransporters(transporterData);
+        setTransportersLoaded(true);
+  
+        if (transporterData.length === 0) {
+          setShowTransporterFields(false);
+          setTransporterDetails(null);
+          if (!isEditMode) setSelectedTransporter("");
+          return;
         }
-
+  
         if (isEditMode && selectedTransporter) {
-          const matchedTransporter = transporterData.find(
-            (t: { supplier: string }) => t.supplier === selectedTransporter,
-          )
+          const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter);
+          
           if (matchedTransporter) {
-            setTransporterDetails(matchedTransporter)
-            setShowTransporterFields(true)
+            setTransporterDetails(matchedTransporter);
+            setShowTransporterFields(true);
           } else {
-            setShowTransporterFields(false)
+            setTransporterDetails(null);
+            setShowTransporterFields(false);
           }
         }
       } catch (error) {
-        console.error("Error fetching transporter data:", error)
-        setTransporters([])
-        setTransportersLoaded(false)
-        setShowTransporterFields(false)
+        console.error("Error fetching transporter data:", error);
+        setTransporters([]);
+        setTransportersLoaded(false);
+        setShowTransporterFields(false);
       }
-    } else {
-      setShowAddressFields(false)
-      setAddressDetails(null)
-      setTransporters([])
-      setShowTransporterFields(false)
-    }
-  }
+    };
+  
+    fetchTransporters();
+  }, [selectedAddress, isEditMode, selectedTransporter, addresses]);
+  
   const handleTransporterSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value
     setSelectedTransporter(selectedValue)
@@ -349,7 +390,6 @@ const RedeliveryForm = () => {
             `/api/method/lbf_logistica.api.bol.fetch_child_customers?customer=${encodeURIComponent(customerData.name)}`,
           )
           const data = childCustomersResponse.data
-          console.log(data, "data gagin to")
           if (data.message && Array.isArray(data.message)) {
             // Process customers to identify the display name for each
             const processedCustomers = data.message.map(
@@ -374,7 +414,6 @@ const RedeliveryForm = () => {
               },
             )
             setCustomers(processedCustomers)
-
 
             if (processedCustomers.length > 0) {
               const firstCustomer = processedCustomers[0].name
@@ -416,7 +455,6 @@ const RedeliveryForm = () => {
 
   useEffect(() => {
     const fetchRedeliveryItems = async () => {
-      // Check if purpose is "Redelivery" and customerLoginUser is an object with a valid name
       if (
         purpose === "Redelivery" &&
         typeof customerLoginUser === "object" &&
@@ -428,6 +466,7 @@ const RedeliveryForm = () => {
           const itemsForRedelivery = await axios.get(
             `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerLoginUser.name)}&license_plate=${encodeURIComponent(LicensePlate)}&fields=["item_code","item_name","actual_qty","custom_tyre_type","custom_license_plate"]`,
           )
+          console.log(itemsForRedelivery.data, "itemsforredelivery")
           setItemsRedelivery(itemsForRedelivery.data)
         } catch (error: any) {
           console.error("Error fetching items for redelivery:", error.message || error)
@@ -436,8 +475,7 @@ const RedeliveryForm = () => {
     }
 
     fetchRedeliveryItems()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purpose, LicensePlate])
+  }, [purpose, LicensePlate, customerLoginUser])
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
@@ -479,11 +517,15 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching Contact and Email")
     }
   }
+
+  
+
   const fetchExistingData = async (resultId: string) => {
     try {
       const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
       const data = response.data.data
       console.log(data, "fetchexitingdata")
+
       setResultData(data.name)
       setSelectedCustomer(data.shipping_to)
       setCustomerName(data.shipping_to)
@@ -499,41 +541,74 @@ const RedeliveryForm = () => {
       setLicensePlate(data.license_plate)
       setMezzo(data.mezzo)
       setDocStatus(data.docstatus)
+
+      // Fetch address and contact data
       await fetchAddress(data.shipping_to)
-      setSelectedAddress(data.shipping_address_name)
+      await fetchContactEmail(data.shipping_to)
 
+      // Set address data
       if (data.shipping_address_name) {
-        const transporterResponse = await axios.get(
-          `/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`,
-        )
-        const transporterData = transporterResponse?.data?.data.custom_transporters
-        setTransporters(transporterData)
-        setTransportersLoaded(true)
+        setSelectedAddress(data.shipping_address_name)
 
-        if (data.transporter_name) {
-          setSelectedTransporter(data.transporter_name)
-          const matchedTransporter = transporterData.find(
-            (t: { supplier: any }) => t.supplier === data.transporter_name,
+        try {
+          const addressResponse = await axios.get(
+            `/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`,
           )
-          if (matchedTransporter) {
-            setTransporterDetails({
-              supplier: data.transporter_name,
-              cutoff_start_time: matchedTransporter.cutoff_start_time,
-              cutoff_end_time: matchedTransporter.cutoff_end_time,
-              name: matchedTransporter.name,
-              address: matchedTransporter.address,
+
+          const addressData = addressResponse?.data?.data
+          if (addressData) {
+            setAddressDetails({
+              name: addressData.name,
+              address_title: addressData.address_title,
+              address_type: addressData.address_type,
+              address_line1: addressData.address_line1,
+              city: addressData.city,
+              country: addressData.country,
             })
-            setShowTransporterFields(true)
+            setShowAddressFields(true)
+
+            // Handle transporters
+            const transporterData = addressData.custom_transporters || []
+            setTransporters(transporterData)
+            setTransportersLoaded(true)
+
+            if (data.transporter_name) {
+              setSelectedTransporter(data.transporter_name)
+              const matchedTransporter = transporterData.find(
+                (t: { supplier: any }) => t.supplier === data.transporter_name,
+              )
+              if (matchedTransporter) {
+                setTransporterDetails({
+                  supplier: data.transporter_name,
+                  cutoff_start_time: matchedTransporter.cutoff_start_time,
+                  cutoff_end_time: matchedTransporter.cutoff_end_time,
+                  name: matchedTransporter.name,
+                  address: matchedTransporter.address,
+                })
+                setShowTransporterFields(true)
+              }
+            }
           }
+        } catch (error) {
+          console.error("Error fetching address details:", error)
         }
       }
 
-      await fetchContactEmail(data.shipping_to)
-      setSelectedContact(data.customer_contact)
-      setContact(data.contact)
-      setEmail(data.email)
-      setShowContactFields(true)
+      // Set contact data
+      if (data.customer_contact) {
+        setSelectedContact(data.customer_contact)
+        // Find the matching contact in contacts array
+        const contactData = contacts.find((c) => c.name === data.customer_contact)
+        if (contactData) {
+          setContact(contactData.phone || data.contact || "")
+        } else {
+          // Fallback to the data from the API response
+          setContact(data.contact || "")
+        }
+        setShowContactFields(true)
+      }
 
+      // Set items data
       if (data.items && Array.isArray(data.items)) {
         const fetchedItems = data.items.map((item: any, index: number) => ({
           id: index + 1,
@@ -552,6 +627,119 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching existing data")
     }
   }
+
+  useEffect(() => {
+    const autofetchDataTHform = async () => {
+      try {
+        const response = await axios.get(
+          `/api/method/lbf_logistica.api.bol.fetch_bol_for_redelivery_mri?material_request_doc=${selectedItemId}`
+        )
+        const data = response.data.message
+        console.log(data, "auto fetch data for tyre hotel")
+        setSelectedCustomer(data.shipping_to)
+        setCustomerName(data.shipping_to)
+        setSelectedReason(data.reason || "")
+        setSelectedCondition(data.condition || "")
+        setSelectSeason(data.season || "")
+        
+        setMezzo(data.mezzo || "")
+  
+        // Handle customer data first to ensure dependent data is available
+        if (data.shipping_to) {
+          const customerName = data.shipping_to 
+          
+          // Fetch contacts and addresses for this customer
+          await Promise.all([
+            fetchContactEmail(customerName),
+            fetchAddress(customerName)
+          ])
+          
+          // Handle contact information
+          const contactPersonName = data.contact_person
+          const addressNames = data.customer_shipping_address
+          
+            setSelectedContact(contactPersonName)
+            // This will trigger the side effects in handleContactSelect
+            setSelectedAddress(addressNames)
+  
+          // Handle address information
+          const addressName = data.customer_shipping_address
+          if (addressName) {
+            
+            
+            try {
+              const addressResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(addressName)}`)
+              const addressData = addressResponse?.data?.data
+              console.log(addressData,"andiii")
+              setSelectedAddress(addressData.name)
+              if (addressData) {
+                // Set address details directly
+                setAddressDetails({
+                  name: addressData.name,
+                  address_title: addressData.address_title,
+                  address_type: addressData.address_type,
+                  address_line1: addressData.address_line1,
+                  city: addressData.city,
+                  country: addressData.country,
+                })
+                setShowAddressFields(true)
+  
+                // Process transporters data
+                const transporterData = addressData.custom_transporters || []
+                setTransporters(transporterData)
+                setTransportersLoaded(true)
+  
+                // Set transporter if available
+                const transporterName = data.transporter_name || ""
+                if (transporterName && transporterData.length > 0) {
+                  setSelectedTransporter(transporterName)
+                  const matchedTransporter = transporterData.find(
+                    (t: { supplier: string }) => t.supplier === transporterName
+                  )
+                  if (matchedTransporter) {
+                    setTransporterDetails({
+                      supplier: transporterName,
+                      cutoff_start_time: matchedTransporter.cutoff_start_time,
+                      cutoff_end_time: matchedTransporter.cutoff_end_time,
+                      name: matchedTransporter.name,
+                      address: matchedTransporter.address,
+                    })
+                    setShowTransporterFields(true)
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching address details:", error)
+            }
+          }
+        }
+  
+        // Handle item details
+        if (data.item_details_th && Array.isArray(data.item_details_th)) {
+          const itemDetailsTH = data.item_details_th.map((item: any) => ({
+            item_code: item.item_code,
+            item_name: item.item_name,
+            type: item.tyre_type,
+            qty: item.accepted_qty,
+            id: item.name,
+          }))
+  
+          setUpdateTyreItems(itemDetailsTH)
+        } else {
+          setUpdateTyreItems([])
+        }
+      } catch (err: any) {
+        console.error("Error in autofetchDataTHform:", err)
+        setError(err.message || "Error fetching existing data")
+      }
+    }
+  
+    // Only run the fetch if selectedItemId is provided
+    if (selectedItemId) {
+      autofetchDataTHform()
+    }
+  }, [selectedItemId])
+
   const addRow = () => {
     const newItem: ItemList = {
       id: items.length + 1,
@@ -575,7 +763,6 @@ const RedeliveryForm = () => {
       tireWidth: "",
       weight: "",
       type: "",
-
       available: undefined,
       otherItemName: "",
       OtherItemCode: "",
@@ -593,13 +780,13 @@ const RedeliveryForm = () => {
       items.map((item) =>
         item.id === itemId
           ? {
-            ...item,
-            item_code: selectedItem.item_code,
-            item_name: selectedItem.item_name,
-            quantity: selectedItem.items_quantity,
-            available: selectedItem.actual_qty,
-            requiredBy: selectedItem.schedule_date,
-          }
+              ...item,
+              item_code: selectedItem.item_code,
+              item_name: selectedItem.item_name,
+              quantity: selectedItem.items_quantity,
+              available: selectedItem.actual_qty,
+              requiredBy: selectedItem.schedule_date,
+            }
           : item,
       ),
     )
@@ -661,6 +848,7 @@ const RedeliveryForm = () => {
     }
     const myData = {
       name: resultData,
+      material_request_doc: selectedItemId,
       service: service,
       transaction_date: dateOfPosting,
       schedule_date: DateOfDelivery,
@@ -750,13 +938,10 @@ const RedeliveryForm = () => {
       if (resultSubmitJson.message?.docstatus !== undefined) {
         setDocStatus(resultSubmitJson.message.docstatus)
       }
-
-      console.log(resultSubmitJson)
     } catch (error) {
       console.error("Error submitting form:", error)
     }
   }
-
   const isDocStatusLocked: () => boolean = () => {
     return docStatus === 1
   }
@@ -765,11 +950,7 @@ const RedeliveryForm = () => {
   return (
     <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded">
       <p className="mb-4 text-red-500">{dataSubmit?.message?.message}</p>
-      <MaterialRequestHeader
-        navigate={navigate}
-        isEditMode={isEditMode}
-        isDocStatusLocked={isDocStatusLocked}
-      />
+      <MaterialRequestHeader navigate={navigate} isEditMode={isEditMode} isDocStatusLocked={isDocStatusLocked} />
       <form onSubmit={handleSubmit}>
         <CustomerSection
           selectedCustomer={selectedCustomer}
@@ -820,6 +1001,7 @@ const RedeliveryForm = () => {
           onLicensePlateChange={handleLicensePlateChange}
           onMezzoChange={handleMezzoChange}
         />
+
         <PurposeDateSection
           purpose={purpose}
           dateOfPosting={dateOfPosting}
@@ -921,6 +1103,7 @@ const RedeliveryForm = () => {
           )}
         </div>
       </form>
+      {isModalMaterialListForTh && <ModalMaterialListForTH />}
     </div>
   )
 }

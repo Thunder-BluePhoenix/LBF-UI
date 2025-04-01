@@ -31,17 +31,7 @@ export const AddressTransporterSection = ({
   onTransporterSelect,
 }: AddressTransporterSectionProps) => {
 
-    console.log(  selectedAddress,
-        addresses,
-        showAddressFields,
-        addressDetails,
-        selectedTransporter,
-        transporters,
-        showTransporterFields,
-        transporterDetails,
-        isDocStatusLocked,
-        onAddressSelect,
-        onTransporterSelect, "addresssss")
+
   return (
     <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
       <div>

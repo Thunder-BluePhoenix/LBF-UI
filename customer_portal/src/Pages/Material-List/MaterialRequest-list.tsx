@@ -40,6 +40,20 @@ const MaterialRequestList: React.FC = () => {
         navigate(path);
         setDropdownOpen(false);
     };
+    const handleTyreHotelRedelivery = () => {
+        const purpose = "Redelivery";
+        const service = "Tyre Hotel";
+        const modalMaterialListForTh = true;
+    
+        const queryParams = new URLSearchParams({
+          purpose,
+          service,
+          "modal-material-list-for-th": modalMaterialListForTh.toString(),
+        }).toString();
+    
+        navigate(`/customer_portal/material-request-form?${queryParams}`);
+        setDropdownOpen(false);
+      };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -221,9 +235,7 @@ const MaterialRequestList: React.FC = () => {
                                             Request For Pickup - Tyre Hotel
                                         </button>
                                         <button
-                                            onClick={() =>
-                                                handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Tyre Hotel")
-                                            }
+                                            onClick={handleTyreHotelRedelivery}
                                             className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             <CiDeliveryTruck />
