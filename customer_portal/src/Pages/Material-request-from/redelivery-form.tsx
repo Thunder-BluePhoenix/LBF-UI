@@ -3,99 +3,38 @@
 import type React from "react"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type ChangeEvent, type FormEvent, type Key, type ReactNode, useEffect, useState } from "react"
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import axios from "axios"
-import { FaArrowLeft } from "react-icons/fa"
-import { useLocation, useNavigate, useParams, } from "react-router-dom"
-import { MdDelete } from "react-icons/md"
-import ItemTable from "./ItemsTable"
-interface ItemList {
-  OthersItemName: any
-  OthersItemCode: any
-  type: any
-  weight: any
-  tireWidth: any
-  SpeedRating: any
-  Model: any
-  Marks: any
-  LoadIndex: any
-  diameter: any
-  Carcass: any
-  Brand: any
-  AspectRatio: any
-  otherItemName: any
-  OtherItemCode: any
-  available: ReactNode
-  id: number
-  requiredBy: string
-  quantity: number
-  targetWarehouse: string
-  uom: string
-  name: string
-  item_name: string
-  item_code: string
-}
-interface FetchedItem {
-  schedule_date: string
-  item_code: string
-  item_name: string
-  items_quantity: number
-  label: string
-  value: string
-  actual_qty: number
-}
-interface Address {
-  address_title: string
-  address_line1: string
-  city: string
-  country: string
-}
-interface CustomerLoginUser {
-  name: boolean | CustomerLoginUser | null
-  customer_name: string
-  customer_group: string
-}
-interface Contact {
-  name: string
-  phone: string
-  email_id: string
-}
-interface Address {
-  name: string
-  address_title: string
-  address_line1: string
-  city: string
-  country: string
-  address_type: string
-}
-interface Transporter {
-  supplier: string
-  cutoff_start_time: string
-  cutoff_end_time: string
-  name: any
-  address: any
-  is_default?: number
-}
+import { useLocation, useNavigate, useParams } from "react-router-dom"
+import TableComponent from "./components/ItemsTableForTH"
+import { CustomerSection } from "./components/customer-section"
+import { ContactSection } from "./components/contact-section"
+import { AddressTransporterSection } from "./components/address-transporter-section"
+import { ServiceSection } from "./components/service-section"
+import { PurposeDateSection } from "./components/purpose-date-section"
+import type {
+  ItemList,
+  FetchedItem,
+  Address,
+  Contact,
+  CustomerLoginUser,
+  Transporter,
+  RowData,
+} from "./types/redelivery-form"
+import MaterialRequestHeader from "./components/topbarOfForm"
+import ItemTable from "./components/itemsTableForPH"
+import { useDataContext } from "../../Context/DataProvider"
+import ModalMaterialListForTH from "./components/modalMaterialListForTH"
+
 interface dataSubmit {
   message?: {
     message: string
     docstatus: number
   }
 }
-type RowData = {
-  id: number
-  item_code: string
-  item_name: string
-  requiredBy: string
-  quantity: string
-  uom: string
-  uomConversion: string
-  type: string
-  selectedItem: string
-}
 const RedeliveryForm = () => {
   //customer state
-  const [customers, setCustomers] = useState<{ name: string }[]>([])
+  const [customers, setCustomers] = useState<[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<string>("")
   const [customerName, setCustomerName] = useState<string>("")
   const [customerLoginUser, setCustomerLoginUser] = useState<CustomerLoginUser | null>(null)
@@ -147,10 +86,13 @@ const RedeliveryForm = () => {
   const [itemsRedelivery, setItemsRedelivery] = useState<any>(null)
   const [mezzo, setMezzo] = useState<string>("")
   const [LicensePlate, setLicensePlate] = useState<string>("")
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+  const { selectedItemId, licensePlateFilter } = useDataContext()
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
   const purposeParam = searchParams.get("purpose")
   const serviceParam = searchParams.get("service")
+
+  const isModalMaterialListForTh = searchParams.get("modal-material-list-for-th") === "true"
 
   const { id } = useParams<{ id: string }>()
   const resetFormFields = () => {
@@ -216,12 +158,12 @@ const RedeliveryForm = () => {
       setIsEditMode(false)
       resetFormFields()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, purposeParam, serviceParam])
   const navigate = useNavigate()
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
   const LoginCustomerName = customerLoginUser?.customer_name
-  console.log(loginUser, itemsRedelivery, "qqqqqqqqqqqqR")
+  console.log(loginUser, licensePlateFilter, selectedItemId, "login user")
   useEffect(() => {
     if (transporters && transporters.length > 0) {
       const defaultTransporter = transporters.find((item) => item.is_default === 1)
@@ -257,7 +199,6 @@ const RedeliveryForm = () => {
   }
   const handleDataChange = (rows: RowData[]) => {
     setItems(rows as unknown as ItemList[]) // Use type assertion to bypass the type error
-    console.log("Updated Rows from Child:", rows)
   }
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setPurpose(event.target.value)
@@ -277,23 +218,33 @@ const RedeliveryForm = () => {
     const selectedSeason = event.target.value
     setSelectSeason(selectedSeason)
   }
-
   const handleContactSelect = (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value
-    setSelectedContact(selectedValue)
-    if (selectedValue) {
-      setShowContactFields(true)
-      const selectedContactData = contacts.find((c) => c.name === selectedValue)
+    const selectedValue = event.target.value;
+    
+    setSelectedContact(selectedValue); // Update selected contact
+    
+    // No need to update phone/email here, let useEffect handle it
+  };
+  
+  useEffect(() => {
+    if (selectedContact) {
+      const selectedContactData = contacts.find((c) => c.name === selectedContact);
+      
       if (selectedContactData) {
-        setContact(selectedContactData.phone || "")
-        setEmail(selectedContactData.email_id || "")
+        setContact(selectedContactData.phone || "");
+        setEmail(selectedContactData.email_id || "");
+      } else {
+        setContact("");
+        setEmail("");
       }
     } else {
-      setShowContactFields(false)
-      setContact("")
-      setEmail("")
+      setContact("");
+      setEmail("");
     }
-  }
+    
+    setShowContactFields(!!selectedContact); // Ensure it's a boolean
+  }, [selectedContact]);
+  
 
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfPosting(e.target.value)
@@ -305,7 +256,15 @@ const RedeliveryForm = () => {
     const value = e.target.value
     setLicensePlate(value) // Save to localStorage
   }
+  useEffect(() => {
+    // Set the license plate to the context filter value when it changes
+    if (licensePlateFilter) {
+      setLicensePlate(licensePlateFilter);
+    }
+  }, [licensePlateFilter]);
+
   useEffect(() => {}, [])
+  
   const handleDateOfRequredBy = (e: ChangeEvent<HTMLInputElement>) => {
     setDateOfRequredBy(e.target.value)
   }
@@ -317,48 +276,59 @@ const RedeliveryForm = () => {
   const handleAddressSelect = async (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value
     setSelectedAddress(selectedValue)
+  }
 
-    if (selectedValue) {
-      setShowAddressFields(true)
-      const selectedAddressData = addresses.find((a) => a.name === selectedValue)
-      setAddressDetails(selectedAddressData || null)
-
+  useEffect(() => {
+    if (!selectedAddress) {
+      setShowAddressFields(false);
+      setAddressDetails(null);
+      setTransporters([]);
+      setShowTransporterFields(false);
+      return;
+    }
+  
+    setShowAddressFields(true);
+    
+    const selectedAddressData = addresses.find((a) => a.name === selectedAddress);
+    setAddressDetails(selectedAddressData || null);
+  
+    const fetchTransporters = async () => {
       try {
-        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedValue)}`)
-        const transporterData = transporterResponse?.data?.data.custom_transporters
-        setTransporters(transporterData)
-        setTransportersLoaded(true)
-
-        if (!transporterData || transporterData.length === 0) {
-          setShowTransporterFields(false)
-          setTransporterDetails(null)
-          setSelectedTransporter("")
+        const transporterResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(selectedAddress)}`);
+        const transporterData = transporterResponse?.data?.data.custom_transporters || [];
+  
+        setTransporters(transporterData);
+        setTransportersLoaded(true);
+  
+        if (transporterData.length === 0) {
+          setShowTransporterFields(false);
+          setTransporterDetails(null);
+          if (!isEditMode) setSelectedTransporter("");
+          return;
         }
-
+  
         if (isEditMode && selectedTransporter) {
-          const matchedTransporter = transporterData.find(
-            (t: { supplier: string }) => t.supplier === selectedTransporter,
-          )
+          const matchedTransporter = transporterData.find((t: { supplier: string }) => t.supplier === selectedTransporter);
+          
           if (matchedTransporter) {
-            setTransporterDetails(matchedTransporter)
-            setShowTransporterFields(true)
+            setTransporterDetails(matchedTransporter);
+            setShowTransporterFields(true);
           } else {
-            setShowTransporterFields(false)
+            setTransporterDetails(null);
+            setShowTransporterFields(false);
           }
         }
       } catch (error) {
-        console.error("Error fetching transporter data:", error)
-        setTransporters([])
-        setTransportersLoaded(false)
-        setShowTransporterFields(false)
+        console.error("Error fetching transporter data:", error);
+        setTransporters([]);
+        setTransportersLoaded(false);
+        setShowTransporterFields(false);
       }
-    } else {
-      setShowAddressFields(false)
-      setAddressDetails(null)
-      setTransporters([])
-      setShowTransporterFields(false)
-    }
-  }
+    };
+  
+    fetchTransporters();
+  }, [selectedAddress, isEditMode, selectedTransporter, addresses]);
+  
   const handleTransporterSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value
     setSelectedTransporter(selectedValue)
@@ -420,7 +390,6 @@ const RedeliveryForm = () => {
             `/api/method/lbf_logistica.api.bol.fetch_child_customers?customer=${encodeURIComponent(customerData.name)}`,
           )
           const data = childCustomersResponse.data
-          console.log(data, "data gagin to")
           if (data.message && Array.isArray(data.message)) {
             // Process customers to identify the display name for each
             const processedCustomers = data.message.map(
@@ -445,7 +414,6 @@ const RedeliveryForm = () => {
               },
             )
             setCustomers(processedCustomers)
-          
 
             if (processedCustomers.length > 0) {
               const firstCustomer = processedCustomers[0].name
@@ -487,7 +455,6 @@ const RedeliveryForm = () => {
 
   useEffect(() => {
     const fetchRedeliveryItems = async () => {
-      // Check if purpose is "Redelivery" and customerLoginUser is an object with a valid name
       if (
         purpose === "Redelivery" &&
         typeof customerLoginUser === "object" &&
@@ -499,6 +466,7 @@ const RedeliveryForm = () => {
           const itemsForRedelivery = await axios.get(
             `/api/method/lbf_logistica.api.bol.get_unique_tyre_hotel_items?customer=${encodeURIComponent(customerLoginUser.name)}&license_plate=${encodeURIComponent(LicensePlate)}&fields=["item_code","item_name","actual_qty","custom_tyre_type","custom_license_plate"]`,
           )
+          console.log(itemsForRedelivery.data, "itemsforredelivery")
           setItemsRedelivery(itemsForRedelivery.data)
         } catch (error: any) {
           console.error("Error fetching items for redelivery:", error.message || error)
@@ -507,8 +475,7 @@ const RedeliveryForm = () => {
     }
 
     fetchRedeliveryItems()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purpose, LicensePlate])
+  }, [purpose, LicensePlate, customerLoginUser])
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
@@ -550,11 +517,15 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching Contact and Email")
     }
   }
+
+  
+
   const fetchExistingData = async (resultId: string) => {
     try {
       const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
       const data = response.data.data
       console.log(data, "fetchexitingdata")
+
       setResultData(data.name)
       setSelectedCustomer(data.shipping_to)
       setCustomerName(data.shipping_to)
@@ -570,41 +541,74 @@ const RedeliveryForm = () => {
       setLicensePlate(data.license_plate)
       setMezzo(data.mezzo)
       setDocStatus(data.docstatus)
+
+      // Fetch address and contact data
       await fetchAddress(data.shipping_to)
-      setSelectedAddress(data.shipping_address_name)
+      await fetchContactEmail(data.shipping_to)
 
+      // Set address data
       if (data.shipping_address_name) {
-        const transporterResponse = await axios.get(
-          `/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`,
-        )
-        const transporterData = transporterResponse?.data?.data.custom_transporters
-        setTransporters(transporterData)
-        setTransportersLoaded(true)
+        setSelectedAddress(data.shipping_address_name)
 
-        if (data.transporter_name) {
-          setSelectedTransporter(data.transporter_name)
-          const matchedTransporter = transporterData.find(
-            (t: { supplier: any }) => t.supplier === data.transporter_name,
+        try {
+          const addressResponse = await axios.get(
+            `/api/resource/Address/${encodeURIComponent(data.shipping_address_name)}`,
           )
-          if (matchedTransporter) {
-            setTransporterDetails({
-              supplier: data.transporter_name,
-              cutoff_start_time: matchedTransporter.cutoff_start_time,
-              cutoff_end_time: matchedTransporter.cutoff_end_time,
-              name: matchedTransporter.name,
-              address: matchedTransporter.address,
+
+          const addressData = addressResponse?.data?.data
+          if (addressData) {
+            setAddressDetails({
+              name: addressData.name,
+              address_title: addressData.address_title,
+              address_type: addressData.address_type,
+              address_line1: addressData.address_line1,
+              city: addressData.city,
+              country: addressData.country,
             })
-            setShowTransporterFields(true)
+            setShowAddressFields(true)
+
+            // Handle transporters
+            const transporterData = addressData.custom_transporters || []
+            setTransporters(transporterData)
+            setTransportersLoaded(true)
+
+            if (data.transporter_name) {
+              setSelectedTransporter(data.transporter_name)
+              const matchedTransporter = transporterData.find(
+                (t: { supplier: any }) => t.supplier === data.transporter_name,
+              )
+              if (matchedTransporter) {
+                setTransporterDetails({
+                  supplier: data.transporter_name,
+                  cutoff_start_time: matchedTransporter.cutoff_start_time,
+                  cutoff_end_time: matchedTransporter.cutoff_end_time,
+                  name: matchedTransporter.name,
+                  address: matchedTransporter.address,
+                })
+                setShowTransporterFields(true)
+              }
+            }
           }
+        } catch (error) {
+          console.error("Error fetching address details:", error)
         }
       }
 
-      await fetchContactEmail(data.shipping_to)
-      setSelectedContact(data.customer_contact)
-      setContact(data.contact)
-      setEmail(data.email)
-      setShowContactFields(true)
+      // Set contact data
+      if (data.customer_contact) {
+        setSelectedContact(data.customer_contact)
+        // Find the matching contact in contacts array
+        const contactData = contacts.find((c) => c.name === data.customer_contact)
+        if (contactData) {
+          setContact(contactData.phone || data.contact || "")
+        } else {
+          // Fallback to the data from the API response
+          setContact(data.contact || "")
+        }
+        setShowContactFields(true)
+      }
 
+      // Set items data
       if (data.items && Array.isArray(data.items)) {
         const fetchedItems = data.items.map((item: any, index: number) => ({
           id: index + 1,
@@ -623,6 +627,119 @@ const RedeliveryForm = () => {
       setError(err.message || "Error fetching existing data")
     }
   }
+
+  useEffect(() => {
+    const autofetchDataTHform = async () => {
+      try {
+        const response = await axios.get(
+          `/api/method/lbf_logistica.api.bol.fetch_bol_for_redelivery_mri?material_request_doc=${selectedItemId}`
+        )
+        const data = response.data.message
+        console.log(data, "auto fetch data for tyre hotel")
+        setSelectedCustomer(data.shipping_to)
+        setCustomerName(data.shipping_to)
+        setSelectedReason(data.reason || "")
+        setSelectedCondition(data.condition || "")
+        setSelectSeason(data.season || "")
+        
+        setMezzo(data.mezzo || "")
+  
+        // Handle customer data first to ensure dependent data is available
+        if (data.shipping_to) {
+          const customerName = data.shipping_to 
+          
+          // Fetch contacts and addresses for this customer
+          await Promise.all([
+            fetchContactEmail(customerName),
+            fetchAddress(customerName)
+          ])
+          
+          // Handle contact information
+          const contactPersonName = data.contact_person
+          const addressNames = data.customer_shipping_address
+          
+            setSelectedContact(contactPersonName)
+            // This will trigger the side effects in handleContactSelect
+            setSelectedAddress(addressNames)
+  
+          // Handle address information
+          const addressName = data.customer_shipping_address
+          if (addressName) {
+            
+            
+            try {
+              const addressResponse = await axios.get(`/api/resource/Address/${encodeURIComponent(addressName)}`)
+              const addressData = addressResponse?.data?.data
+              console.log(addressData,"andiii")
+              setSelectedAddress(addressData.name)
+              if (addressData) {
+                // Set address details directly
+                setAddressDetails({
+                  name: addressData.name,
+                  address_title: addressData.address_title,
+                  address_type: addressData.address_type,
+                  address_line1: addressData.address_line1,
+                  city: addressData.city,
+                  country: addressData.country,
+                })
+                setShowAddressFields(true)
+  
+                // Process transporters data
+                const transporterData = addressData.custom_transporters || []
+                setTransporters(transporterData)
+                setTransportersLoaded(true)
+  
+                // Set transporter if available
+                const transporterName = data.transporter_name || ""
+                if (transporterName && transporterData.length > 0) {
+                  setSelectedTransporter(transporterName)
+                  const matchedTransporter = transporterData.find(
+                    (t: { supplier: string }) => t.supplier === transporterName
+                  )
+                  if (matchedTransporter) {
+                    setTransporterDetails({
+                      supplier: transporterName,
+                      cutoff_start_time: matchedTransporter.cutoff_start_time,
+                      cutoff_end_time: matchedTransporter.cutoff_end_time,
+                      name: matchedTransporter.name,
+                      address: matchedTransporter.address,
+                    })
+                    setShowTransporterFields(true)
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching address details:", error)
+            }
+          }
+        }
+  
+        // Handle item details
+        if (data.item_details_th && Array.isArray(data.item_details_th)) {
+          const itemDetailsTH = data.item_details_th.map((item: any) => ({
+            item_code: item.item_code,
+            item_name: item.item_name,
+            type: item.tyre_type,
+            qty: item.accepted_qty,
+            id: item.name,
+          }))
+  
+          setUpdateTyreItems(itemDetailsTH)
+        } else {
+          setUpdateTyreItems([])
+        }
+      } catch (err: any) {
+        console.error("Error in autofetchDataTHform:", err)
+        setError(err.message || "Error fetching existing data")
+      }
+    }
+  
+    // Only run the fetch if selectedItemId is provided
+    if (selectedItemId) {
+      autofetchDataTHform()
+    }
+  }, [selectedItemId])
+
   const addRow = () => {
     const newItem: ItemList = {
       id: items.length + 1,
@@ -646,7 +763,6 @@ const RedeliveryForm = () => {
       tireWidth: "",
       weight: "",
       type: "",
-
       available: undefined,
       otherItemName: "",
       OtherItemCode: "",
@@ -732,6 +848,7 @@ const RedeliveryForm = () => {
     }
     const myData = {
       name: resultData,
+      material_request_doc: selectedItemId,
       service: service,
       transaction_date: dateOfPosting,
       schedule_date: DateOfDelivery,
@@ -821,469 +938,98 @@ const RedeliveryForm = () => {
       if (resultSubmitJson.message?.docstatus !== undefined) {
         setDocStatus(resultSubmitJson.message.docstatus)
       }
-
-      console.log(resultSubmitJson)
     } catch (error) {
       console.error("Error submitting form:", error)
     }
   }
-
-  const isDocStatusLocked = () => {
+  const isDocStatusLocked: () => boolean = () => {
     return docStatus === 1
-  }
-  const getCustomerDisplayName = (customer: any): string => {
-    if (customer.displayName) {
-      return customer.displayName
-    }
-    // Fallback to customer_name if displayName is not set
-    return customer.customer_name
   }
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
   return (
     <div className="max-w-7xl border border-gray-300 my-8 mx-auto bg-white p-6 shadow-md rounded">
       <p className="mb-4 text-red-500">{dataSubmit?.message?.message}</p>
-      <div className="flex items-center  space-x-2 mb-6">
-        <span className="cursor-pointer" onClick={() => navigate(-1)}>
-          <FaArrowLeft />
-        </span>
-        <h2 className="text-xl font-semibold">
-          <span
-            className={`${
-              !isDocStatusLocked()
-                ? isEditMode
-                  ? "bg-yellow-500 text-white px-2 py-1 rounded-lg"
-                  : "bg-green-500 text-white px-2 py-1 rounded-lg"
-                : "bg-blue-500 text-white px-2 py-1 rounded-lg"
-            }`}
-          >
-            {!isDocStatusLocked() ? (isEditMode ? "Edit OR Submit" : "Create") : "Submit"}
-          </span>{" "}
-          Material Request
-        </h2>
-      </div>
-
+      <MaterialRequestHeader navigate={navigate} isEditMode={isEditMode} isDocStatusLocked={isDocStatusLocked} />
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Customer Name<span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedCustomer}
-              disabled={isDocStatusLocked()}
-              onChange={handleCustomerSelect}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Customer</option>
-              {customers.map((customer: any) => (
-                <option key={customer.name} value={customer.name}>
-                  {getCustomerDisplayName(customer)}
-                </option>
-              ))}
-              <option>{LoginCustomerName}</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Request By</label>
-            <input
-              type="text"
-              name="request-by"
-              value={LoginCustomerName}
-              disabled={isDocStatusLocked()}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Party Type<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="request-by"
-              value={groupBy || "Guest"}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Select Contact<span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedContact}
-              onChange={handleContactSelect}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Contact</option>
-              {contacts.map((contact) => (
-                <option key={contact.name} value={contact.name}>
-                  {contact.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <CustomerSection
+          selectedCustomer={selectedCustomer}
+          customerName={customerName}
+          loginCustomerName={LoginCustomerName}
+          groupBy={groupBy}
+          customers={customers}
+          isDocStatusLocked={isDocStatusLocked}
+          onCustomerSelect={handleCustomerSelect}
+        />
+        <ContactSection
+          selectedContact={selectedContact}
+          contact={contact}
+          email={email}
+          contacts={contacts}
+          showContactFields={showContactFields}
+          isDocStatusLocked={isDocStatusLocked}
+          onContactSelect={handleContactSelect}
+        />
+        <AddressTransporterSection
+          selectedAddress={selectedAddress}
+          addresses={addresses}
+          showAddressFields={showAddressFields}
+          addressDetails={addressDetails}
+          selectedTransporter={selectedTransporter}
+          transporters={transporters}
+          showTransporterFields={showTransporterFields}
+          transporterDetails={transporterDetails}
+          isDocStatusLocked={isDocStatusLocked}
+          onAddressSelect={handleAddressSelect}
+          onTransporterSelect={handleTransporterSelect}
+        />
+        <ServiceSection
+          service={service}
+          selectedSeasons={selectedSeasons}
+          selectedCondition={selectedCondition}
+          selectedReason={selectedReason}
+          licensePlate={LicensePlate}
+          mezzo={mezzo}
+          season={season}
+          condition={condition}
+          reason={reason}
+          isDocStatusLocked={isDocStatusLocked}
+          onServiceChange={handleChangeService}
+          onSeasonChange={handleChangeSeason}
+          onConditionChange={handleChangeCondition}
+          onReasonChange={handleChangeReason}
+          onLicensePlateChange={handleLicensePlateChange}
+          onMezzoChange={handleMezzoChange}
+        />
 
-          {showContactFields && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Contact</label>
-                <input
-                  type="text"
-                  value={contact}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
+        <PurposeDateSection
+          purpose={purpose}
+          dateOfPosting={dateOfPosting}
+          dateOfDelivery={DateOfDelivery}
+          service={service}
+          isDocStatusLocked={isDocStatusLocked}
+          onPurposeChange={handleChange}
+          onDateOfPostingChange={handleDateChange}
+          onDateOfDeliveryChange={handleDateOfDelivery}
+        />
 
-              <div>
-                <label className="block text-sm font-medium">Email ID</label>
-                <input
-                  type="email"
-                  value={email}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
-        </div>
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Select Address<span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedAddress}
-              onChange={handleAddressSelect}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Address</option>
-              {addresses.map((addr) => (
-                <option key={addr.name} value={addr.name}>
-                  {addr.address_title} - {addr.address_type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {showAddressFields && addressDetails && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">City & Country</label>
-                <input
-                  type="text"
-                  value={`${addressDetails.address_line1}, ${addressDetails.city}, ${addressDetails.country}`}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
-          <div>
-            <label className="block text-sm font-medium">
-              Select Transporter<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="name"
-              value={selectedTransporter}
-              onChange={handleTransporterSelect}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option value="">Select Transporter</option>
-              {transporters.map((transporter, index) => (
-                <option key={transporter.name || index} value={transporter.supplier || ""}>
-                  {transporter.supplier || "Unnamed Transporter"}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {showTransporterFields && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Supplier</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.supplier || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Cutoff Start Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.cutoff_start_time || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Cutoff End Time</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.cutoff_end_time || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Weekdays Off</label>
-                <input
-                  type="text"
-                  value={transporterDetails?.cutoff_end_time || ""}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1 bg-gray-50"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6 ">
-          <div>
-            <label className="block text-sm font-medium">
-              Service<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="purpose"
-              value={service}
-              onChange={handleChangeService}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option>Select Service</option>
-              <option>Peneus Hub</option>
-              <option>Tyre Hotel</option>
-            </select>
-          </div>
-          {service === "Tyre Hotel" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium">Seasion</label>
-                <select
-                  name="purpose"
-                  value={selectedSeasons}
-                  onChange={handleChangeSeason}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Seasion</option>
-                  {season?.data?.map((item: any, index: Key) => (
-                    <option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Condition</label>
-                <select
-                  name="purpose"
-                  value={selectedCondition}
-                  onChange={handleChangeCondition}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Condition</option>
-                  {condition?.data?.map((item: any, index: Key) => (
-                    <option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Reason</label>
-                <select
-                  name="purpose"
-                  value={selectedReason}
-                  onChange={handleChangeReason}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                >
-                  <option>Select Reason</option>
-                  {reason?.data?.map((item: any, index: Key) => (
-                    <option key={index}>{item.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  license plate<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  onChange={handleLicensePlateChange}
-                  disabled={isDocStatusLocked()}
-                  value={LicensePlate}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter license plate"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Mezzo</label>
-                <input
-                  type="text"
-                  value={mezzo}
-                  onChange={handleMezzoChange}
-                  disabled={isDocStatusLocked()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-                  placeholder="Enter detail"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 bg-gray-50 p-4 border border-gray-300 rounded gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium">
-              Purpose<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="purpose"
-              value={purpose}
-              onChange={handleChange}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            >
-              <option>Redelivery</option>
-              {service === "Tyre Hotel" && <option>Pick Up</option>}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Date of Posting<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="dateOfPosting"
-              value={dateOfPosting}
-              onChange={handleDateChange}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">
-              Date of Delivery<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="dateOfDelivery"
-              value={DateOfDelivery}
-              onChange={handleDateOfDelivery}
-              disabled={isDocStatusLocked()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
-            />
-          </div>
-        </div>
         {service === "Peneus Hub" && (
-          <div className=" mb-6">
-            <h1 className="text-lg font-bold mb-4">Item TH</h1>
-            <table className="w-full  border rounded-md border-gray-300">
-              <thead>
-                <tr className="border-b bg-gray-50 border-gray-300">
-                  <th className="border border-gray-300 p-2">No.</th>
-                  <th className="border border-gray-300 p-2">Item Code *</th>
-                  <th className="border border-gray-300 p-2">Item Name</th>
-                  <th className="border border-gray-300 p-2">Required By *</th>
-                  <th className="border border-gray-300 p-2">Qty</th>
-                  <th className="border border-gray-300 p-2">Available Qty</th>
-                  <th className="border border-gray-300 p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id} className="border-b rounded-md border-gray-300">
-                    <td className=" p-2 text-left">{item.id}</td>
-                    <td className=" ">
-                      <div className="relative">
-                        <div
-                          onClick={() => !isDocStatusLocked() && setOpen(open === item.id ? null : item.id)}
-                          className={`w-full text-left px-2 py-2 border-x border-gray-300 ${isDocStatusLocked() ? "cursor-not-allowed opacity-50" : ""}`}
-                        >
-                          {item.item_code || "Select item..."}
-                        </div>
-                        {open === item.id && !isDocStatusLocked() && (
-                          <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
-                            <input
-                              type="text"
-                              placeholder="Search items..."
-                              className="w-full p-2 border border-gray-300"
-                            />
-                            <ul className="max-h-32 overflow-y-auto z-50">
-                              {itemList.map((code) => (
-                                <li
-                                  key={code.value}
-                                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => handleItemSelect(item.id, code)}
-                                >
-                                  {code.item_code}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className=" ">
-                      <input
-                        type="text"
-                        value={item.item_name}
-                        readOnly
-                        className="w-full p-2 border-x border-gray-300 "
-                      />
-                    </td>
-                    <td className=" ">
-                      <input
-                        type="date"
-                        value={DateOfRequredBy}
-                        onChange={handleDateOfRequredBy}
-                        className="w-full p-2 border-x border-gray-300"
-                        disabled={isDocStatusLocked()}
-                      />
-                    </td>
-                    <td className=" ">
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const updatedItems = items.map((i) =>
-                            i.id === item.id ? { ...i, quantity: Number.parseInt(e.target.value, 10) } : i,
-                          )
-                          setItems(updatedItems)
-                        }}
-                        className="w-full p-2 border-x border-gray-300"
-                        disabled={isDocStatusLocked()}
-                      />
-                    </td>
-                    <td className="border-r border-gray-300">{item.available}</td>
-                    <td className="">
-                      <span
-                        onClick={() => !isDocStatusLocked() && removeRow(index)}
-                        className={`py-1 flex items-center justify-center text-black text-xl rounded-md ${isDocStatusLocked() ? "cursor-not-allowed opacity-50" : ""}`}
-                      >
-                        <MdDelete />
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ItemTable
+            items={items}
+            itemList={itemList}
+            open={open}
+            setOpen={setOpen}
+            DateOfRequredBy={DateOfRequredBy}
+            handleDateOfRequredBy={handleDateOfRequredBy}
+            isDocStatusLocked={isDocStatusLocked}
+            handleItemSelect={handleItemSelect}
+            setItems={setItems}
+            removeRow={removeRow}
+          />
         )}
         {service === "Tyre Hotel" && (
           <div className="mb-6">
-            <ItemTable
+            <TableComponent
               itemsData={tyreItems}
               updateItemData={updateTyreItems}
               onDataChange={handleDataChange}
@@ -1357,6 +1103,7 @@ const RedeliveryForm = () => {
           )}
         </div>
       </form>
+      {isModalMaterialListForTh && <ModalMaterialListForTH />}
     </div>
   )
 }

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { FaBell, FaPlus, FaUser, FaSignOutAlt, FaTruck, FaChevronDown, FaChevronUp } from "react-icons/fa"
@@ -10,12 +8,19 @@ import { MdAddShoppingCart } from "react-icons/md"
 import { AiOutlineUserAdd } from "react-icons/ai"
 import { CiDeliveryTruck } from "react-icons/ci"
 
+// Define TypeScript interfaces
+interface CustomerData {
+  customer_name: string;
+  image?: string;
+  customer_group: string;
+}
+
 const Header = () => {
   const { logout } = useFrappeAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [customerName, setCustomerName] = useState("Guest")
-  const [profileImg, setProfileImg] = useState()
+  const [profileImg, setProfileImg] = useState<string | undefined>()
   const [loading, setLoading] = useState(false)
   const [loginUser, setLoginUser] = useState("")
   const [partyType, setPartyType] = useState("N/A")
@@ -46,11 +51,28 @@ const Header = () => {
     }
   }
 
+  // Fixed handleRedirect function with path parameter to handle all navigation cases
   const handleRedirect = (path: string) => {
     navigate(path)
     setDropdownOpen(false)
     setProfileOpen(false)
   }
+
+  // Separate function for Tyre Hotel Redelivery with specific query params
+  const handleTyreHotelRedelivery = () => {
+    const purpose = "Redelivery";
+    const service = "Tyre Hotel";
+    const modalMaterialListForTh = true;
+
+    const queryParams = new URLSearchParams({
+      purpose,
+      service,
+      "modal-material-list-for-th": modalMaterialListForTh.toString(),
+    }).toString();
+
+    navigate(`/customer_portal/material-request-form?${queryParams}`);
+    setDropdownOpen(false);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +93,7 @@ const Header = () => {
         })
 
         if (customerResponse.data.length > 0) {
-          const customerData = customerResponse.data[0]
+          const customerData = customerResponse.data[0] as CustomerData
           setCustomerName(customerData.customer_name)
           setProfileImg(customerData.image)
           setPartyType(customerData.customer_group)
@@ -191,9 +213,7 @@ const Header = () => {
                       Request For Pickup - Tyre Hotel
                     </button>
                     <button
-                      onClick={() =>
-                        handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Tyre Hotel")
-                      }
+                      onClick={handleTyreHotelRedelivery}
                       className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <CiDeliveryTruck />
@@ -271,7 +291,7 @@ const Header = () => {
 
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center">
                 <button
-                  onClick={() => navigate("/customer_portal/notificationpage")}
+                  onClick={() => handleRedirect("/customer_portal/notificationpage")}
                   className="text-sm text-orange-500 hover:text-orange-600"
                 >
                   View all notifications
@@ -344,4 +364,3 @@ const Header = () => {
 }
 
 export default Header
-

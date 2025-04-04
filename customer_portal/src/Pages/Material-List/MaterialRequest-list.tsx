@@ -40,6 +40,20 @@ const MaterialRequestList: React.FC = () => {
         navigate(path);
         setDropdownOpen(false);
     };
+    const handleTyreHotelRedelivery = () => {
+        const purpose = "Redelivery";
+        const service = "Tyre Hotel";
+        const modalMaterialListForTh = true;
+    
+        const queryParams = new URLSearchParams({
+          purpose,
+          service,
+          "modal-material-list-for-th": modalMaterialListForTh.toString(),
+        }).toString();
+    
+        navigate(`/customer_portal/material-request-form?${queryParams}`);
+        setDropdownOpen(false);
+      };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -221,9 +235,7 @@ const MaterialRequestList: React.FC = () => {
                                             Request For Pickup - Tyre Hotel
                                         </button>
                                         <button
-                                            onClick={() =>
-                                                handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Tyre Hotel")
-                                            }
+                                            onClick={handleTyreHotelRedelivery}
                                             className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             <CiDeliveryTruck />
@@ -259,13 +271,14 @@ const MaterialRequestList: React.FC = () => {
                         <tbody>
                             {paginatedRequests.map((request) => (
                                 <tr
+                                    onClick={() => handleRedirectToMaterialDetails(request.name)}
                                     key={request.name}
-                                    className="border-b border-gray-300 hover:bg-gray-100 "
+                                    className="border-b border-gray-300 cursor-pointer hover:bg-gray-100 "
                                 >
                                     <td className="px-6 py-2 text-xs text-gray-800 font-bold">{request.customer || "Not available"}</td>
                                     <td
-                                        onClick={() => handleRedirectToMaterialDetails(request.name)}
-                                        className="px-6 py-4 text-xs  text-black cursor-pointer hover:underline">
+                                        
+                                        className="px-6 py-4 text-xs  text-black">
                                         {request.customer || "Not available"}
                                     </td>
                                     <td className="px-6 py-4 block truncate max-w-[15rem] text-gray-600 text-xs">{request.service || "Not available"}</td>
