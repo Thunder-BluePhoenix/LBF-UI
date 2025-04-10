@@ -50,8 +50,6 @@ export default function CustomerTable() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
-    const [selectAll, setSelectAll] = useState(false)
-    const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
     const [itemsPerPage, setItemsPerPage] = useState(20)
     const [currentPage, setCurrentPage] = useState(1)
     const [loginUser, setLoginUser] = useState<string>("")
@@ -171,23 +169,6 @@ export default function CustomerTable() {
         setCurrentPage(1)
     }, [searchTerm, customers])
 
-    // Handle select all
-    useEffect(() => {
-        if (selectAll) {
-            setSelectedCustomers(filteredCustomers.map((customer) => customer.name))
-        } else {
-            setSelectedCustomers([])
-        }
-    }, [selectAll, filteredCustomers])
-
-    // Handle individual selection
-    const toggleCustomerSelection = (customerName: string) => {
-        if (selectedCustomers.includes(customerName)) {
-            setSelectedCustomers(selectedCustomers.filter((name) => name !== customerName))
-        } else {
-            setSelectedCustomers([...selectedCustomers, customerName])
-        }
-    }
 
     // Pagination
     const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage)
@@ -297,14 +278,7 @@ export default function CustomerTable() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left">
-                                <input
-                                    type="checkbox"
-                                    className="h-4 w-4 rounded border-gray-300"
-                                    checked={selectAll}
-                                    onChange={() => setSelectAll(!selectAll)}
-                                />
-                            </th>
+                     
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Customer Name
                             </th>
@@ -327,14 +301,7 @@ export default function CustomerTable() {
                         {currentCustomers.length > 0 ? (
                             currentCustomers.map((customer, index) => (
                                 <tr key={`${customer.name}-${index}`} className="hover:bg-gray-50">
-                                    <td className="px-6 py-2 whitespace-nowrap">
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 rounded border-gray-300"
-                                            checked={selectedCustomers.includes(customer.name)}
-                                            onChange={() => toggleCustomerSelection(customer.name)}
-                                        />
-                                    </td>
+
                                     <td
                                         // onClick={() => handleDetailsRedirect(customer.name)}
                                         className="px-6 py-2 text-xs text-gray-800 font-bold whitespace-nowrap cursor-pointer hover:text-blue-600">

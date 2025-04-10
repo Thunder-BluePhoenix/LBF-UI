@@ -77,9 +77,9 @@ const QualityInspectionData = () => {
     };
 
     return (
-        <div className="p-6 min-h-screen">
+        <div className="p-4 min-h-screen">
             {messageData.items.map((_item, index) => (
-                <div key={index} className="max-w-6xl mx-auto bg-white border border-gray-100 rounded-lg shadow-lg p-8 pt-0">
+                <div key={index} className="max-w-6xl mx-auto bg-white border border-gray-100 rounded-lg  p-8 pt-0">
                     {/* Tabs Navigation */}
                     <div className="max-w-[50%] flex flex-row gap-4 p-4 pl-0">
                         <NavLink
