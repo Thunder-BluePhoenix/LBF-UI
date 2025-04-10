@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import type React from "react"
@@ -158,7 +159,7 @@ const RedeliveryForm = () => {
       setIsEditMode(false)
       resetFormFields()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [id, purposeParam, serviceParam])
   const navigate = useNavigate()
   const groupBy = customerLoginUser?.customer_group ?? "Default Group"
@@ -450,7 +451,6 @@ const RedeliveryForm = () => {
     }
 
     fetchData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   useEffect(() => {
@@ -525,7 +525,6 @@ const RedeliveryForm = () => {
       const response = await axios.get(`/api/resource/Material%20Request%20Instruction%20Log/${resultId}?fields=["*"]`)
       const data = response.data.data
       console.log(data, "fetchexitingdata")
-
       setResultData(data.name)
       setSelectedCustomer(data.shipping_to)
       setCustomerName(data.shipping_to)
@@ -901,11 +900,11 @@ const RedeliveryForm = () => {
           { headers },
         )
       } else {
-        result = await axios.post("/api/method/lbf_logistica.api.bol.save_material_request_instruction_log", myData, {
-          headers,
+        result = await axios.post("/api/method/lbf_logistica.api.bol.save_material_request_instruction_log",
+           myData, {
+           headers,
         })
       }
-
       alert(isEditMode ? "Material Request updated successfully!" : "Material Request created successfully!")
       const resultId = isEditMode ? id : result.data.message.name
       setResultData(resultId)

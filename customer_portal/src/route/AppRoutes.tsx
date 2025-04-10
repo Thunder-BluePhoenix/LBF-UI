@@ -30,7 +30,7 @@ const AppRoutes = () => {
 	}, [currentUser, isLoading, isValidating,])
 
   return (
- <div  className="flex h-screen w-full">
+ <div  className="flex h-screen w-full ">
       <Routes>
       <Route path="/customer_portal/login" element={<Login />} />
       <Route path="/customer_portal/home" element={<Layout><div className="p-4"> <Home/></div></Layout>}/>

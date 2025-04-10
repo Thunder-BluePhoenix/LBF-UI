@@ -151,7 +151,7 @@ const MaterialRequestList: React.FC = () => {
 
     if (loading) return <p>Loading requests...</p>;
     if (error) return <p>{error}</p>;
-
+console.log(paginatedRequests,"paginatedRequests")
     return (
         <div className="w-full shadow">
             {/* Header and Search */}

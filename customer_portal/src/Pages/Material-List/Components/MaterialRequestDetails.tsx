@@ -90,7 +90,7 @@ console.log(finalItems,"final items with phht")
   if (error) return <p>{error}</p>;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen flex flex-col gap-6">
+    <div className="py-6 bg-gray-50 min-h-screen flex flex-col gap-6">
       <div className="">
         <div className=" ml-12 bg-white shadow-md rounded-lg">
           <div className="flex items-center justify-between bg-white px-4 pt-4 rounded-lg">

@@ -31,7 +31,7 @@ const BillOfLandingList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const itemsPerPage = 10;
-console.log(data, "bill of landing ")
+  console.log(data, "bill of landing ")
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -74,6 +74,23 @@ console.log(data, "bill of landing ")
       setCurrentPage(newPage);
     }
   };
+  const getColorByLetter = (letter: string | undefined) => {
+    if (!letter) return "bg-gray-400";
+
+    const char = letter.toUpperCase();
+    switch (char) {
+      case "A": case "B": case "C": return "bg-red-500";
+      case "D": case "E": case "F": return "bg-green-500";
+      case "G": case "H": case "I": return "bg-blue-500";
+      case "J": case "K": case "L": return "bg-yellow-500";
+      case "M": case "N": case "O": return "bg-purple-500";
+      case "P": case "T": case "R": return "bg-pink-500";
+      case "S": case "Q": case "U": return "bg-indigo-500";
+      case "V": case "W": case "X": case "Y": case "Z": return "bg-teal-500";
+      default: return "bg-gray-400";
+    }
+  };
+
 
   const getStatusClass = (status: string) => {
     switch (status) {
@@ -113,8 +130,8 @@ console.log(data, "bill of landing ")
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-12 mb-2">
+    <div className="w-full shadow rounded-lg py-4">
+      <div className="flex px-4 items-center gap-12  mb-2">
         <div className="flex items-center space-x-4">
           <div
             onClick={handleGoBack}
@@ -159,23 +176,23 @@ console.log(data, "bill of landing ")
 
       {/* Table */}
       <div className="w-full py-4">
-        <table className="min-w-full bg-white shadow rounded ">
-          <thead className='bg-gray-50 border-t border-gray-300'>
+        <table className="min-w-full bg-white  rounded ">
+          <thead className=''>
             <tr className="border-b border-gray-300">
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial no.</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bol ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posting Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted Qty</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Serial no.</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Bol ID</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Customer Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Posting Date</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Total Qty</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Accepted Qty</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
             </tr>
           </thead>
 
           <tbody>
             {paginatedRequests.map((request, index) => (
-              
+
               <tr
                 key={request.name}
                 onClick={() => handleBillOfLanding(request.name)}
@@ -184,16 +201,24 @@ console.log(data, "bill of landing ")
                 <td className="px-6 py-3 text-xs opacity-[70%]">
                   {index + 1 + (currentPage - 1) * itemsPerPage}
                 </td>
-                <td 
-                 
-                className="px-6 py-3 text-xs opacity-[100%]">{request.name}</td>
-                <td className="px-6 py-3 text-xs opacity-[70%] text-black hover:underline cursor-pointer">
+                <td
+
+                  className="px-6 py-3 text-xs opacity-[100%]">{request.name}</td>
+                <td className="px-6 py-3 text-xs opacity-[70%] text-black hover:underline cursor-pointer flex items-center gap-2">
+                  <div
+                    className={`w-4 h-4 rounded-full text-white flex items-center justify-center text-[8px] font-semibold
+      ${getColorByLetter(request.customer?.charAt(0))}`}
+                  >
+                    {request.customer?.charAt(0)}
+                  </div>
                   {request.customer}
                 </td>
+
+
                 <td className="px-6 py-3 text-xs opacity-[70%]">{request.service}</td>
                 <td className="px-6 py-3 text-xs opacity-[70%]">{request.posting_date}</td>
                 {request.service === "Peneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty}</td>)}
-                {request.service === "Tyre Hotel" && ( <td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_th}</td>)}
+                {request.service === "Tyre Hotel" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_th}</td>)}
                 {request.service === "Peneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_accepted}</td>)}
                 {request.service === "Tyre Hotel" && (<td className="px-6 py-3 text-xs opacity-[70%]">{Number(request.total_tyres_without_rim) + Number(request.total_tyres_with_rim)}</td>)}
                 <td className="px-6 py-3 text-xs">
@@ -212,7 +237,7 @@ console.log(data, "bill of landing ")
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center space-x-2 mt-4">
+      <div className="flex justify-center bg-gray-50 space-x-2">
         <button
           className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg"
           disabled={currentPage === 1}

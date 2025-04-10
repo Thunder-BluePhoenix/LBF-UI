@@ -2,72 +2,37 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 
 interface CustomerData {
-  image: string | undefined;
-  tax_id: string;
-  tax_category: string;
-  default_currency: string;
-  default_bank_account: string;
-  payment_terms: string;
-  default_sales_partner: string;
-  default_commission_rate: number;
-  language: string;
-  is_frozen: number;
-  disabled: number;
-  so_required: number;
-  dn_required: number;
-  modified_by: string | number | readonly string[] | undefined;
-  tax_withholding_category: string;
-  customer_name?: string;
-  territory?: string;
-  customer_type?: 'Company' | 'Individual';
-  lead_name?: string;
-  customer_group?: string;
-  opportunity_name?: string;
-  email_id?: string;
-  prospect_name?: string;
-  mobile_no?: string;
-  account_manager?: string;
-  custom_is_parent?: number;
-  parent_customer?: string | null;
-  customer_primary_address?: string;
-  customer_primary_contact?: string;
-  custom_mail_id?: string;
-  custom_contact_no?: string;
+  customer_type: string;
+  lead_name: string;
+  customer_group: string;
+  opportunity_name: string;
+  custom_mail_id: string;
+  prospect_name: string;
+  mobile_no: string;
+  account_manager: string;
+  customer_primary_address: string;
+  customer_primary_contact: string;
+  custom_contact_no: string;
+  territory: string;
+  customer_name: string;
+  
 }
 const CustomerDetails = () => {
   // State for customer data
   const [customerData, setCustomerData] = useState<CustomerData>({
-    tax_id: '',
-    tax_category: '',
-    default_currency: '',
-    default_bank_account: '',
-    payment_terms: '',
-    default_sales_partner: '',
-    default_commission_rate: 0,
-    language: '',
-    is_frozen: 0,
-    disabled: 0,
-    so_required: 0,
-    dn_required: 0,
-    modified_by: '',
-    tax_withholding_category: '',
     customer_name: '',
     territory: '',
     customer_type: 'Company',
     lead_name: '',
     customer_group: '',
     opportunity_name: '',
-    email_id: '',
     prospect_name: '',
     mobile_no: '',
     account_manager: '',
-    custom_is_parent: 0,
-    parent_customer: null,
     customer_primary_address: '',
     customer_primary_contact: '',
     custom_mail_id: '',
     custom_contact_no: '',
-    image: "",
   });
   
   // State for active tab

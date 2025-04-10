@@ -95,7 +95,7 @@ const Sidebar = () => {
       className={`fixed h-screen flex flex-col bg-white border-r border-gray-200 transition-all duration-500 ease-in-out ${isExpanded ? "w-64" : "w-20"
         } z-50`}
     >
-      <div className="flex items-center border border-gray-200 justify-between p-[15px]">
+      <div className="flex items-center border-b border-gray-200 justify-between p-[15px]">
         <NavLink to="/customer_portal/home" className="flex items-center gap-3">
           <div className="px-3">
             <FiHome />
