@@ -217,9 +217,9 @@ const BillOfLandingList: React.FC = () => {
 
                 <td className="px-6 py-3 text-xs opacity-[70%]">{request.service}</td>
                 <td className="px-6 py-3 text-xs opacity-[70%]">{request.posting_date}</td>
-                {request.service === "Peneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty}</td>)}
+                {request.service === "Pneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty}</td>)}
                 {request.service === "Tyre Hotel" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_th}</td>)}
-                {request.service === "Peneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_accepted}</td>)}
+                {request.service === "Pneus Hub" && (<td className="px-6 py-3 text-xs opacity-[70%]">{request.total_qty_accepted}</td>)}
                 {request.service === "Tyre Hotel" && (<td className="px-6 py-3 text-xs opacity-[70%]">{Number(request.total_tyres_without_rim) + Number(request.total_tyres_with_rim)}</td>)}
                 <td className="px-6 py-3 text-xs">
                   <span

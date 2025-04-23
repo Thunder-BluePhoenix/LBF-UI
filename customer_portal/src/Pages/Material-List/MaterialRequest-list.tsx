@@ -218,12 +218,12 @@ console.log(paginatedRequests,"paginatedRequests")
                                     <div className="transition-all duration-300 ease-in-out">
                                         <button
                                             onClick={() =>
-                                                handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Peneus Hub")
+                                                handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Pneus Hub")
                                             }
                                             className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             <CiDeliveryTruck />
-                                            Request For Redelivery - Peneus Hub
+                                            Request For Redelivery - Pneus Hub
                                         </button>
                                         <button
                                             onClick={() =>
@@ -283,7 +283,7 @@ console.log(paginatedRequests,"paginatedRequests")
                                     </td>
                                     <td className="px-6 py-4 block truncate max-w-[15rem] text-gray-600 text-xs">{request.service || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.material_request_type || "Not available"}</td>
-                                    {request.service === "Peneus Hub" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>)}
+                                    {request.service === "Pneus Hub" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.total_qty || "Not available"}</td>)}
                                     {request.service === "Tyre Hotel" && (<td className="px-6 py-4 text-gray-600 text-xs">{request.required_qty_th || "Not available"}</td>)}
                                     <td className="px-6 py-4 text-gray-600 text-xs">{request.contact || "Not available"}</td>
                                     <td className="px-6 py-4 text-gray-600 text-xs relative group">

@@ -1012,7 +1012,7 @@ const RedeliveryForm = () => {
           onDateOfDeliveryChange={handleDateOfDelivery}
         />
 
-        {service === "Peneus Hub" && (
+        {service === "Pneus Hub" && (
           <ItemTable
             items={items}
             itemList={itemList}
@@ -1040,7 +1040,7 @@ const RedeliveryForm = () => {
         )}
 
         <div className="flex flex-row justify-between">
-          {service === "Peneus Hub" && (
+          {service === "Pneus Hub" && (
             <div className="flex flex-row gap-3">
               {!isDocStatusLocked() && (
                 <button

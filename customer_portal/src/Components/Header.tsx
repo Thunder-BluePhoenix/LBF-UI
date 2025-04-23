@@ -196,12 +196,12 @@ const Header = () => {
                   <div className="transition-all duration-300 ease-in-out">
                     <button
                       onClick={() =>
-                        handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Peneus Hub")
+                        handleRedirect("/customer_portal/material-request-form?purpose=Redelivery&service=Pneus Hub")
                       }
                       className="flex items-center w-full px-8 py-2 gap-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <CiDeliveryTruck />
-                      Request For Redelivery - Peneus Hub
+                      Request For Redelivery - Pneus Hub
                     </button>
                     <button
                       onClick={() =>

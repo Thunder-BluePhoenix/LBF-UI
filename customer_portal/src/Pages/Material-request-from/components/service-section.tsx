@@ -59,7 +59,7 @@ export const ServiceSection = ({
           className="w-full px-3 py-2 border border-gray-300 rounded-md mt-1"
         >
           <option>Select Service</option>
-          <option>Peneus Hub</option>
+          <option>Pneus Hub</option>
           <option>Tyre Hotel</option>
         </select>
       </div>
