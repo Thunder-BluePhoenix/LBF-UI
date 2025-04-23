@@ -261,7 +261,7 @@ const BillOfLandingDetails = () => {
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.item_name}</td>
                       <td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.item_code}</td>
-                       {messageData?.service === "Peneus Hub" && (<td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.total_qty}</td>)}
+                       {messageData?.service === "Pneus Hub" && (<td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.total_qty}</td>)}
                        {messageData?.service === "Tyre Hotel" && (<td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.qty}</td>)}
                       <td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.accepted_qty}</td>
                       <td className="px-4 py-2 border-b border-gray-300 text-gray-700">{row.rejected_qty}</td>
